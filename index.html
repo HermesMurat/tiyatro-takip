@@ -3,333 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sahne Üretim Kontrol Merkezi</title>
+    <title>Sahne Üretim Yönetim Sistemi</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --text-color: #ffffff;
-            --card-bg: #1e1e1e;
-            --border-color: #333;
-            --primary-color: #bb86fc;
-            --todo-color: #cf6679;
-            --doing-color: #f2a600;
-            --done-color: #03dac6;
+            --bg-dark: #0f1115;
+            --bg-panel: #1a1d24;
+            --bg-card: #22262f;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #334155;
+            --todo: #f43f5e;
+            --doing: #f59e0b;
+            --done: #10b981;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
             margin: 0;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
         .container {
-            width: 100%;
-            max-width: 1200px;
+            max-width: 1300px;
+            margin: 0 auto;
         }
 
-        /* Üst Kontrol Çubuğu ve Sekmeler */
+        /* --- ORTAK BAŞLIK --- */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
             padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
         }
 
-        .header-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 0;
-        }
-
-        .tab-menu {
-            display: flex;
-            gap: 10px;
-            background-color: var(--card-bg);
-            padding: 5px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-        }
-
-        .tab-btn {
-            background: none;
-            border: none;
-            color: #aaa;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-
-        .tab-btn.active {
-            background-color: #333;
-            color: var(--primary-color);
-        }
-
-        .btn-add {
-            background-color: var(--primary-color);
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* İçerik Alanları */
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 1. KANBAN PANOSU (Atölye) */
-        .kanban-board {
-            display: flex;
-            gap: 20px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-        }
-
-        .kanban-column {
-            flex: 1;
-            min-width: 300px;
-            background-color: #181818;
-            border-radius: 12px;
-            padding: 15px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            min-height: 500px;
-        }
-
-        .kanban-header {
-            font-size: 18px;
-            font-weight: bold;
-            padding-bottom: 10px;
-            border-bottom: 2px solid;
-        }
-
-        .header-todo { border-color: var(--todo-color); }
-        .header-doing { border-color: var(--doing-color); }
-        .header-done { border-color: var(--done-color); }
-
-        .task-card {
-            background-color: var(--card-bg);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            cursor: grab;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-
-        .task-title { font-size: 16px; margin: 0; }
-        .task-meta { font-size: 12px; color: #aaa; display: flex; justify-content: space-between; align-items: center; }
+        h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
         
-        .tag { padding: 4px 8px; border-radius: 4px; font-weight: bold; color: #fff; }
-        .tag.kostum { background-color: #ec407a; }
-        .tag.marangoz { background-color: #8d6e63; }
-        .tag.tasarim { background-color: #42a5f5; }
-
-        /* 2. SATIN ALMA (Kart Görünümü) */
-        .purchase-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+        button { cursor: pointer; border: none; font-family: inherit; }
+        
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: 0.2s;
         }
+        .btn-primary:hover { background-color: var(--accent-hover); }
 
-        .purchase-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-left: 4px solid var(--doing-color);
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        .purchase-card.delivered { border-left-color: var(--done-color); }
-        .purchase-card.pending { border-left-color: var(--todo-color); }
-
-        .status-badge {
-            float: right;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            background: #333;
-        }
-
-        /* 3. GÖRSEL GALERİ (Dosyalar) */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .gallery-item {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        .gallery-img {
-            width: 100%;
-            height: 180px;
-            background-color: #2a2a2a;
+        .btn-back {
+            background-color: transparent;
+            color: var(--text-muted);
+            font-size: 14px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: #666;
-            font-size: 14px;
+            gap: 6px;
+        }
+        .btn-back:hover { background-color: var(--bg-panel); color: white; }
+
+        /* --- GÖRÜNÜM KONTROLLERİ --- */
+        #productions-view { display: block; animation: fadeIn 0.4s; }
+        #single-production-view { display: none; animation: fadeIn 0.4s; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- 1. PRODÜKSİYONLAR ANA EKRANI --- */
+        .production-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
         }
 
-        .gallery-info {
-            padding: 15px;
+        .prod-card {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s, border-color 0.2s;
         }
+        .prod-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .prod-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .prod-title { font-size: 20px; font-weight: 600; margin: 0; }
+        .prod-status { font-size: 11px; padding: 4px 8px; border-radius: 20px; background: rgba(16, 185, 129, 0.1); color: var(--done); border: 1px solid rgba(16, 185, 129, 0.2); }
         
-        .gallery-info h4 { margin: 0 0 5px 0; }
-        .gallery-info p { margin: 0; font-size: 12px; color: #aaa; }
+        .prod-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .btn-enter {
+            width: 100%;
+            background-color: var(--bg-card);
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-weight: 500;
+        }
+        .btn-enter:hover { background-color: var(--accent); border-color: var(--accent); }
+
+        /* --- 2. TEKİL PRODÜKSİYON İÇ EKRANI --- */
+        .prod-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .prod-detail-title { font-size: 28px; font-weight: 700; margin: 0; }
+
+        /* Sekmeler (Tabs) */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1px;
+        }
+        .tab-btn {
+            background: transparent;
+            color: var(--text-muted);
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-btn:hover:not(.active) { color: white; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+        /* Kanban */
+        .kanban { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 10px; }
+        .column { flex: 1; min-width: 300px; background: var(--bg-panel); border-radius: 10px; padding: 15px; border: 1px solid var(--border); }
+        .col-header { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .task { background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; cursor: grab; }
+        .task-title { margin: 0 0 8px 0; font-size: 15px; }
+        .task-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+        
+        /* Etiketler */
+        .tag { padding: 3px 8px; border-radius: 4px; font-weight: 500; color: white; }
+        .tag.marangoz { background: #92400e; }
+        .tag.kostum { background: #be185d; }
+        .tag.demir { background: #374151; }
 
     </style>
 </head>
 <body>
 
     <div class="container">
+        
         <header>
-            <div class="header-title">🎭 Sahne Üretim</div>
-            
-            <div class="tab-menu">
-                <button class="tab-btn active" onclick="openTab('atölye')">🛠️ Atölye Panosu</button>
-                <button class="tab-btn" onclick="openTab('satinalma')">🛒 Satın Alma</button>
-                <button class="tab-btn" onclick="openTab('galeri')">🎨 Görsel Galeri</button>
+            <h1>🎭 Sahne Üretim Yönetimi</h1>
+            <div id="header-actions">
+                <button class="btn-primary" onclick="alert('Yeni prodüksiyon ekleme formu açılacak')">+ Yeni Prodüksiyon</button>
             </div>
-
-            <button class="btn-add">+ Yeni Kayıt</button>
         </header>
 
-        <div id="atölye" class="tab-content active">
-            <div class="kanban-board">
-                <div class="kanban-column" id="todo" ondrop="drop(event)" ondragover="allowDrop(event)">
-                    <div class="kanban-header header-todo">📋 Yapılacaklar</div>
-                    
-                    <div class="task-card" draggable="true" ondragstart="drag(event)" id="task1">
-                        <h3 class="task-title">Dotty - Kostüm Üretimi</h3>
-                        <p style="font-size: 13px; color: #ccc; margin: 0;">Detaylar için direktif bekleniyor. Mevcut ölçülerle kalıp hazırlığı.</p>
-                        <div class="task-meta">
-                            <span class="tag kostum">🧵 Bezleme/Kostüm</span>
-                            <span>Noises Off</span>
-                        </div>
+        <div id="productions-view">
+            <h2 style="font-size: 18px; color: var(--text-muted); margin-bottom: 20px;">Aktif Prodüksiyonlar</h2>
+            
+            <div class="production-grid">
+                
+                <div class="prod-card">
+                    <div class="prod-header">
+                        <h3 class="prod-title">Nihayet Makamı</h3>
+                        <span class="prod-status">Yapım Aşamasında</span>
                     </div>
+                    <div class="prod-stats">
+                        <span>🛠️ 8 Açık İş</span>
+                        <span>🛒 3 Bekleyen Sipariş</span>
+                    </div>
+                    <button class="btn-enter" onclick="openProduction('Nihayet Makamı')">Prodüksiyonu Yönet →</button>
                 </div>
 
-                <div class="kanban-column" id="doing" ondrop="drop(event)" ondragover="allowDrop(event)">
-                    <div class="kanban-header header-doing">⏳ Üretimde</div>
-
-                    <div class="task-card" draggable="true" ondragstart="drag(event)" id="task2">
-                        <h3 class="task-title">Maket Araba İmalatı</h3>
-                        <div class="task-meta">
-                            <span class="tag marangoz">🪵 Marangoz</span>
-                            <span>Nihayet Makamı</span>
-                        </div>
+                <div class="prod-card">
+                    <div class="prod-header">
+                        <h3 class="prod-title">Noises Off</h3>
+                        <span class="prod-status" style="background: rgba(245, 158, 11, 0.1); color: var(--doing); border-color: rgba(245, 158, 11, 0.2);">Ön Hazırlık</span>
                     </div>
+                    <div class="prod-stats">
+                        <span>🛠️ 12 Açık İş</span>
+                        <span>🛒 5 Bekleyen Sipariş</span>
+                    </div>
+                    <button class="btn-enter" onclick="openProduction('Noises Off')">Prodüksiyonu Yönet →</button>
                 </div>
 
-                <div class="kanban-column" id="done" ondrop="drop(event)" ondragover="allowDrop(event)">
-                    <div class="kanban-header header-done">✅ Tamamlandı</div>
-                    
-                    <div class="task-card" draggable="true" ondragstart="drag(event)" id="task3">
-                        <h3 class="task-title">Sabriye - Oyun Broşürü</h3>
-                        <div class="task-meta">
-                            <span class="tag tasarim">🎨 Tasarım</span>
-                            <span>Nihayet Makamı</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
-        <div id="satinalma" class="tab-content">
-            <div class="purchase-grid">
-                <div class="purchase-card pending">
-                    <span class="status-badge">Sipariş Verildi</span>
-                    <h3 style="margin-top:0;">Desenli Kumaş (15m)</h3>
-                    <p style="color: #aaa; font-size: 14px;">Kullanım: Dotty Kostümü<br>Tedarikçi: Eminönü Kumaşçılık</p>
-                </div>
-                <div class="purchase-card delivered">
-                    <span class="status-badge" style="color: var(--done-color);">Teslim Alındı</span>
-                    <h3 style="margin-top:0;">Ahşap Plaka ve Profil Demiri</h3>
-                    <p style="color: #aaa; font-size: 14px;">Kullanım: Maket Araba<br>Tedarikçi: Yapı Market</p>
-                </div>
+        <div id="single-production-view">
+            
+            <div class="prod-detail-header">
+                <button class="btn-back" onclick="showDashboard()">← Ana Sayfaya Dön</button>
+                <h2 class="prod-detail-title" id="current-prod-name">Oyun Adı</h2>
             </div>
-        </div>
 
-        <div id="galeri" class="tab-content">
-            <div class="gallery-grid">
-                <div class="gallery-item">
-                    <div class="gallery-img">[Midjourney Referans Görseli]</div>
-                    <div class="gallery-info">
-                        <h4>Dotty Konsept Tasarımı</h4>
-                        <p>Noises Off - Versiyon 1</p>
-                    </div>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('atölye')">Atölye Panosu</button>
+                <button class="tab-btn" onclick="switchTab('satinalma')">Satın Alma</button>
+                <button class="tab-btn" onclick="switchTab('dosyalar')">Dosyalar ve Çizimler</button>
+            </div>
+
+            <div id="atölye" class="tab-content active">
+                <div style="margin-bottom: 15px; text-align: right;">
+                    <button class="btn-primary" style="background: var(--bg-card); border: 1px solid var(--border);">+ Bu Oyuna İş Ekle</button>
                 </div>
-                <div class="gallery-item">
-                    <div class="gallery-img">[Sahne Çizimi]</div>
-                    <div class="gallery-info">
-                        <h4>Nihayet Makamı Dekor Planı</h4>
-                        <p>Teknik Çizimler</p>
+                
+                <div class="kanban">
+                    <div class="column">
+                        <div class="col-header" style="color: var(--todo);">📋 Yapılacaklar</div>
+                        
+                        <div class="task" draggable="true">
+                            <h4 class="task-title">Dotty Karakteri - Ana Kostüm</h4>
+                            <div class="task-meta">
+                                <span class="tag kostum">Bezleme Atölyesi</span>
+                                <span>12 Mart</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="column">
+                        <div class="col-header" style="color: var(--doing);">⏳ Üretimde</div>
+                        
+                        <div class="task" draggable="true">
+                            <h4 class="task-title">Sabriye Karakteri - Sahne Aksesuarları</h4>
+                            <div class="task-meta">
+                                <span class="tag marangoz">Marangoz Atölyesi</span>
+                                <span>15 Mart</span>
+                            </div>
+                        </div>
+                        
+                        <div class="task" draggable="true">
+                            <h4 class="task-title">Maket Araba İskeleti</h4>
+                            <div class="task-meta">
+                                <span class="tag demir">Demir Atölyesi</span>
+                                <span>18 Mart</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="column">
+                        <div class="col-header" style="color: var(--done);">✅ Tamamlandı</div>
+                        <div class="task" style="opacity: 0.6;">
+                            <h4 class="task-title">Oyun Broşürü Taslağı</h4>
+                            <div class="task-meta">
+                                <span>Tasarım Birimi</span>
+                                <span>10 Mart</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div id="satinalma" class="tab-content">
+                <div class="task" style="max-width: 600px;">
+                    <h4 class="task-title" style="color: var(--doing);">Sipariş Verildi: Karışık Desenli Kumaş (10m)</h4>
+                    <p style="font-size: 13px; color: var(--text-muted); margin: 5px 0 0 0;">Kullanım: Dotty Kostümü | Tedarikçi: Merkez Kumaş</p>
+                </div>
+            </div>
+
+            <div id="dosyalar" class="tab-content">
+                <div class="task" style="max-width: 600px; display: flex; gap: 15px; align-items: center;">
+                    <div style="width: 80px; height: 80px; background: #333; border-radius: 4px; display: flex; align-items:center; justify-content:center; font-size:24px;">🖼️</div>
+                    <div>
+                        <h4 class="task-title">Dekor Planı - Versiyon 2.pdf</h4>
+                        <p style="font-size: 13px; color: var(--text-muted); margin: 5px 0 0 0;">Maket araba ölçüleri güncellendi.</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </div>
 
     <script>
-        // Sekme (Tab) Değiştirme Sistemi
-        function openTab(tabName) {
-            // Tüm içerikleri gizle
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            // Tüm butonların aktiflik durumunu kaldır
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
+        // 1. ANA SAYFA VE PRODÜKSİYON ARASI GEÇİŞ MANTIĞI
+        const dashboardView = document.getElementById('productions-view');
+        const detailView = document.getElementById('single-production-view');
+        const headerActions = document.getElementById('header-actions');
 
-            // Seçilen sekmeyi göster ve butonunu aktif yap
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
+        function openProduction(playName) {
+            // İlgili oyunun adını başlığa yazdır
+            document.getElementById('current-prod-name').innerText = playName;
+            
+            // Ana ekranı gizle, detay ekranını aç
+            dashboardView.style.display = 'none';
+            headerActions.style.display = 'none'; // Üstteki Yeni Prodüksiyon butonunu gizle
+            detailView.style.display = 'block';
+
+            // İçeriği oyuna göre filtreleme mantığı (Şimdilik görsel)
+            // Gerçek veritabanında burada seçilen oyuna ait veriler (fetch) çekilir.
         }
 
-        // Kanban Sürükle-Bırak Sistemi
-        function allowDrop(ev) { ev.preventDefault(); }
-        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
-        function drop(ev) {
-            ev.preventDefault();
-            var data = ev.dataTransfer.getData("text");
-            if (ev.target.classList.contains('kanban-column')) {
-                ev.target.appendChild(document.getElementById(data));
-            } else if (ev.target.closest('.kanban-column')) {
-                ev.target.closest('.kanban-column').appendChild(document.getElementById(data));
-            }
+        function showDashboard() {
+            // Detay ekranını gizle, ana ekranı aç
+            detailView.style.display = 'none';
+            dashboardView.style.display = 'block';
+            headerActions.style.display = 'block';
+        }
+
+        // 2. PRODÜKSİYON İÇİ SEKME (TAB) MANTIĞI
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
     </script>
 </body>
