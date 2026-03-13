@@ -6,333 +6,255 @@
     <title>Sahne Üretim Yönetim Sistemi</title>
     <style>
         :root {
-            --bg-dark: #0f1115;
-            --bg-panel: #1a1d24;
-            --bg-card: #22262f;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --border: #334155;
-            --todo: #f43f5e;
-            --doing: #f59e0b;
-            --done: #10b981;
+            --bg-dark: #0f1115; --bg-panel: #1a1d24; --bg-card: #22262f;
+            --text-main: #f1f5f9; --text-muted: #94a3b8;
+            --accent: #3b82f6; --accent-hover: #2563eb;
+            --border: #334155; --danger: #ef4444;
+            --todo: #f43f5e; --doing: #f59e0b; --done: #10b981;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-        }
-
-        /* --- ORTAK BAŞLIK --- */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 30px;
-        }
-
-        h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
         
-        button { cursor: pointer; border: none; font-family: inherit; }
+        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
+        h1 { margin: 0; font-size: 22px; font-weight: 600; }
         
-        .btn-primary {
-            background-color: var(--accent);
-            color: white;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-weight: 500;
-            transition: 0.2s;
-        }
+        button { cursor: pointer; border: none; font-family: inherit; border-radius: 6px; font-weight: 500; transition: 0.2s; }
+        .btn-primary { background-color: var(--accent); color: white; padding: 10px 18px; }
         .btn-primary:hover { background-color: var(--accent-hover); }
-
-        .btn-back {
-            background-color: transparent;
-            color: var(--text-muted);
-            font-size: 14px;
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+        .btn-back { background-color: transparent; color: var(--text-muted); padding: 8px 12px; border: 1px solid var(--border); }
         .btn-back:hover { background-color: var(--bg-panel); color: white; }
+        .btn-danger { background-color: transparent; color: var(--danger); padding: 5px 10px; border: 1px solid var(--danger); font-size: 12px; }
 
-        /* --- GÖRÜNÜM KONTROLLERİ --- */
-        #productions-view { display: block; animation: fadeIn 0.4s; }
-        #single-production-view { display: none; animation: fadeIn 0.4s; }
+        /* Dialog / Popup Formları */
+        dialog { background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); border-radius: 12px; padding: 25px; width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        dialog::backdrop { background: rgba(0,0,0,0.7); }
+        input, select { width: 100%; box-sizing: border-box; padding: 10px; margin: 8px 0 20px 0; background: var(--bg-dark); color: white; border: 1px solid var(--border); border-radius: 6px; }
+        .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Görünümler */
+        #productions-view { display: block; }
+        #single-production-view { display: none; }
 
-        /* --- 1. PRODÜKSİYONLAR ANA EKRANI --- */
-        .production-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 24px;
-        }
-
-        .prod-card {
-            background-color: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        .prod-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent);
-        }
-
-        .prod-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
+        /* Prodüksiyon Kartları */
+        .production-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .prod-card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+        .prod-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
         .prod-title { font-size: 20px; font-weight: 600; margin: 0; }
-        .prod-status { font-size: 11px; padding: 4px 8px; border-radius: 20px; background: rgba(16, 185, 129, 0.1); color: var(--done); border: 1px solid rgba(16, 185, 129, 0.2); }
         
-        .prod-stats {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
+        .btn-enter { width: 100%; background-color: var(--bg-card); color: white; padding: 12px; border: 1px solid var(--border); margin-top: 15px; }
+        .btn-enter:hover { border-color: var(--accent); color: var(--accent); }
 
-        .btn-enter {
-            width: 100%;
-            background-color: var(--bg-card);
-            color: white;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            font-weight: 500;
-        }
-        .btn-enter:hover { background-color: var(--accent); border-color: var(--accent); }
-
-        /* --- 2. TEKİL PRODÜKSİYON İÇ EKRANI --- */
-        .prod-detail-header {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .prod-detail-title { font-size: 28px; font-weight: 700; margin: 0; }
-
-        /* Sekmeler (Tabs) */
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1px;
-        }
-        .tab-btn {
-            background: transparent;
-            color: var(--text-muted);
-            padding: 10px 20px;
-            font-size: 15px;
-            font-weight: 500;
-            border-bottom: 2px solid transparent;
-        }
-        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-        .tab-btn:hover:not(.active) { color: white; }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
-
-        /* Kanban */
+        /* Kanban Panosu */
         .kanban { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 10px; }
-        .column { flex: 1; min-width: 300px; background: var(--bg-panel); border-radius: 10px; padding: 15px; border: 1px solid var(--border); }
-        .col-header { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .column { flex: 1; min-width: 300px; background: var(--bg-panel); border-radius: 10px; padding: 15px; border: 1px solid var(--border); min-height: 400px; }
+        .col-header { font-size: 14px; font-weight: 600; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid; }
         
         .task { background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; cursor: grab; }
+        .task:active { cursor: grabbing; opacity: 0.7; }
         .task-title { margin: 0 0 8px 0; font-size: 15px; }
         .task-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
-        
-        /* Etiketler */
-        .tag { padding: 3px 8px; border-radius: 4px; font-weight: 500; color: white; }
-        .tag.marangoz { background: #92400e; }
-        .tag.kostum { background: #be185d; }
-        .tag.demir { background: #374151; }
+        .tag { padding: 3px 8px; border-radius: 4px; color: white; font-weight: 500; }
 
     </style>
 </head>
 <body>
 
     <div class="container">
-        
         <header>
             <h1>🎭 Sahne Üretim Yönetimi</h1>
-            <div id="header-actions">
-                <button class="btn-primary" onclick="alert('Yeni prodüksiyon ekleme formu açılacak')">+ Yeni Prodüksiyon</button>
-            </div>
+            <button id="btn-new-prod" class="btn-primary" onclick="document.getElementById('modal-add-prod').showModal()">+ Yeni Oyun Ekle</button>
         </header>
 
         <div id="productions-view">
-            <h2 style="font-size: 18px; color: var(--text-muted); margin-bottom: 20px;">Aktif Prodüksiyonlar</h2>
-            
-            <div class="production-grid">
-                
-                <div class="prod-card">
-                    <div class="prod-header">
-                        <h3 class="prod-title">Nihayet Makamı</h3>
-                        <span class="prod-status">Yapım Aşamasında</span>
-                    </div>
-                    <div class="prod-stats">
-                        <span>🛠️ 8 Açık İş</span>
-                        <span>🛒 3 Bekleyen Sipariş</span>
-                    </div>
-                    <button class="btn-enter" onclick="openProduction('Nihayet Makamı')">Prodüksiyonu Yönet →</button>
+            <h2 style="font-size: 18px; color: var(--text-muted); margin-bottom: 20px;">Aktif Oyunlar</h2>
+            <div class="production-grid" id="prod-list">
                 </div>
-
-                <div class="prod-card">
-                    <div class="prod-header">
-                        <h3 class="prod-title">Noises Off</h3>
-                        <span class="prod-status" style="background: rgba(245, 158, 11, 0.1); color: var(--doing); border-color: rgba(245, 158, 11, 0.2);">Ön Hazırlık</span>
-                    </div>
-                    <div class="prod-stats">
-                        <span>🛠️ 12 Açık İş</span>
-                        <span>🛒 5 Bekleyen Sipariş</span>
-                    </div>
-                    <button class="btn-enter" onclick="openProduction('Noises Off')">Prodüksiyonu Yönet →</button>
-                </div>
-
-            </div>
         </div>
 
         <div id="single-production-view">
-            
-            <div class="prod-detail-header">
-                <button class="btn-back" onclick="showDashboard()">← Ana Sayfaya Dön</button>
-                <h2 class="prod-detail-title" id="current-prod-name">Oyun Adı</h2>
-            </div>
-
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('atölye')">Atölye Panosu</button>
-                <button class="tab-btn" onclick="switchTab('satinalma')">Satın Alma</button>
-                <button class="tab-btn" onclick="switchTab('dosyalar')">Dosyalar ve Çizimler</button>
-            </div>
-
-            <div id="atölye" class="tab-content active">
-                <div style="margin-bottom: 15px; text-align: right;">
-                    <button class="btn-primary" style="background: var(--bg-card); border: 1px solid var(--border);">+ Bu Oyuna İş Ekle</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <button class="btn-back" onclick="showDashboard()">← Geri</button>
+                    <h2 id="current-prod-title" style="margin: 0; font-size: 24px;">Oyun Adı</h2>
                 </div>
-                
-                <div class="kanban">
-                    <div class="column">
-                        <div class="col-header" style="color: var(--todo);">📋 Yapılacaklar</div>
-                        
-                        <div class="task" draggable="true">
-                            <h4 class="task-title">Dotty Karakteri - Ana Kostüm</h4>
-                            <div class="task-meta">
-                                <span class="tag kostum">Bezleme Atölyesi</span>
-                                <span>12 Mart</span>
-                            </div>
-                        </div>
-                    </div>
+                <button class="btn-primary" onclick="document.getElementById('modal-add-task').showModal()">+ Atölye İşi Ekle</button>
+            </div>
 
-                    <div class="column">
-                        <div class="col-header" style="color: var(--doing);">⏳ Üretimde</div>
-                        
-                        <div class="task" draggable="true">
-                            <h4 class="task-title">Sabriye Karakteri - Sahne Aksesuarları</h4>
-                            <div class="task-meta">
-                                <span class="tag marangoz">Marangoz Atölyesi</span>
-                                <span>15 Mart</span>
-                            </div>
-                        </div>
-                        
-                        <div class="task" draggable="true">
-                            <h4 class="task-title">Maket Araba İskeleti</h4>
-                            <div class="task-meta">
-                                <span class="tag demir">Demir Atölyesi</span>
-                                <span>18 Mart</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="column">
-                        <div class="col-header" style="color: var(--done);">✅ Tamamlandı</div>
-                        <div class="task" style="opacity: 0.6;">
-                            <h4 class="task-title">Oyun Broşürü Taslağı</h4>
-                            <div class="task-meta">
-                                <span>Tasarım Birimi</span>
-                                <span>10 Mart</span>
-                            </div>
-                        </div>
-                    </div>
+            <div class="kanban">
+                <div class="column" id="todo" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="col-header" style="border-color: var(--todo);">📋 Yapılacaklar</div>
+                    <div id="todo-tasks"></div>
+                </div>
+                <div class="column" id="doing" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="col-header" style="border-color: var(--doing);">⏳ Üretimde</div>
+                    <div id="doing-tasks"></div>
+                </div>
+                <div class="column" id="done" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="col-header" style="border-color: var(--done);">✅ Tamamlandı</div>
+                    <div id="done-tasks"></div>
                 </div>
             </div>
-
-            <div id="satinalma" class="tab-content">
-                <div class="task" style="max-width: 600px;">
-                    <h4 class="task-title" style="color: var(--doing);">Sipariş Verildi: Karışık Desenli Kumaş (10m)</h4>
-                    <p style="font-size: 13px; color: var(--text-muted); margin: 5px 0 0 0;">Kullanım: Dotty Kostümü | Tedarikçi: Merkez Kumaş</p>
-                </div>
-            </div>
-
-            <div id="dosyalar" class="tab-content">
-                <div class="task" style="max-width: 600px; display: flex; gap: 15px; align-items: center;">
-                    <div style="width: 80px; height: 80px; background: #333; border-radius: 4px; display: flex; align-items:center; justify-content:center; font-size:24px;">🖼️</div>
-                    <div>
-                        <h4 class="task-title">Dekor Planı - Versiyon 2.pdf</h4>
-                        <p style="font-size: 13px; color: var(--text-muted); margin: 5px 0 0 0;">Maket araba ölçüleri güncellendi.</p>
-                    </div>
-                </div>
-            </div>
-
         </div>
-
     </div>
 
+    <dialog id="modal-add-prod">
+        <h3 style="margin-top: 0;">Yeni Oyun Ekle</h3>
+        <label>Oyun Adı:</label>
+        <input type="text" id="input-prod-name" placeholder="Örn: Nihayet Makamı">
+        <div class="dialog-actions">
+            <button class="btn-back" onclick="document.getElementById('modal-add-prod').close()">İptal</button>
+            <button class="btn-primary" onclick="addProduction()">Kaydet</button>
+        </div>
+    </dialog>
+
+    <dialog id="modal-add-task">
+        <h3 style="margin-top: 0;">Yeni İş Ekle</h3>
+        <label>İş / Çizim Tanımı:</label>
+        <input type="text" id="input-task-name" placeholder="Örn: Sabriye - Broşür Tasarımı">
+        <label>Atölye Seçimi:</label>
+        <select id="input-task-type">
+            <option value="Tasarım|#42a5f5">🎨 Tasarım / Çizim</option>
+            <option value="Kostüm|#ec407a">🧵 Kostüm & Bezleme</option>
+            <option value="Marangoz|#8d6e63">🪵 Marangoz</option>
+            <option value="Demir|#78909c">🔩 Demir</option>
+        </select>
+        <div class="dialog-actions">
+            <button class="btn-back" onclick="document.getElementById('modal-add-task').close()">İptal</button>
+            <button class="btn-primary" onclick="addTask()">İşi Ekle</button>
+        </div>
+    </dialog>
+
     <script>
-        // 1. ANA SAYFA VE PRODÜKSİYON ARASI GEÇİŞ MANTIĞI
-        const dashboardView = document.getElementById('productions-view');
-        const detailView = document.getElementById('single-production-view');
-        const headerActions = document.getElementById('header-actions');
+        // --- VERİTABANI VE YÖNETİM ---
+        let appData = JSON.parse(localStorage.getItem('sahneVerileri2')) || { productions: [] };
+        let activeProdId = null;
 
-        function openProduction(playName) {
-            // İlgili oyunun adını başlığa yazdır
-            document.getElementById('current-prod-name').innerText = playName;
+        function saveData() { localStorage.setItem('sahneVerileri2', JSON.stringify(appData)); }
+
+        // --- ANA SAYFA YÜKLEME ---
+        function renderDashboard() {
+            const list = document.getElementById('prod-list');
+            list.innerHTML = '';
             
-            // Ana ekranı gizle, detay ekranını aç
-            dashboardView.style.display = 'none';
-            headerActions.style.display = 'none'; // Üstteki Yeni Prodüksiyon butonunu gizle
-            detailView.style.display = 'block';
+            if (appData.productions.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted);">Henüz eklenmiş bir oyun yok. Yukarıdan Yeni Oyun Ekle butonuna basın.</p>';
+                return;
+            }
 
-            // İçeriği oyuna göre filtreleme mantığı (Şimdilik görsel)
-            // Gerçek veritabanında burada seçilen oyuna ait veriler (fetch) çekilir.
+            appData.productions.forEach(prod => {
+                list.innerHTML += `
+                    <div class="prod-card">
+                        <div class="prod-header">
+                            <h3 class="prod-title">${prod.name}</h3>
+                            <button class="btn-danger" onclick="deleteProd(${prod.id})">Sil</button>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 14px;">Toplam İş: ${prod.tasks.length}</p>
+                        <button class="btn-enter" onclick="openProd(${prod.id})">Prodüksiyonu Yönet →</button>
+                    </div>
+                `;
+            });
+        }
+
+        // --- OYUN EKLEME ---
+        function addProduction() {
+            const name = document.getElementById('input-prod-name').value;
+            if (!name) return;
+            appData.productions.push({ id: Date.now(), name: name, tasks: [] });
+            saveData();
+            document.getElementById('input-prod-name').value = '';
+            document.getElementById('modal-add-prod').close();
+            renderDashboard();
+        }
+
+        function deleteProd(id) {
+            if(confirm("Bu oyunu tamamen silmek istiyor musunuz?")) {
+                appData.productions = appData.productions.filter(p => p.id !== id);
+                saveData(); renderDashboard();
+            }
+        }
+
+        // --- OYUN İÇİNE GİRİŞ VE ÇIKIŞ ---
+        function openProd(id) {
+            activeProdId = id;
+            const prod = appData.productions.find(p => p.id === id);
+            document.getElementById('current-prod-title').innerText = prod.name;
+            
+            document.getElementById('productions-view').style.display = 'none';
+            document.getElementById('btn-new-prod').style.display = 'none';
+            document.getElementById('single-production-view').style.display = 'block';
+            
+            renderKanban();
         }
 
         function showDashboard() {
-            // Detay ekranını gizle, ana ekranı aç
-            detailView.style.display = 'none';
-            dashboardView.style.display = 'block';
-            headerActions.style.display = 'block';
+            activeProdId = null;
+            document.getElementById('single-production-view').style.display = 'none';
+            document.getElementById('productions-view').style.display = 'block';
+            document.getElementById('btn-new-prod').style.display = 'block';
+            renderDashboard();
         }
 
-        // 2. PRODÜKSİYON İÇİ SEKME (TAB) MANTIĞI
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
+        // --- KANBAN VE İŞ YÖNETİMİ ---
+        function renderKanban() {
+            const prod = appData.productions.find(p => p.id === activeProdId);
+            document.getElementById('todo-tasks').innerHTML = '';
+            document.getElementById('doing-tasks').innerHTML = '';
+            document.getElementById('done-tasks').innerHTML = '';
+
+            prod.tasks.forEach(task => {
+                const typeData = task.type.split('|');
+                const html = `
+                    <div class="task" draggable="true" ondragstart="drag(event, ${task.id})" id="task-${task.id}">
+                        <h4 class="task-title">${task.name}</h4>
+                        <div class="task-meta">
+                            <span class="tag" style="background-color: ${typeData[1]}">${typeData[0]}</span>
+                            <button class="btn-danger" style="border:none;" onclick="deleteTask(${task.id})">Sil</button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById(task.status + '-tasks').innerHTML += html;
+            });
         }
+
+        function addTask() {
+            const name = document.getElementById('input-task-name').value;
+            const type = document.getElementById('input-task-type').value;
+            if (!name) return;
+
+            const prod = appData.productions.find(p => p.id === activeProdId);
+            prod.tasks.push({ id: Date.now(), name: name, type: type, status: 'todo' });
+            
+            saveData();
+            document.getElementById('input-task-name').value = '';
+            document.getElementById('modal-add-task').close();
+            renderKanban();
+        }
+
+        function deleteTask(taskId) {
+            const prod = appData.productions.find(p => p.id === activeProdId);
+            prod.tasks = prod.tasks.filter(t => t.id !== taskId);
+            saveData(); renderKanban();
+        }
+
+        // --- SÜRÜKLE BIRAK (DRAG & DROP) ---
+        function allowDrop(ev) { ev.preventDefault(); }
+        function drag(ev, taskId) { ev.dataTransfer.setData("taskId", taskId); }
+        function drop(ev) {
+            ev.preventDefault();
+            const taskId = parseInt(ev.dataTransfer.getData("taskId"));
+            const columnId = ev.target.closest('.column').id; // todo, doing, done
+            
+            const prod = appData.productions.find(p => p.id === activeProdId);
+            const task = prod.tasks.find(t => t.id === taskId);
+            task.status = columnId; // Durumu güncelle
+            
+            saveData();
+            renderKanban();
+        }
+
+        // Başlangıç
+        renderDashboard();
     </script>
 </body>
 </html>
