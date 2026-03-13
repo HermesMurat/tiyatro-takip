@@ -1,286 +1,1753 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dekor Parça Üretim Takip</title>
-  <style>
-    :root {
-      --bg: #0f0f0f;
-      --card: #1a1a1a;
-      --text: #e0e0e0;
-      --accent: #bb86fc;
-      --done: #03dac6;
-      --warn: #cf6679;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 16px;
-      min-height: 100vh;
-    }
-    h1 {
-      text-align: center;
-      margin: 20px 0;
-      color: var(--accent);
-      font-size: 1.8rem;
-    }
-    form {
-      background: var(--card);
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-    label {
-      display: block;
-      margin: 10px 0 4px;
-      font-size: 0.9rem;
-      color: #aaa;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #444;
-      border-radius: 6px;
-      background: #222;
-      color: white;
-      font-size: 1rem;
-    }
-    button {
-      background: var(--accent);
-      color: black;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 8px;
-    }
-    button:hover { opacity: 0.9; }
-
-    .list {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .item {
-      background: var(--card);
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-      position: relative;
-    }
-    .item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .parca-no { font-weight: bold; color: var(--accent); }
-    .status {
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: bold;
-    }
-    .status-plan { background:#555; }
-    .status-malzeme { background:#665c00; color:#ffeb3b; }
-    .status-kesim { background:#006064; color:#b2ebf2; }
-    .status-boyama { background:#880e4f; color:#f8bbd0; }
-    .status-montaj { background:#1b5e20; color:#c8e6c9; }
-    .status-done { background:var(--done); color:black; }
-    .status-warn { background:var(--warn); color:white; }
-
-    .foto-alan img {
-      max-width: 100%;
-      border-radius: 8px;
-      margin-top: 10px;
-      display: block;
-    }
-    .foto-alan:empty { display:none; }
-
-    .delete-btn {
-      background: #cf6679;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-
-    @media (min-width: 600px) {
-      .container { max-width: 800px; margin: 0 auto; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahne Üretim Takip Sistemi</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --primary-light: #a78bfa;
+            --bg-main: #fafafa;
+            --bg-secondary: #f5f5f7;
+            --bg-tertiary: #efefef;
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --border: #d2d2d7;
+            --success: #34c759;
+            --success-light: #e8f5e9;
+            --warning: #ff9500;
+            --warning-light: #fff3e0;
+            --info: #007aff;
+            --info-light: #e3f2fd;
+            --danger: #ff3b30;
+            --danger-light: #ffebee;
+            --shadow: rgba(0, 0, 0, 0.05);
+            --overlay: rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="dark"] {
+            --primary: #a78bfa;
+            --primary-dark: #9333ea;
+            --primary-light: #c4b5fd;
+            --bg-main: #1c1c1e;
+            --bg-secondary: #2c2c2e;
+            --bg-tertiary: #3a3a3c;
+            --text-primary: #f5f5f7;
+            --text-secondary: #98989d;
+            --border: #38383a;
+            --success: #30d158;
+            --success-light: #1e3a28;
+            --warning: #ff9f0a;
+            --warning-light: #3d2f1f;
+            --info: #0a84ff;
+            --info-light: #1e2b3d;
+            --danger: #ff453a;
+            --danger-light: #3d1f1f;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --overlay: rgba(0, 0, 0, 0.6);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 20px 30px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1em;
+            color: var(--text-secondary);
+        }
+        
+        .theme-toggle {
+            position: absolute;
+            top: 40px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        /* Views */
+        .view {
+            display: none;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+        
+        .back-button:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--primary);
+        }
+        
+        /* Production Cards */
+        .productions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+        
+        .production-card {
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 12px var(--shadow);
+            cursor: pointer;
+        }
+        
+        .production-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow);
+            border-color: var(--primary);
+        }
+        
+        .production-poster {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .production-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .production-card-content {
+            padding: 24px;
+        }
+        
+        .production-card h3 {
+            font-size: 1.6em;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        
+        .production-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .production-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95em;
+            color: var(--text-secondary);
+        }
+        
+        .production-meta-item strong {
+            color: var(--text-primary);
+            min-width: 90px;
+        }
+        
+        .pending-tasks-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: var(--info-light);
+            color: var(--info);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95em;
+            margin-top: 12px;
+        }
+        
+        .production-actions {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+        }
+        
+        /* Production Detail */
+        .production-detail-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 16px;
+            padding: 32px;
+            color: white;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 32px;
+            align-items: start;
+        }
+        
+        .production-detail-poster {
+            width: 200px;
+            height: 280px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            flex-shrink: 0;
+            border: 3px solid var(--border);
+        }
+        
+        .production-detail-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 9px;
+        }
+        
+        .production-detail-info {
+            flex: 1;
+        }
+        
+        .production-detail-info h2 {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .production-detail-info .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .meta-item {
+            background: var(--bg-tertiary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .meta-item label {
+            font-size: 0.85em;
+            opacity: 0.8;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .meta-item value {
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        
+        /* Tabs */
+        .production-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0;
+            flex-wrap: wrap;
+        }
+        
+        .production-tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        
+        .production-tab:hover {
+            color: var(--text-primary);
+        }
+        
+        .production-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .production-tab-content {
+            display: none;
+        }
+        
+        .production-tab-content.active {
+            display: block;
+        }
+        
+        /* Workshop Items */
+        .workshop-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .workshop-item {
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px var(--shadow);
+        }
+        
+        .workshop-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+        
+        .workshop-item h4 {
+            color: var(--text-primary);
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .workshop-status-badge {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+        
+        .workshop-status-beklemede {
+            background: var(--warning-light);
+            color: var(--warning);
+            border: 2px solid var(--warning);
+        }
+        
+        .workshop-status-devam {
+            background: var(--info-light);
+            color: var(--info);
+            border: 2px solid var(--info);
+        }
+        
+        .workshop-status-tamamlandi {
+            background: var(--success-light);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+        
+        .workshop-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+        
+        .workshop-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .workshop-photos {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .workshop-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .workshop-photo:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+        
+        /* Procurement Table */
+        .procurement-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .procurement-table th {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 0.9em;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .procurement-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-main);
+            color: var(--text-primary);
+        }
+        
+        .procurement-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .procurement-table tr:hover td {
+            background: var(--bg-secondary);
+        }
+        
+        /* Files Grid */
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .file-card {
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px var(--shadow);
+        }
+        
+        .file-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        
+        .file-card h4 {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+        
+        .file-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        
+        .file-tag {
+            padding: 4px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: var(--text-primary);
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 10px 24px;
+            border: 1px solid var(--border);
+            background: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+        }
+        
+        .btn:hover {
+            background: var(--bg-secondary);
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-small {
+            padding: 8px 14px;
+            font-size: 0.85em;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-main);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .btn-small:hover {
+            background: var(--bg-secondary);
+        }
+        
+        .btn-delete {
+            color: var(--danger);
+            border-color: var(--danger-light);
+        }
+        
+        .btn-delete:hover {
+            background: var(--danger-light);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--bg-main);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5em;
+            color: var(--text-secondary);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .close-modal:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        .modal h2 {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95em;
+            transition: all 0.2s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .file-upload {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--bg-secondary);
+        }
+        
+        .file-upload:hover {
+            border-color: var(--primary);
+            background: var(--bg-tertiary);
+        }
+        
+        .file-upload input[type="file"] {
+            display: none;
+        }
+        
+        .photo-preview {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .photo-preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+        
+        .photo-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+        }
+        
+        .photo-preview-item .remove {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--danger);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.3em;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .productions-grid { grid-template-columns: 1fr; }
+            .production-detail-header { flex-direction: column; }
+            .production-detail-poster { width: 100%; height: 300px; }
+            .production-tabs { overflow-x: auto; }
+            .theme-toggle { position: static; margin-top: 16px; }
+        }
+    </style>
 </head>
 <body>
-
-<div class="container">
-  <h1>Dekor Parça Takip</h1>
-
-  <form id="form">
-    <label>Parça No / Kod</label>
-    <input type="text" id="no" placeholder="01, A1, Pencere-1 vb." required>
-
-    <label>Parça Adı</label>
-    <input type="text" id="ad" placeholder="Arka plan duvarı, Kapı pervazı..." required>
-
-    <label>Açıklama / Detay</label>
-    <textarea id="aciklama" rows="2" placeholder="Tahta çerçeve + bez kaplama..."></textarea>
-
-    <label>Malzeme</label>
-    <input type="text" id="malzeme" placeholder="Kontrplak 18mm, MDF, Pleksi...">
-
-    <label>Ölçü / Adet</label>
-    <input type="text" id="olcu" placeholder="4x3 m, 2 adet...">
-
-    <label>Sorumlu</label>
-    <input type="text" id="sorumlu" placeholder="Ahmet, Ayşe...">
-
-    <label>Planlanan Bitiş</label>
-    <input type="date" id="planlanan">
-
-    <label>Durum</label>
-    <select id="durum">
-      <option value="Planlanıyor">Planlanıyor</option>
-      <option value="Malzeme Bekleniyor">Malzeme Bekleniyor</option>
-      <option value="Kesim / Marangozluk">Kesim / Marangozluk</option>
-      <option value="Zımpara / Astardan">Zımpara / Astardan</option>
-      <option value="Boyama / Kaplama">Boyama / Kaplama</option>
-      <option value="Montaj / Kurulum">Montaj / Kurulum</option>
-      <option value="Tamamlandı">Tamamlandı</option>
-      <option value="Gecikti / Sorun Var">Gecikti / Sorun Var</option>
-    </select>
-
-    <label>Fotoğraf Ekle (telefon kamerası veya galeri)</label>
-    <input type="file" id="foto" accept="image/*">
-
-    <button type="submit">Parçayı Ekle / Güncelle</button>
-  </form>
-
-  <div class="list" id="liste"></div>
-</div>
-
-<script>
-  const form = document.getElementById('form');
-  const liste = document.getElementById('liste');
-  let editId = null;
-
-  // LocalStorage'dan yükle
-  let parcalar = JSON.parse(localStorage.getItem('dekorParcalar')) || [];
-
-  function kaydet() {
-    localStorage.setItem('dekorParcalar', JSON.stringify(parcalar));
-    renderListe();
-  }
-
-  function renderListe() {
-    liste.innerHTML = '';
-    parcalar.forEach((p, index) => {
-      const div = document.createElement('div');
-      div.className = 'item';
-      div.innerHTML = `
-        <div class="item-header">
-          <span class="parca-no">${p.no || '—'}</span>
-          <span class="status status-${p.durum.toLowerCase().replace(/\s+/g,'-').replace(/[ \/]/g,'')}">${p.durum}</span>
+    <div class="app-container">
+        <header class="header">
+            <h1>SAHNE ÜRETİM TAKİP</h1>
+            <p>Tiyatro Prodüksiyon Yönetim Sistemi</p>
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <span id="themeIcon">🌙</span>
+                <span id="themeText">Karanlık Mod</span>
+            </div>
+        </header>
+        
+        <!-- Main View: Productions List -->
+        <div id="mainView" class="view active">
+            <div style="margin-bottom: 24px;">
+                <button class="btn btn-primary" onclick="openModal('projectModal')">
+                    <span>+ Yeni Oyun Ekle</span>
+                </button>
+            </div>
+            
+            <div class="productions-grid" id="productionsGrid"></div>
         </div>
-        <strong>${p.ad}</strong><br>
-        ${p.aciklama ? `<small>${p.aciklama}</small><br>` : ''}
-        ${p.malzeme ? `Malzeme: ${p.malzeme}<br>` : ''}
-        ${p.olcu ? `Ölçü/Adet: ${p.olcu}<br>` : ''}
-        ${p.sorumlu ? `Sorumlu: ${p.sorumlu}<br>` : ''}
-        ${p.planlanan ? `Planlanan bitiş: ${p.planlanan}<br>` : ''}
-        ${p.gercekBitis ? `Gerçek bitiş: ${p.gercekBitis}<br>` : ''}
-
-        <div class="foto-alan">
-          ${p.foto ? `<img src="${p.foto}" alt="Parça fotoğrafı">` : ''}
+        
+        <!-- Production Detail View -->
+        <div id="productionDetailView" class="view">
+            <button class="back-button" onclick="goToMainView()">
+                ← Ana Sayfaya Dön
+            </button>
+            
+            <div class="production-detail-header" id="productionDetailHeader">
+                <!-- Will be populated dynamically -->
+            </div>
+            
+            <div class="production-tabs">
+                <button class="production-tab active" data-tab="demir">🔩 Demir</button>
+                <button class="production-tab" data-tab="marangoz">🪵 Marangoz</button>
+                <button class="production-tab" data-tab="bezleme">🧵 Bezleme</button>
+                <button class="production-tab" data-tab="butafor">🎨 Butafor</button>
+                <button class="production-tab" data-tab="boya">🖌️ Boya</button>
+                <button class="production-tab" data-tab="procurement">🛒 Satınalma</button>
+                <button class="production-tab" data-tab="files">📁 Dosyalar</button>
+            </div>
+            
+            <!-- Demir Tab -->
+            <div id="demir" class="production-tab-content active">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="openAddWorkshopModal('Demir')">
+                        <span>+ İş Ekle</span>
+                    </button>
+                </div>
+                <div class="workshop-list" id="demirList"></div>
+            </div>
+            
+            <!-- Marangoz Tab -->
+            <div id="marangoz" class="production-tab-content">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="openAddWorkshopModal('Marangoz')">
+                        <span>+ İş Ekle</span>
+                    </button>
+                </div>
+                <div class="workshop-list" id="marangozList"></div>
+            </div>
+            
+            <!-- Bezleme Tab -->
+            <div id="bezleme" class="production-tab-content">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="openAddWorkshopModal('Bezleme')">
+                        <span>+ İş Ekle</span>
+                    </button>
+                </div>
+                <div class="workshop-list" id="bezlemeList"></div>
+            </div>
+            
+            <!-- Butafor Tab -->
+            <div id="butafor" class="production-tab-content">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="openAddWorkshopModal('Butafor')">
+                        <span>+ İş Ekle</span>
+                    </button>
+                </div>
+                <div class="workshop-list" id="butaforList"></div>
+            </div>
+            
+            <!-- Boya Tab -->
+            <div id="boya" class="production-tab-content">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="openAddWorkshopModal('Boya')">
+                        <span>+ İş Ekle</span>
+                    </button>
+                </div>
+                <div class="workshop-list" id="boyaList"></div>
+            </div>
+            
+            <!-- Procurement Tab -->
+            <div id="procurement" class="production-tab-content">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="openAddProcurementModal()">
+                        <span>+ Satınalma Ekle</span>
+                    </button>
+                </div>
+                <table class="procurement-table">
+                    <thead>
+                        <tr>
+                            <th>Malzeme</th>
+                            <th>Miktar</th>
+                            <th>Tedarikçi</th>
+                            <th>Durum</th>
+                            <th>Teslim Tarihi</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="procurementTable"></tbody>
+                </table>
+            </div>
+            
+            <!-- Files Tab -->
+            <div id="files" class="production-tab-content">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="openAddFileModal()">
+                        <span>+ Dosya Ekle</span>
+                    </button>
+                </div>
+                <div class="files-grid" id="filesGrid"></div>
+            </div>
         </div>
-
-        <button class="delete-btn" onclick="sil(${index})">Sil</button>
-        <button onclick="duzenle(${index})" style="margin-left:8px; background:#555; color:white;">Düzenle</button>
-      `;
-      liste.appendChild(div);
-    });
-  }
-
-  function sil(index) {
-    if (confirm('Bu parçayı silmek istediğinize emin misiniz?')) {
-      parcalar.splice(index, 1);
-      kaydet();
-    }
-  }
-
-  function duzenle(index) {
-    const p = parcalar[index];
-    editId = index;
-
-    document.getElementById('no').value = p.no || '';
-    document.getElementById('ad').value = p.ad;
-    document.getElementById('aciklama').value = p.aciklama || '';
-    document.getElementById('malzeme').value = p.malzeme || '';
-    document.getElementById('olcu').value = p.olcu || '';
-    document.getElementById('sorumlu').value = p.sorumlu || '';
-    document.getElementById('planlanan').value = p.planlanan || '';
-    document.getElementById('durum').value = p.durum;
-
-    // Fotoğrafı gösteremiyoruz düzenlemede, ama yeni ekleyebilir
-    form.querySelector('button').textContent = 'Değişiklikleri Kaydet';
-  }
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-
-    const fotoInput = document.getElementById('foto');
-    let fotoData = null;
-
-    if (fotoInput.files && fotoInput.files[0]) {
-      const reader = new FileReader();
-      reader.onload = function(ev) {
-        fotoData = ev.target.result;
-        kaydetParca(fotoData);
-      };
-      reader.readAsDataURL(fotoInput.files[0]);
-    } else {
-      // Eski fotoğrafı koru (düzenlemede)
-      fotoData = editId !== null ? parcalar[editId].foto : null;
-      kaydetParca(fotoData);
-    }
-  });
-
-  function kaydetParca(foto) {
-    const yeniParca = {
-      no: document.getElementById('no').value.trim(),
-      ad: document.getElementById('ad').value.trim(),
-      aciklama: document.getElementById('aciklama').value.trim(),
-      malzeme: document.getElementById('malzeme').value.trim(),
-      olcu: document.getElementById('olcu').value.trim(),
-      sorumlu: document.getElementById('sorumlu').value.trim(),
-      planlanan: document.getElementById('planlanan').value,
-      durum: document.getElementById('durum').value,
-      foto: foto
-    };
-
-    if (editId !== null) {
-      parcalar[editId] = yeniParca;
-      editId = null;
-      form.querySelector('button').textContent = 'Parçayı Ekle / Güncelle';
-    } else {
-      parcalar.push(yeniParca);
-    }
-
-    kaydet();
-    form.reset();
-  }
-
-  // İlk yüklemede listeyi göster
-  renderListe();
-</script>
-
+    </div>
+    
+    <!-- Project Modal -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('projectModal')">&times;</span>
+            <h2 id="projectModalTitle">Yeni Oyun</h2>
+            
+            <form id="projectForm">
+                <input type="hidden" name="id" id="projectId">
+                
+                <div class="form-group">
+                    <label>Afiş/Görsel</label>
+                    <div class="file-upload" onclick="document.getElementById('projectPosterInput').click()">
+                        <p style="color: var(--text-primary); font-weight: 500; margin-bottom: 8px;">🎭 Afiş yüklemek için tıklayın</p>
+                        <p style="font-size: 0.85em; color: var(--text-secondary);">PNG, JPG, JPEG</p>
+                        <input type="file" id="projectPosterInput" accept="image/*">
+                    </div>
+                    <div class="photo-preview" id="projectPosterPreview"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Oyun Adı *</label>
+                    <input type="text" name="title" id="projectTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Sahne</label>
+                    <input type="text" name="stage" id="projectStage" placeholder="örn: Büyük Sahne">
+                </div>
+                
+                <div class="form-group">
+                    <label>Prömiyér Tarihi</label>
+                    <input type="date" name="premiere" id="projectPremiere">
+                </div>
+                
+                <div class="form-group">
+                    <label>Tasarımcı</label>
+                    <input type="text" name="designer" id="projectDesigner">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Kaydet</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Workshop Modal -->
+    <div id="workshopModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('workshopModal')">&times;</span>
+            <h2 id="workshopModalTitle">Yeni İş</h2>
+            
+            <form id="workshopForm">
+                <input type="hidden" name="id" id="workshopId">
+                <input type="hidden" name="projectId" id="workshopProjectId">
+                <input type="hidden" name="workshop" id="workshopType">
+                
+                <div class="form-group">
+                    <label>İş Tanımı *</label>
+                    <input type="text" name="title" id="workshopTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Durum</label>
+                    <select name="status" id="workshopStatus">
+                        <option value="Beklemede">Beklemede</option>
+                        <option value="Devam Ediyor">Devam Ediyor</option>
+                        <option value="Tamamlandı">Tamamlandı</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Teslim Tarihi</label>
+                    <input type="date" name="deadline" id="workshopDeadline">
+                </div>
+                
+                <div class="form-group">
+                    <label>Açıklama</label>
+                    <textarea name="description" id="workshopDescription"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Fotoğraflar</label>
+                    <div class="file-upload" onclick="document.getElementById('workshopPhotos').click()">
+                        <p style="color: var(--text-primary); font-weight: 500; margin-bottom: 8px;">📷 Fotoğraf eklemek için tıklayın</p>
+                        <p style="font-size: 0.85em; color: var(--text-secondary);">PNG, JPG, JPEG</p>
+                        <input type="file" id="workshopPhotos" multiple accept="image/*">
+                    </div>
+                    <div class="photo-preview" id="workshopPhotoPreview"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Kaydet</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Procurement Modal -->
+    <div id="procurementModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('procurementModal')">&times;</span>
+            <h2>Yeni Satınalma</h2>
+            
+            <form id="procurementForm">
+                <input type="hidden" name="id" id="procurementId">
+                <input type="hidden" name="projectId" id="procurementProjectId">
+                
+                <div class="form-group">
+                    <label>Malzeme Adı *</label>
+                    <input type="text" name="material" id="procurementMaterial" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Miktar</label>
+                    <input type="text" name="quantity" id="procurementQuantity" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tedarikçi</label>
+                    <input type="text" name="supplier" id="procurementSupplier">
+                </div>
+                
+                <div class="form-group">
+                    <label>Durum</label>
+                    <select name="status" id="procurementStatus">
+                        <option value="Sipariş Verildi">Sipariş Verildi</option>
+                        <option value="Yolda">Yolda</option>
+                        <option value="Teslim Alındı">Teslim Alındı</option>
+                        <option value="Beklemede">Beklemede</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Teslim Tarihi</label>
+                    <input type="date" name="deadline" id="procurementDeadline">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Kaydet</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- File Modal -->
+    <div id="fileModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('fileModal')">&times;</span>
+            <h2>Dosya Ekle</h2>
+            
+            <form id="fileForm">
+                <input type="hidden" name="id" id="fileId">
+                <input type="hidden" name="projectId" id="fileProjectId">
+                
+                <div class="form-group">
+                    <label>Dosya Adı *</label>
+                    <input type="text" name="fileName" id="fileName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <select name="category" id="fileCategory">
+                        <option value="Teknik Çizim">Teknik Çizim</option>
+                        <option value="Maket">Maket</option>
+                        <option value="Kostüm Tasarımı">Kostüm Tasarımı</option>
+                        <option value="Işık Planı">Işık Planı</option>
+                        <option value="Diğer">Diğer</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Etiketler (virgülle ayırın)</label>
+                    <input type="text" name="tags" id="fileTags" placeholder="örn: sahne, dekor, ölçekli">
+                </div>
+                
+                <div class="form-group">
+                    <label>Notlar</label>
+                    <textarea name="notes" id="fileNotes"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Kaydet</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Photo Viewer Modal -->
+    <div id="photoViewerModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-modal" onclick="closeModal('photoViewerModal')">&times;</span>
+            <img id="photoViewerImage" style="width: 100%; border-radius: 8px;">
+        </div>
+    </div>
+    
+    <script>
+        // State
+        let currentProject = null;
+        let currentProjectPoster = '';
+        let currentPhotos = [];
+        let currentTheme = localStorage.getItem('theme') || 'light';
+        let currentWorkshopType = '';
+        
+        // Data Storage
+        const storage = {
+            projects: JSON.parse(localStorage.getItem('projects')) || [],
+            workshops: JSON.parse(localStorage.getItem('workshops')) || [],
+            procurements: JSON.parse(localStorage.getItem('procurements')) || [],
+            files: JSON.parse(localStorage.getItem('files')) || [],
+            workshopPhotos: JSON.parse(localStorage.getItem('workshopPhotos')) || {},
+            projectPosters: JSON.parse(localStorage.getItem('projectPosters')) || {}
+        };
+        
+        // Theme Management
+        function initTheme() {
+            if (currentTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeIcon').textContent = '☀️';
+                document.getElementById('themeText').textContent = 'Aydınlık Mod';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('themeIcon').textContent = '🌙';
+                document.getElementById('themeText').textContent = 'Karanlık Mod';
+            }
+        }
+        
+        function toggleTheme() {
+            if (currentTheme === 'light') {
+                currentTheme = 'dark';
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeIcon').textContent = '☀️';
+                document.getElementById('themeText').textContent = 'Aydınlık Mod';
+            } else {
+                currentTheme = 'light';
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('themeIcon').textContent = '🌙';
+                document.getElementById('themeText').textContent = 'Karanlık Mod';
+            }
+            localStorage.setItem('theme', currentTheme);
+        }
+        
+        window.toggleTheme = toggleTheme;
+        
+        // View Navigation
+        function goToMainView() {
+            currentProject = null;
+            document.getElementById('mainView').classList.add('active');
+            document.getElementById('productionDetailView').classList.remove('active');
+            renderProductions();
+        }
+        
+        function showProductionDetail(projectId) {
+            const project = storage.projects.find(p => p.id == projectId);
+            if (!project) return;
+            
+            currentProject = projectId;
+            
+            document.getElementById('mainView').classList.remove('active');
+            document.getElementById('productionDetailView').classList.add('active');
+            
+            renderProductionDetail(project);
+            renderAllWorkshops();
+            renderProcurements();
+            renderFiles();
+            
+            // Reset to first tab
+            document.querySelectorAll('.production-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.production-tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('.production-tab[data-tab="demir"]').classList.add('active');
+            document.getElementById('demir').classList.add('active');
+        }
+        
+        window.goToMainView = goToMainView;
+        window.showProductionDetail = showProductionDetail;
+        
+        // Tab switching
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('production-tab')) {
+                const tab = e.target.dataset.tab;
+                document.querySelectorAll('.production-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.production-tab-content').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById(tab).classList.add('active');
+            }
+        });
+        
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            const forms = document.querySelectorAll(`#${modalId} form`);
+            forms.forEach(form => form.reset());
+            const hiddenIds = document.querySelectorAll(`#${modalId} input[type="hidden"]`);
+            hiddenIds.forEach(input => input.value = '');
+            const previews = document.querySelectorAll('.photo-preview');
+            previews.forEach(p => p.innerHTML = '');
+            currentProjectPoster = '';
+            currentPhotos = [];
+        }
+        
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        
+        // Close modal on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+        
+        // Photo Upload Handling
+        document.getElementById('projectPosterInput').addEventListener('change', function(e) {
+            const preview = document.getElementById('projectPosterPreview');
+            const file = this.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentProjectPoster = e.target.result;
+                    preview.innerHTML = `
+                        <div class="photo-preview-item">
+                            <img src="${currentProjectPoster}">
+                            <span class="remove" onclick="removeProjectPoster()">×</span>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        function removeProjectPoster() {
+            currentProjectPoster = '';
+            document.getElementById('projectPosterPreview').innerHTML = '';
+            document.getElementById('projectPosterInput').value = '';
+        }
+        
+        window.removeProjectPoster = removeProjectPoster;
+        
+        document.getElementById('workshopPhotos').addEventListener('change', function(e) {
+            const preview = document.getElementById('workshopPhotoPreview');
+            const files = Array.from(this.files);
+            
+            files.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const photoData = e.target.result;
+                    currentPhotos.push(photoData);
+                    renderWorkshopPhotoPreview();
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+        
+        function removeWorkshopPhoto(index) {
+            currentPhotos.splice(index, 1);
+            renderWorkshopPhotoPreview();
+        }
+        
+        function renderWorkshopPhotoPreview() {
+            const preview = document.getElementById('workshopPhotoPreview');
+            preview.innerHTML = currentPhotos.map((photo, index) => `
+                <div class="photo-preview-item">
+                    <img src="${photo}">
+                    <span class="remove" onclick="removeWorkshopPhoto(${index})">×</span>
+                </div>
+            `).join('');
+        }
+        
+        window.removeWorkshopPhoto = removeWorkshopPhoto;
+        
+        function viewPhoto(photoSrc) {
+            document.getElementById('photoViewerImage').src = photoSrc;
+            openModal('photoViewerModal');
+        }
+        
+        window.viewPhoto = viewPhoto;
+        
+        // Count pending tasks
+        function countPendingTasks(projectId) {
+            return storage.workshops.filter(w => 
+                w.projectId == projectId && 
+                (w.status === 'Beklemede' || w.status === 'Devam Ediyor')
+            ).length;
+        }
+        
+        // Render Functions
+        function renderProductions() {
+            const grid = document.getElementById('productionsGrid');
+            
+            if (storage.projects.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎭</div>
+                        <h3>Henüz Oyun Yok</h3>
+                        <p>Yeni bir oyun ekleyerek başlayın</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = storage.projects.map(project => {
+                const poster = storage.projectPosters[project.id];
+                const pendingCount = countPendingTasks(project.id);
+                return `
+                <div class="production-card" onclick="showProductionDetail('${project.id}')">
+                    <div class="production-poster">
+                        ${poster ? `<img src="${poster}" alt="${project.title}">` : '🎭'}
+                    </div>
+                    <div class="production-card-content">
+                        <h3>${project.title}</h3>
+                        
+                        <div class="production-meta">
+                            ${project.stage ? `
+                            <div class="production-meta-item">
+                                <strong>Sahne:</strong> ${project.stage}
+                            </div>` : ''}
+                            ${project.premiere ? `
+                            <div class="production-meta-item">
+                                <strong>Prömiyér:</strong> ${new Date(project.premiere).toLocaleDateString('tr-TR')}
+                            </div>` : ''}
+                            ${project.designer ? `
+                            <div class="production-meta-item">
+                                <strong>Tasarımcı:</strong> ${project.designer}
+                            </div>` : ''}
+                        </div>
+                        
+                        ${pendingCount > 0 ? `
+                        <div class="pending-tasks-badge">
+                            📋 ${pendingCount} Yapılacak İş
+                        </div>` : ''}
+                        
+                        <div class="production-actions" onclick="event.stopPropagation()">
+                            <button class="btn-small" onclick="editProject('${project.id}')">Düzenle</button>
+                            <button class="btn-small btn-delete" onclick="deleteProject('${project.id}')">Sil</button>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+        
+        function renderProductionDetail(project) {
+            const poster = storage.projectPosters[project.id];
+            
+            document.getElementById('productionDetailHeader').innerHTML = `
+                <div class="production-detail-poster">
+                    ${poster ? `<img src="${poster}" alt="${project.title}">` : '🎭'}
+                </div>
+                <div class="production-detail-info">
+                    <h2>${project.title}</h2>
+                    
+                    <div class="meta-grid">
+                        ${project.stage ? `<div class="meta-item"><label>Sahne</label><value>${project.stage}</value></div>` : ''}
+                        ${project.premiere ? `<div class="meta-item"><label>Prömiyér</label><value>${new Date(project.premiere).toLocaleDateString('tr-TR')}</value></div>` : ''}
+                        ${project.designer ? `<div class="meta-item"><label>Tasarımcı</label><value>${project.designer}</value></div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderAllWorkshops() {
+            const categories = ['Demir', 'Marangoz', 'Bezleme', 'Butafor', 'Boya'];
+            categories.forEach(category => renderWorkshopCategory(category));
+        }
+        
+        function renderWorkshopCategory(category) {
+            const list = document.getElementById(category.toLowerCase() + 'List');
+            const workshops = storage.workshops.filter(w => 
+                w.projectId == currentProject && w.workshop === category
+            );
+            
+            if (workshops.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔨</div>
+                        <h3>Henüz ${category} İşi Yok</h3>
+                        <p>Yeni iş ekleyin</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const statusTexts = {
+                'Beklemede': 'Beklemede',
+                'Devam Ediyor': 'Devam Ediyor',
+                'Tamamlandı': 'Tamamlandı'
+            };
+            
+            const statusClasses = {
+                'Beklemede': 'workshop-status-beklemede',
+                'Devam Ediyor': 'workshop-status-devam',
+                'Tamamlandı': 'workshop-status-tamamlandi'
+            };
+            
+            list.innerHTML = workshops.map(item => {
+                const photos = storage.workshopPhotos[item.id] || [];
+                return `
+                <div class="workshop-item">
+                    <h4>${item.title}</h4>
+                    <span class="workshop-status-badge ${statusClasses[item.status || 'Beklemede']}">${statusTexts[item.status || 'Beklemede']}</span>
+                    
+                    <div class="workshop-meta">
+                        <span>📅 Teslim: ${item.deadline ? new Date(item.deadline).toLocaleDateString('tr-TR') : '-'}</span>
+                    </div>
+                    ${item.description ? `<p style="margin-top: 10px; color: var(--text-secondary);">${item.description}</p>` : ''}
+                    
+                    ${photos.length > 0 ? `
+                    <div class="workshop-photos">
+                        ${photos.map(photo => `<img src="${photo}" class="workshop-photo" onclick="viewPhoto('${photo}')">`).join('')}
+                    </div>` : ''}
+                    
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; gap: 8px;">
+                        <button class="btn-small" onclick="editWorkshop('${item.id}')">Düzenle</button>
+                        <button class="btn-small btn-delete" onclick="deleteWorkshop('${item.id}')">Sil</button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+        
+        function renderProcurements() {
+            const table = document.getElementById('procurementTable');
+            const procurements = storage.procurements.filter(p => p.projectId == currentProject);
+            
+            if (procurements.length === 0) {
+                table.innerHTML = `<tr><td colspan="6">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🛒</div>
+                        <h3>Henüz Satınalma Yok</h3>
+                        <p>Satınalma kaydı ekleyin</p>
+                    </div>
+                </td></tr>`;
+                return;
+            }
+            
+            table.innerHTML = procurements.map(item => `
+                <tr>
+                    <td>${item.material}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.supplier || '-'}</td>
+                    <td>${item.status}</td>
+                    <td>${item.deadline ? new Date(item.deadline).toLocaleDateString('tr-TR') : '-'}</td>
+                    <td>
+                        <button class="btn-small" onclick="editProcurement('${item.id}')">Düzenle</button>
+                        <button class="btn-small btn-delete" onclick="deleteProcurement('${item.id}')">Sil</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function renderFiles() {
+            const grid = document.getElementById('filesGrid');
+            const files = storage.files.filter(f => f.projectId == currentProject);
+            
+            if (files.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📁</div>
+                        <h3>Henüz Dosya Yok</h3>
+                        <p>Dosya ekleyin</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = files.map(file => `
+                <div class="file-card">
+                    <h4>${file.fileName}</h4>
+                    <p style="margin-bottom: 10px; color: var(--text-secondary); font-size: 0.9em;">${file.category}</p>
+                    
+                    ${file.tags ? `
+                    <div class="file-tags">
+                        ${file.tags.split(',').map(tag => `<span class="file-tag">${tag.trim()}</span>`).join('')}
+                    </div>` : ''}
+                    
+                    ${file.notes ? `<p style="margin-top: 10px; color: var(--text-secondary); font-style: italic; font-size: 0.85em;">${file.notes}</p>` : ''}
+                    
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; gap: 8px;">
+                        <button class="btn-small" onclick="editFile('${file.id}')">Düzenle</button>
+                        <button class="btn-small btn-delete" onclick="deleteFile('${file.id}')">Sil</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Modal helper functions
+        function openAddWorkshopModal(workshopType) {
+            currentWorkshopType = workshopType;
+            document.getElementById('workshopType').value = workshopType;
+            document.getElementById('workshopProjectId').value = currentProject;
+            document.getElementById('workshopModalTitle').textContent = `${workshopType} İşi Ekle`;
+            openModal('workshopModal');
+        }
+        
+        function openAddProcurementModal() {
+            document.getElementById('procurementProjectId').value = currentProject;
+            openModal('procurementModal');
+        }
+        
+        function openAddFileModal() {
+            document.getElementById('fileProjectId').value = currentProject;
+            openModal('fileModal');
+        }
+        
+        window.openAddWorkshopModal = openAddWorkshopModal;
+        window.openAddProcurementModal = openAddProcurementModal;
+        window.openAddFileModal = openAddFileModal;
+        
+        // CRUD Functions for Projects
+        document.getElementById('projectForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const projectId = formData.get('id') || Date.now().toString();
+            const projectData = {
+                id: projectId,
+                title: formData.get('title'),
+                stage: formData.get('stage'),
+                premiere: formData.get('premiere'),
+                designer: formData.get('designer')
+            };
+            
+            if (formData.get('id')) {
+                const index = storage.projects.findIndex(p => p.id == projectId);
+                storage.projects[index] = projectData;
+            } else {
+                storage.projects.push(projectData);
+            }
+            
+            if (currentProjectPoster) {
+                storage.projectPosters[projectId] = currentProjectPoster;
+                localStorage.setItem('projectPosters', JSON.stringify(storage.projectPosters));
+            }
+            
+            localStorage.setItem('projects', JSON.stringify(storage.projects));
+            this.reset();
+            currentProjectPoster = '';
+            closeModal('projectModal');
+            renderProductions();
+        });
+        
+        window.editProject = function(id) {
+            const project = storage.projects.find(p => p.id == id);
+            if (!project) return;
+            
+            document.getElementById('projectModalTitle').textContent = 'Oyunu Düzenle';
+            document.getElementById('projectId').value = id;
+            document.getElementById('projectTitle').value = project.title;
+            document.getElementById('projectStage').value = project.stage || '';
+            document.getElementById('projectPremiere').value = project.premiere || '';
+            document.getElementById('projectDesigner').value = project.designer || '';
+            
+            const poster = storage.projectPosters[id];
+            if (poster) {
+                currentProjectPoster = poster;
+                document.getElementById('projectPosterPreview').innerHTML = `
+                    <div class="photo-preview-item">
+                        <img src="${poster}">
+                        <span class="remove" onclick="removeProjectPoster()">×</span>
+                    </div>
+                `;
+            }
+            
+            openModal('projectModal');
+        }
+        
+        window.deleteProject = function(id) {
+            if (!confirm('Bu oyunu ve tüm ilişkili verileri silmek istediğinize emin misiniz?')) return;
+            
+            storage.projects = storage.projects.filter(p => p.id != id);
+            storage.workshops = storage.workshops.filter(w => w.projectId != id);
+            storage.procurements = storage.procurements.filter(p => p.projectId != id);
+            storage.files = storage.files.filter(f => f.projectId != id);
+            delete storage.projectPosters[id];
+            
+            localStorage.setItem('projects', JSON.stringify(storage.projects));
+            localStorage.setItem('workshops', JSON.stringify(storage.workshops));
+            localStorage.setItem('procurements', JSON.stringify(storage.procurements));
+            localStorage.setItem('files', JSON.stringify(storage.files));
+            localStorage.setItem('projectPosters', JSON.stringify(storage.projectPosters));
+            
+            renderProductions();
+        }
+        
+        // CRUD Functions for Workshops
+        document.getElementById('workshopForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const workshopId = formData.get('id') || Date.now().toString();
+            const workshopData = {
+                id: workshopId,
+                projectId: formData.get('projectId'),
+                title: formData.get('title'),
+                workshop: formData.get('workshop'),
+                status: formData.get('status'),
+                deadline: formData.get('deadline'),
+                description: formData.get('description')
+            };
+            
+            if (formData.get('id')) {
+                const index = storage.workshops.findIndex(w => w.id == workshopId);
+                storage.workshops[index] = workshopData;
+            } else {
+                storage.workshops.push(workshopData);
+            }
+            
+            if (currentPhotos.length > 0) {
+                storage.workshopPhotos[workshopId] = currentPhotos;
+                localStorage.setItem('workshopPhotos', JSON.stringify(storage.workshopPhotos));
+            }
+            
+            localStorage.setItem('workshops', JSON.stringify(storage.workshops));
+            this.reset();
+            currentPhotos = [];
+            closeModal('workshopModal');
+            renderAllWorkshops();
+            renderProductions(); // Update pending count
+        });
+        
+        window.editWorkshop = function(id) {
+            const workshop = storage.workshops.find(w => w.id == id);
+            if (!workshop) return;
+            
+            document.getElementById('workshopModalTitle').textContent = `${workshop.workshop} İşi Düzenle`;
+            document.getElementById('workshopId').value = id;
+            document.getElementById('workshopProjectId').value = workshop.projectId;
+            document.getElementById('workshopType').value = workshop.workshop;
+            document.getElementById('workshopTitle').value = workshop.title;
+            document.getElementById('workshopStatus').value = workshop.status || 'Beklemede';
+            document.getElementById('workshopDeadline').value = workshop.deadline || '';
+            document.getElementById('workshopDescription').value = workshop.description || '';
+            
+            currentPhotos = storage.workshopPhotos[id] || [];
+            renderWorkshopPhotoPreview();
+            
+            openModal('workshopModal');
+        }
+        
+        window.deleteWorkshop = function(id) {
+            if (!confirm('Bu işi silmek istediğinize emin misiniz?')) return;
+            
+            storage.workshops = storage.workshops.filter(w => w.id != id);
+            delete storage.workshopPhotos[id];
+            localStorage.setItem('workshops', JSON.stringify(storage.workshops));
+            localStorage.setItem('workshopPhotos', JSON.stringify(storage.workshopPhotos));
+            renderAllWorkshops();
+            renderProductions(); // Update pending count
+        }
+        
+        // CRUD Functions for Procurements
+        document.getElementById('procurementForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const procurementId = formData.get('id') || Date.now().toString();
+            const procurementData = {
+                id: procurementId,
+                projectId: formData.get('projectId'),
+                material: formData.get('material'),
+                quantity: formData.get('quantity'),
+                supplier: formData.get('supplier'),
+                status: formData.get('status'),
+                deadline: formData.get('deadline')
+            };
+            
+            if (formData.get('id')) {
+                const index = storage.procurements.findIndex(p => p.id == procurementId);
+                storage.procurements[index] = procurementData;
+            } else {
+                storage.procurements.push(procurementData);
+            }
+            
+            localStorage.setItem('procurements', JSON.stringify(storage.procurements));
+            this.reset();
+            closeModal('procurementModal');
+            renderProcurements();
+        });
+        
+        window.editProcurement = function(id) {
+            const procurement = storage.procurements.find(p => p.id == id);
+            if (!procurement) return;
+            
+            document.getElementById('procurementId').value = id;
+            document.getElementById('procurementProjectId').value = procurement.projectId;
+            document.getElementById('procurementMaterial').value = procurement.material;
+            document.getElementById('procurementQuantity').value = procurement.quantity;
+            document.getElementById('procurementSupplier').value = procurement.supplier || '';
+            document.getElementById('procurementStatus').value = procurement.status;
+            document.getElementById('procurementDeadline').value = procurement.deadline || '';
+            
+            openModal('procurementModal');
+        }
+        
+        window.deleteProcurement = function(id) {
+            if (!confirm('Bu satınalma kaydını silmek istediğinize emin misiniz?')) return;
+            
+            storage.procurements = storage.procurements.filter(p => p.id != id);
+            localStorage.setItem('procurements', JSON.stringify(storage.procurements));
+            renderProcurements();
+        }
+        
+        // CRUD Functions for Files
+        document.getElementById('fileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const fileId = formData.get('id') || Date.now().toString();
+            const fileData = {
+                id: fileId,
+                projectId: formData.get('projectId'),
+                fileName: formData.get('fileName'),
+                category: formData.get('category'),
+                tags: formData.get('tags'),
+                notes: formData.get('notes'),
+                uploadDate: new Date().toISOString()
+            };
+            
+            if (formData.get('id')) {
+                const index = storage.files.findIndex(f => f.id == fileId);
+                storage.files[index] = fileData;
+            } else {
+                storage.files.push(fileData);
+            }
+            
+            localStorage.setItem('files', JSON.stringify(storage.files));
+            this.reset();
+            closeModal('fileModal');
+            renderFiles();
+        });
+        
+        window.editFile = function(id) {
+            const file = storage.files.find(f => f.id == id);
+            if (!file) return;
+            
+            document.getElementById('fileId').value = id;
+            document.getElementById('fileProjectId').value = file.projectId;
+            document.getElementById('fileName').value = file.fileName;
+            document.getElementById('fileCategory').value = file.category;
+            document.getElementById('fileTags').value = file.tags || '';
+            document.getElementById('fileNotes').value = file.notes || '';
+            
+            openModal('fileModal');
+        }
+        
+        window.deleteFile = function(id) {
+            if (!confirm('Bu dosya kaydını silmek istediğinize emin misiniz?')) return;
+            
+            storage.files = storage.files.filter(f => f.id != id);
+            localStorage.setItem('files', JSON.stringify(storage.files));
+            renderFiles();
+        }
+        
+        // Initialize
+        initTheme();
+        renderProductions();
+    </script>
 </body>
 </html>
