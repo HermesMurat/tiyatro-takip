@@ -3,22 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sahne Üretim Takip Sistemi - Tiyatro Prodüksiyon Yönetim">
-    <!-- Preconnect to Google Fonts for faster loading -->
+    <meta name="description" content="Sahne Üretim Takip Sistemi - Profesyonel Tiyatro Prodüksiyon Yönetim">
+    <title>Sahne Üretim Takip Sistemi</title>
+    
+    <!-- Font Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Font loading with display=swap for better performance -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <title>Sahne Üretim Takip Sistemi</title>
+    
     <style>
-        /* ===== CSS RESET & BASE STYLES ===== */
+        /* ===== RESET & BASE ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Root color variables for light theme */
+        html, body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background-color 0.3s ease-out, color 0.3s ease-out;
+        }
+
+        /* ===== CSS VARIABLES ===== */
         :root {
             --primary: #8b5cf6;
             --primary-dark: #7c3aed;
@@ -41,7 +50,6 @@
             --overlay: rgba(0, 0, 0, 0.3);
         }
 
-        /* Dark theme color variables */
         [data-theme="dark"] {
             --primary: #a78bfa;
             --primary-dark: #9333ea;
@@ -62,15 +70,6 @@
             --danger-light: #3d1f1f;
             --shadow: rgba(0, 0, 0, 0.3);
             --overlay: rgba(0, 0, 0, 0.6);
-        }
-
-        html, body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-main);
-            color: var(--text-primary);
-            min-height: 100vh;
-            /* Only apply transition to body for theme changes */
-            transition: background-color 0.3s ease-out, color 0.3s ease-out;
         }
 
         /* ===== LAYOUT ===== */
@@ -114,7 +113,6 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             cursor: pointer;
-            /* Only transition relevant properties */
             transition: background-color 0.2s ease-out, border-color 0.2s ease-out;
         }
 
@@ -132,26 +130,6 @@
         }
 
         /* ===== BUTTONS ===== */
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease-out, border-color 0.2s ease-out;
-            margin-bottom: 20px;
-        }
-
-        .back-button:hover {
-            background: var(--bg-tertiary);
-            border-color: var(--primary);
-        }
-
         .btn {
             padding: 10px 24px;
             border: 1px solid var(--border);
@@ -204,6 +182,26 @@
             background: var(--danger-light);
         }
 
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease-out, border-color 0.2s ease-out;
+            margin-bottom: 20px;
+        }
+
+        .back-button:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--primary);
+        }
+
         /* ===== PRODUCTION CARDS ===== */
         .productions-grid {
             display: grid;
@@ -219,7 +217,6 @@
             transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, border-color 0.3s ease-out;
             box-shadow: 0 2px 12px var(--shadow);
             cursor: pointer;
-            will-change: transform;
         }
 
         .production-card:hover {
@@ -245,7 +242,6 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            /* Lazy loading handled via HTML */
         }
 
         .production-card-content {
@@ -514,7 +510,6 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            /* Use will-change sparingly */
             animation: fadeIn 0.2s ease-out;
         }
 
@@ -722,56 +717,22 @@
             color: var(--text-primary);
         }
 
-        /* ===== RESPONSIVE DESIGN ===== */
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2em;
-            }
-
-            .productions-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .production-detail-header {
-                flex-direction: column;
-            }
-
-            .production-detail-poster {
-                width: 100%;
-                height: 300px;
-            }
-
-            .production-tabs {
-                overflow-x: auto;
-            }
-
-            .theme-toggle {
-                position: static;
-                margin-top: 16px;
-            }
-
-            .modal-content {
-                width: 95%;
-                padding: 24px;
-            }
+            .header h1 { font-size: 2em; }
+            .productions-grid { grid-template-columns: 1fr; }
+            .production-detail-header { flex-direction: column; }
+            .production-detail-poster { width: 100%; height: 300px; }
+            .production-tabs { overflow-x: auto; }
+            .theme-toggle { position: static; margin-top: 16px; }
+            .modal-content { width: 95%; padding: 24px; }
         }
 
-        /* ===== PERFORMANCE OPTIMIZATIONS ===== */
-        /* Reduce motion for users who prefer it */
         @media (prefers-reduced-motion: reduce) {
             * {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
-            }
-        }
-
-        /* High DPI displays */
-        @media (min-resolution: 2dppx) {
-            .production-card,
-            .workshop-item,
-            .file-card {
-                border-width: 1px;
             }
         }
     </style>
@@ -890,16 +851,212 @@
         </div>
     </div>
 
-    <!-- Modals will be added here -->
-    
+    <!-- Project Modal -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('projectModal')">&times;</span>
+            <h2>Yeni Oyun Ekle</h2>
+            
+            <form id="projectForm" onsubmit="handleAddProject(event)">
+                <input type="hidden" name="id" id="projectId">
+                
+                <div class="form-group">
+                    <label>Oyun Adı *</label>
+                    <input type="text" name="title" id="projectTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Sahne</label>
+                    <input type="text" name="stage" id="projectStage">
+                </div>
+                
+                <div class="form-group">
+                    <label>Prömiyér Tarihi</label>
+                    <input type="date" name="premiere" id="projectPremiere">
+                </div>
+                
+                <div class="form-group">
+                    <label>Tasarımcı</label>
+                    <input type="text" name="designer" id="projectDesigner">
+                </div>
+                
+                <div class="form-group">
+                    <label>Poster Görseli</label>
+                    <div class="file-upload" onclick="document.getElementById('projectPosterInput').click()">
+                        <div id="projectPosterPreview"></div>
+                        <div id="projectPosterPlaceholder" style="text-align: center; color: var(--text-secondary);">
+                            📸 Görsel seçmek için tıklayın
+                        </div>
+                    </div>
+                    <input type="file" id="projectPosterInput" accept="image/*" style="display: none;">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Kaydet</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Workshop Modal -->
+    <div id="workshopModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('workshopModal')">&times;</span>
+            <h2>İş Ekle</h2>
+            
+            <form id="workshopForm" onsubmit="handleAddWorkshop(event)">
+                <input type="hidden" name="id" id="workshopId">
+                <input type="hidden" name="projectId" id="workshopProjectId">
+                <input type="hidden" name="workshop" id="workshopType">
+                
+                <div class="form-group">
+                    <label>İş Başlığı *</label>
+                    <input type="text" name="title" id="workshopTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Açıklama</label>
+                    <textarea name="description" id="workshopDescription"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Teslim Tarihi</label>
+                    <input type="date" name="deadline" id="workshopDeadline">
+                </div>
+                
+                <div class="form-group">
+                    <label>Durum</label>
+                    <select name="status" id="workshopStatus">
+                        <option value="Beklemede">Beklemede</option>
+                        <option value="Devam Ediyor">Devam Ediyor</option>
+                        <option value="Tamamlandı">Tamamlandı</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Fotoğraflar</label>
+                    <div class="file-upload" onclick="document.getElementById('workshopPhotos').click()">
+                        <div style="text-align: center; color: var(--text-secondary);">
+                            📷 Fotoğraf seçmek için tıklayın
+                        </div>
+                    </div>
+                    <div id="workshopPhotoPreview" class="photo-preview"></div>
+                    <input type="file" id="workshopPhotos" accept="image/*" multiple style="display: none;">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Kaydet</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Procurement Modal -->
+    <div id="procurementModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('procurementModal')">&times;</span>
+            <h2>Satınalma Ekle</h2>
+            
+            <form id="procurementForm" onsubmit="handleAddProcurement(event)">
+                <input type="hidden" name="id" id="procurementId">
+                <input type="hidden" name="projectId" id="procurementProjectId">
+                
+                <div class="form-group">
+                    <label>Ürün Adı *</label>
+                    <input type="text" name="name" id="procurementName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Miktar</label>
+                    <input type="text" name="quantity" id="procurementQuantity" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tedarikçi</label>
+                    <input type="text" name="supplier" id="procurementSupplier">
+                </div>
+                
+                <div class="form-group">
+                    <label>Durum</label>
+                    <select name="status" id="procurementStatus">
+                        <option value="Sipariş Verildi">Sipariş Verildi</option>
+                        <option value="Yolda">Yolda</option>
+                        <option value="Teslim Alındı">Teslim Alındı</option>
+                        <option value="Beklemede">Beklemede</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Teslim Tarihi</label>
+                    <input type="date" name="deadline" id="procurementDeadline">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Kaydet</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- File Modal -->
+    <div id="fileModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('fileModal')">&times;</span>
+            <h2>Dosya Ekle</h2>
+            
+            <form id="fileForm" onsubmit="handleAddFile(event)">
+                <input type="hidden" name="id" id="fileId">
+                <input type="hidden" name="projectId" id="fileProjectId">
+                
+                <div class="form-group">
+                    <label>Dosya Adı *</label>
+                    <input type="text" name="fileName" id="fileName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <select name="category" id="fileCategory">
+                        <option value="Teknik Çizim">Teknik Çizim</option>
+                        <option value="Maket">Maket</option>
+                        <option value="Kostüm Tasarımı">Kostüm Tasarımı</option>
+                        <option value="Işık Planı">Işık Planı</option>
+                        <option value="Diğer">Diğer</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Etiketler (virgülle ayırın)</label>
+                    <input type="text" name="tags" id="fileTags" placeholder="örn: sahne, dekor, ölçekli">
+                </div>
+                
+                <div class="form-group">
+                    <label>Notlar</label>
+                    <textarea name="notes" id="fileNotes"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Kaydet</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Photo Viewer Modal -->
+    <div id="photoViewerModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-modal" onclick="closeModal('photoViewerModal')">&times;</span>
+            <img id="photoViewerImage" style="width: 100%; border-radius: 8px;">
+        </div>
+    </div>
+
     <script>
-        // ===== STATE MANAGEMENT =====
+        // ===== STATE =====
         let currentProject = null;
         let currentProjectPoster = '';
         let currentPhotos = [];
         let currentTheme = localStorage.getItem('theme') || 'light';
         let currentWorkshopType = '';
-        
+
         // ===== DATA STORAGE =====
         const storage = {
             projects: JSON.parse(localStorage.getItem('projects')) || [],
@@ -909,7 +1066,17 @@
             workshopPhotos: JSON.parse(localStorage.getItem('workshopPhotos')) || {},
             projectPosters: JSON.parse(localStorage.getItem('projectPosters')) || {}
         };
-        
+
+        // ===== SAVE TO STORAGE =====
+        function saveStorage() {
+            localStorage.setItem('projects', JSON.stringify(storage.projects));
+            localStorage.setItem('workshops', JSON.stringify(storage.workshops));
+            localStorage.setItem('procurements', JSON.stringify(storage.procurements));
+            localStorage.setItem('files', JSON.stringify(storage.files));
+            localStorage.setItem('workshopPhotos', JSON.stringify(storage.workshopPhotos));
+            localStorage.setItem('projectPosters', JSON.stringify(storage.projectPosters));
+        }
+
         // ===== THEME MANAGEMENT =====
         function initTheme() {
             if (currentTheme === 'dark') {
@@ -922,7 +1089,7 @@
                 document.getElementById('themeText').textContent = 'Karanlık Mod';
             }
         }
-        
+
         function toggleTheme() {
             currentTheme = currentTheme === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', currentTheme);
@@ -930,9 +1097,7 @@
             document.getElementById('themeText').textContent = currentTheme === 'dark' ? 'Aydınlık Mod' : 'Karanlık Mod';
             localStorage.setItem('theme', currentTheme);
         }
-        
-        window.toggleTheme = toggleTheme;
-        
+
         // ===== VIEW NAVIGATION =====
         function goToMainView() {
             currentProject = null;
@@ -940,31 +1105,27 @@
             document.getElementById('productionDetailView').classList.remove('active');
             renderProductions();
         }
-        
+
         function showProductionDetail(projectId) {
             const project = storage.projects.find(p => p.id == projectId);
             if (!project) return;
-            
+
             currentProject = projectId;
-            
+
             document.getElementById('mainView').classList.remove('active');
             document.getElementById('productionDetailView').classList.add('active');
-            
+
             renderProductionDetail(project);
             renderAllWorkshops();
             renderProcurements();
             renderFiles();
-            
-            // Reset to first tab
+
             document.querySelectorAll('.production-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.production-tab-content').forEach(c => c.classList.remove('active'));
             document.querySelector('.production-tab[data-tab="demir"]').classList.add('active');
             document.getElementById('demir').classList.add('active');
         }
-        
-        window.goToMainView = goToMainView;
-        window.showProductionDetail = showProductionDetail;
-        
+
         // ===== TAB SWITCHING =====
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('production-tab')) {
@@ -975,12 +1136,12 @@
                 document.getElementById(tab).classList.add('active');
             }
         });
-        
+
         // ===== MODAL FUNCTIONS =====
         function openModal(modalId) {
             document.getElementById(modalId).classList.add('active');
         }
-        
+
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
             const forms = document.querySelectorAll(`#${modalId} form`);
@@ -992,21 +1153,195 @@
             currentProjectPoster = '';
             currentPhotos = [];
         }
-        
-        window.openModal = openModal;
-        window.closeModal = closeModal;
-        
-        // Close modal on outside click
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal')) {
-                e.target.classList.remove('active');
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // ===== PHOTO UPLOAD =====
+        document.getElementById('projectPosterInput').addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentProjectPoster = e.target.result;
+                    document.getElementById('projectPosterPreview').innerHTML = `
+                        <div class="photo-preview-item">
+                            <img src="${currentProjectPoster}">
+                            <span class="remove" onclick="removeProjectPoster()">×</span>
+                        </div>
+                    `;
+                    document.getElementById('projectPosterPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
             }
         });
-        
+
+        function removeProjectPoster() {
+            currentProjectPoster = '';
+            document.getElementById('projectPosterPreview').innerHTML = '';
+            document.getElementById('projectPosterInput').value = '';
+            document.getElementById('projectPosterPlaceholder').style.display = 'block';
+        }
+
+        document.getElementById('workshopPhotos').addEventListener('change', function(e) {
+            const files = Array.from(this.files);
+            files.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentPhotos.push(e.target.result);
+                    renderWorkshopPhotoPreview();
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        function removeWorkshopPhoto(index) {
+            currentPhotos.splice(index, 1);
+            renderWorkshopPhotoPreview();
+        }
+
+        function renderWorkshopPhotoPreview() {
+            const preview = document.getElementById('workshopPhotoPreview');
+            preview.innerHTML = currentPhotos.map((photo, index) => `
+                <div class="photo-preview-item">
+                    <img src="${photo}">
+                    <span class="remove" onclick="removeWorkshopPhoto(${index})">×</span>
+                </div>
+            `).join('');
+        }
+
+        function viewPhoto(photoSrc) {
+            document.getElementById('photoViewerImage').src = photoSrc;
+            openModal('photoViewerModal');
+        }
+
+        // ===== FORM HANDLERS =====
+        function handleAddProject(e) {
+            e.preventDefault();
+            const title = document.getElementById('projectTitle').value;
+            const stage = document.getElementById('projectStage').value;
+            const premiere = document.getElementById('projectPremiere').value;
+            const designer = document.getElementById('projectDesigner').value;
+
+            if (!title.trim()) return;
+
+            const project = {
+                id: Date.now().toString(),
+                title,
+                stage,
+                premiere,
+                designer,
+                createdAt: new Date().toISOString()
+            };
+
+            storage.projects.push(project);
+            if (currentProjectPoster) {
+                storage.projectPosters[project.id] = currentProjectPoster;
+            }
+            saveStorage();
+            closeModal('projectModal');
+            renderProductions();
+        }
+
+        function handleAddWorkshop(e) {
+            e.preventDefault();
+            const title = document.getElementById('workshopTitle').value;
+            const description = document.getElementById('workshopDescription').value;
+            const deadline = document.getElementById('workshopDeadline').value;
+            const status = document.getElementById('workshopStatus').value;
+
+            if (!title.trim()) return;
+
+            const workshop = {
+                id: Date.now().toString(),
+                projectId: currentProject,
+                workshop: currentWorkshopType,
+                title,
+                description,
+                deadline,
+                status,
+                createdAt: new Date().toISOString()
+            };
+
+            storage.workshops.push(workshop);
+            if (currentPhotos.length > 0) {
+                storage.workshopPhotos[workshop.id] = currentPhotos;
+            }
+            saveStorage();
+            closeModal('workshopModal');
+            renderWorkshopCategory(currentWorkshopType);
+        }
+
+        function handleAddProcurement(e) {
+            e.preventDefault();
+            const name = document.getElementById('procurementName').value;
+            const quantity = document.getElementById('procurementQuantity').value;
+            const supplier = document.getElementById('procurementSupplier').value;
+            const status = document.getElementById('procurementStatus').value;
+            const deadline = document.getElementById('procurementDeadline').value;
+
+            if (!name.trim()) return;
+
+            const procurement = {
+                id: Date.now().toString(),
+                projectId: currentProject,
+                name,
+                quantity,
+                supplier,
+                status,
+                deadline,
+                createdAt: new Date().toISOString()
+            };
+
+            storage.procurements.push(procurement);
+            saveStorage();
+            closeModal('procurementModal');
+            renderProcurements();
+        }
+
+        function handleAddFile(e) {
+            e.preventDefault();
+            const fileName = document.getElementById('fileName').value;
+            const category = document.getElementById('fileCategory').value;
+            const tags = document.getElementById('fileTags').value;
+            const notes = document.getElementById('fileNotes').value;
+
+            if (!fileName.trim()) return;
+
+            const file = {
+                id: Date.now().toString(),
+                projectId: currentProject,
+                fileName,
+                category,
+                tags,
+                notes,
+                createdAt: new Date().toISOString()
+            };
+
+            storage.files.push(file);
+            saveStorage();
+            closeModal('fileModal');
+            renderFiles();
+        }
+
+        function openAddWorkshopModal(type) {
+            currentWorkshopType = type;
+            document.getElementById('workshopType').value = type;
+            document.getElementById('workshopProjectId').value = currentProject;
+            currentPhotos = [];
+            document.getElementById('workshopPhotoPreview').innerHTML = '';
+            openModal('workshopModal');
+        }
+
         // ===== RENDER FUNCTIONS =====
         function renderProductions() {
             const grid = document.getElementById('productionsGrid');
-            
+
             if (storage.projects.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state">
@@ -1017,10 +1352,14 @@
                 `;
                 return;
             }
-            
+
             grid.innerHTML = storage.projects.map(project => {
                 const poster = storage.projectPosters[project.id];
-                const pendingCount = countPendingTasks(project.id);
+                const pendingCount = storage.workshops.filter(w =>
+                    w.projectId == project.id &&
+                    (w.status === 'Beklemede' || w.status === 'Devam Ediyor')
+                ).length;
+
                 return `
                 <div class="production-card" onclick="showProductionDetail('${project.id}')">
                     <div class="production-poster">
@@ -1028,7 +1367,7 @@
                     </div>
                     <div class="production-card-content">
                         <h3>${project.title}</h3>
-                        
+
                         <div class="production-meta">
                             ${project.stage ? `
                             <div class="production-meta-item">
@@ -1043,12 +1382,12 @@
                                 <strong>Tasarımcı:</strong> ${project.designer}
                             </div>` : ''}
                         </div>
-                        
+
                         ${pendingCount > 0 ? `
                         <div class="pending-tasks-badge">
                             📋 ${pendingCount} Yapılacak İş
                         </div>` : ''}
-                        
+
                         <div class="production-actions" onclick="event.stopPropagation()">
                             <button class="btn-small" onclick="editProject('${project.id}')">Düzenle</button>
                             <button class="btn-small btn-delete" onclick="deleteProject('${project.id}')">Sil</button>
@@ -1057,17 +1396,17 @@
                 </div>
             `}).join('');
         }
-        
+
         function renderProductionDetail(project) {
             const poster = storage.projectPosters[project.id];
-            
+
             document.getElementById('productionDetailHeader').innerHTML = `
                 <div class="production-detail-poster">
                     ${poster ? `<img src="${poster}" alt="${project.title}" loading="lazy">` : '🎭'}
                 </div>
                 <div class="production-detail-info">
                     <h2>${project.title}</h2>
-                    
+
                     <div class="meta-grid">
                         ${project.stage ? `<div class="meta-item"><label>Sahne</label><value>${project.stage}</value></div>` : ''}
                         ${project.premiere ? `<div class="meta-item"><label>Prömiyér</label><value>${new Date(project.premiere).toLocaleDateString('tr-TR')}</value></div>` : ''}
@@ -1076,25 +1415,18 @@
                 </div>
             `;
         }
-        
-        function countPendingTasks(projectId) {
-            return storage.workshops.filter(w => 
-                w.projectId == projectId && 
-                (w.status === 'Beklemede' || w.status === 'Devam Ediyor')
-            ).length;
-        }
-        
+
         function renderAllWorkshops() {
             const categories = ['Demir', 'Marangoz', 'Bezleme', 'Butafor', 'Boya'];
             categories.forEach(category => renderWorkshopCategory(category));
         }
-        
+
         function renderWorkshopCategory(category) {
             const list = document.getElementById(category.toLowerCase() + 'List');
-            const workshops = storage.workshops.filter(w => 
+            const workshops = storage.workshops.filter(w =>
                 w.projectId == currentProject && w.workshop === category
             );
-            
+
             if (workshops.length === 0) {
                 list.innerHTML = `
                     <div class="empty-state">
@@ -1105,31 +1437,31 @@
                 `;
                 return;
             }
-            
+
             const statusTexts = {
                 'Beklemede': 'Beklemede',
                 'Devam Ediyor': 'Devam Ediyor',
                 'Tamamlandı': 'Tamamlandı'
             };
-            
+
             const statusClasses = {
                 'Beklemede': 'workshop-status-beklemede',
                 'Devam Ediyor': 'workshop-status-devam',
                 'Tamamlandı': 'workshop-status-tamamlandi'
             };
-            
+
             list.innerHTML = workshops.map(item => {
                 const photos = storage.workshopPhotos[item.id] || [];
                 return `
                 <div class="workshop-item">
                     <h4>${item.title}</h4>
                     <span class="workshop-status-badge ${statusClasses[item.status || 'Beklemede']}">${statusTexts[item.status || 'Beklemede']}</span>
-                    
+
                     <div class="workshop-meta">
                         <span>📅 Teslim: ${item.deadline ? new Date(item.deadline).toLocaleDateString('tr-TR') : '-'}</span>
                     </div>
                     ${item.description ? `<p style="margin-top: 10px; color: var(--text-secondary);">${item.description}</p>` : ''}
-                    
+
                     ${photos.length > 0 ? `
                     <div class="workshop-photos">
                         ${photos.map((photo, idx) => `
@@ -1138,7 +1470,7 @@
                             </div>
                         `).join('')}
                     </div>` : ''}
-                    
+
                     <div class="workshop-actions">
                         <button class="btn-small" onclick="editWorkshop('${item.id}')">Düzenle</button>
                         <button class="btn-small btn-delete" onclick="deleteWorkshop('${item.id}')">Sil</button>
@@ -1146,11 +1478,11 @@
                 </div>
             `}).join('');
         }
-        
+
         function renderProcurements() {
             const list = document.getElementById('procurementList');
             const procurements = storage.procurements.filter(p => p.projectId == currentProject);
-            
+
             if (procurements.length === 0) {
                 list.innerHTML = `
                     <div class="empty-state">
@@ -1161,13 +1493,13 @@
                 `;
                 return;
             }
-            
+
             list.innerHTML = procurements.map(item => `
                 <div class="workshop-item">
-                    <h4>${item.name}</h4>
+                    <h4>📦 ${item.name}</h4>
                     <div class="workshop-meta">
-                        <span>📦 Miktar: ${item.quantity}</span>
-                        <span>🏪 Tedarikçi: ${item.supplier || '-'}</span>
+                        <span>Miktar: ${item.quantity}</span>
+                        <span>Tedarikçi: ${item.supplier || '-'}</span>
                         <span>📅 Teslim: ${item.deadline ? new Date(item.deadline).toLocaleDateString('tr-TR') : '-'}</span>
                     </div>
                     <p style="margin-top: 10px; color: var(--text-secondary);">Durum: ${item.status}</p>
@@ -1178,11 +1510,11 @@
                 </div>
             `).join('');
         }
-        
+
         function renderFiles() {
             const list = document.getElementById('filesList');
             const files = storage.files.filter(f => f.projectId == currentProject);
-            
+
             if (files.length === 0) {
                 list.innerHTML = `
                     <div class="empty-state">
@@ -1193,10 +1525,10 @@
                 `;
                 return;
             }
-            
+
             list.innerHTML = files.map(item => `
                 <div class="file-card">
-                    <h4>${item.fileName}</h4>
+                    <h4>📄 ${item.fileName}</h4>
                     <p style="color: var(--text-secondary); font-size: 0.9em;">Kategori: ${item.category}</p>
                     ${item.notes ? `<p style="margin-top: 8px; color: var(--text-secondary);">${item.notes}</p>` : ''}
                     ${item.tags ? `
@@ -1210,33 +1542,56 @@
                 </div>
             `).join('');
         }
-        
-        function viewPhoto(photoSrc) {
-            const modal = document.getElementById('photoViewerModal');
-            if (modal) {
-                document.getElementById('photoViewerImage').src = photoSrc;
-                openModal('photoViewerModal');
+
+        // ===== DELETE FUNCTIONS =====
+        function deleteProject(id) {
+            if (confirm('Bu oyunu silmek istediğinize emin misiniz?')) {
+                storage.projects = storage.projects.filter(p => p.id !== id);
+                storage.workshops = storage.workshops.filter(w => w.projectId !== id);
+                storage.procurements = storage.procurements.filter(p => p.projectId !== id);
+                storage.files = storage.files.filter(f => f.projectId !== id);
+                delete storage.projectPosters[id];
+                saveStorage();
+                renderProductions();
             }
         }
-        
-        window.viewPhoto = viewPhoto;
-        
-        // Initialize theme on page load
+
+        function deleteWorkshop(id) {
+            if (confirm('Bu işi silmek istediğinize emin misiniz?')) {
+                storage.workshops = storage.workshops.filter(w => w.id !== id);
+                delete storage.workshopPhotos[id];
+                saveStorage();
+                renderAllWorkshops();
+            }
+        }
+
+        function deleteProcurement(id) {
+            if (confirm('Bu satınalmayı silmek istediğinize emin misiniz?')) {
+                storage.procurements = storage.procurements.filter(p => p.id !== id);
+                saveStorage();
+                renderProcurements();
+            }
+        }
+
+        function deleteFile(id) {
+            if (confirm('Bu dosyayı silmek istediğinize emin misiniz?')) {
+                storage.files = storage.files.filter(f => f.id !== id);
+                saveStorage();
+                renderFiles();
+            }
+        }
+
+        // ===== PLACEHOLDER FUNCTIONS =====
+        function editProject(id) { alert('Düzenleme özelliği yakında gelecek'); }
+        function editWorkshop(id) { alert('Düzenleme özelliği yakında gelecek'); }
+        function editProcurement(id) { alert('Düzenleme özelliği yakında gelecek'); }
+        function editFile(id) { alert('Düzenleme özelliği yakında gelecek'); }
+
+        // ===== INIT =====
         document.addEventListener('DOMContentLoaded', function() {
             initTheme();
             renderProductions();
         });
-        
-        // Placeholder functions for CRUD operations
-        window.editProject = function(id) { console.log('Edit project:', id); };
-        window.deleteProject = function(id) { console.log('Delete project:', id); };
-        window.editWorkshop = function(id) { console.log('Edit workshop:', id); };
-        window.deleteWorkshop = function(id) { console.log('Delete workshop:', id); };
-        window.editProcurement = function(id) { console.log('Edit procurement:', id); };
-        window.deleteProcurement = function(id) { console.log('Delete procurement:', id); };
-        window.editFile = function(id) { console.log('Edit file:', id); };
-        window.deleteFile = function(id) { console.log('Delete file:', id); };
-        window.openAddWorkshopModal = function(type) { console.log('Add workshop:', type); };
     </script>
 </body>
 </html>
