@@ -1,260 +1,286 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sahne Üretim Yönetim Sistemi</title>
-    <style>
-        :root {
-            --bg-dark: #0f1115; --bg-panel: #1a1d24; --bg-card: #22262f;
-            --text-main: #f1f5f9; --text-muted: #94a3b8;
-            --accent: #3b82f6; --accent-hover: #2563eb;
-            --border: #334155; --danger: #ef4444;
-            --todo: #f43f5e; --doing: #f59e0b; --done: #10b981;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dekor Parça Üretim Takip</title>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --card: #1a1a1a;
+      --text: #e0e0e0;
+      --accent: #bb86fc;
+      --done: #03dac6;
+      --warn: #cf6679;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 16px;
+      min-height: 100vh;
+    }
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+      color: var(--accent);
+      font-size: 1.8rem;
+    }
+    form {
+      background: var(--card);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    label {
+      display: block;
+      margin: 10px 0 4px;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      background: #222;
+      color: white;
+      font-size: 1rem;
+    }
+    button {
+      background: var(--accent);
+      color: black;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 8px;
+    }
+    button:hover { opacity: 0.9; }
 
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        
-        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
-        h1 { margin: 0; font-size: 22px; font-weight: 600; }
-        
-        button { cursor: pointer; border: none; font-family: inherit; border-radius: 6px; font-weight: 500; transition: 0.2s; }
-        .btn-primary { background-color: var(--accent); color: white; padding: 10px 18px; }
-        .btn-primary:hover { background-color: var(--accent-hover); }
-        .btn-back { background-color: transparent; color: var(--text-muted); padding: 8px 12px; border: 1px solid var(--border); }
-        .btn-back:hover { background-color: var(--bg-panel); color: white; }
-        .btn-danger { background-color: transparent; color: var(--danger); padding: 5px 10px; border: 1px solid var(--danger); font-size: 12px; }
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .item {
+      background: var(--card);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      position: relative;
+    }
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .parca-no { font-weight: bold; color: var(--accent); }
+    .status {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .status-plan { background:#555; }
+    .status-malzeme { background:#665c00; color:#ffeb3b; }
+    .status-kesim { background:#006064; color:#b2ebf2; }
+    .status-boyama { background:#880e4f; color:#f8bbd0; }
+    .status-montaj { background:#1b5e20; color:#c8e6c9; }
+    .status-done { background:var(--done); color:black; }
+    .status-warn { background:var(--warn); color:white; }
 
-        /* Dialog / Popup Formları */
-        dialog { background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); border-radius: 12px; padding: 25px; width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        dialog::backdrop { background: rgba(0,0,0,0.7); }
-        input, select { width: 100%; box-sizing: border-box; padding: 10px; margin: 8px 0 20px 0; background: var(--bg-dark); color: white; border: 1px solid var(--border); border-radius: 6px; }
-        .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+    .foto-alan img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: block;
+    }
+    .foto-alan:empty { display:none; }
 
-        /* Görünümler */
-        #productions-view { display: block; }
-        #single-production-view { display: none; }
+    .delete-btn {
+      background: #cf6679;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
 
-        /* Prodüksiyon Kartları */
-        .production-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .prod-card { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
-        .prod-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-        .prod-title { font-size: 20px; font-weight: 600; margin: 0; }
-        
-        .btn-enter { width: 100%; background-color: var(--bg-card); color: white; padding: 12px; border: 1px solid var(--border); margin-top: 15px; }
-        .btn-enter:hover { border-color: var(--accent); color: var(--accent); }
-
-        /* Kanban Panosu */
-        .kanban { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 10px; }
-        .column { flex: 1; min-width: 300px; background: var(--bg-panel); border-radius: 10px; padding: 15px; border: 1px solid var(--border); min-height: 400px; }
-        .col-header { font-size: 14px; font-weight: 600; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid; }
-        
-        .task { background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; cursor: grab; }
-        .task:active { cursor: grabbing; opacity: 0.7; }
-        .task-title { margin: 0 0 8px 0; font-size: 15px; }
-        .task-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
-        .tag { padding: 3px 8px; border-radius: 4px; color: white; font-weight: 500; }
-
-    </style>
+    @media (min-width: 600px) {
+      .container { max-width: 800px; margin: 0 auto; }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>🎭 Sahne Üretim Yönetimi</h1>
-            <button id="btn-new-prod" class="btn-primary" onclick="document.getElementById('modal-add-prod').showModal()">+ Yeni Oyun Ekle</button>
-        </header>
+<div class="container">
+  <h1>Dekor Parça Takip</h1>
 
-        <div id="productions-view">
-            <h2 style="font-size: 18px; color: var(--text-muted); margin-bottom: 20px;">Aktif Oyunlar</h2>
-            <div class="production-grid" id="prod-list">
-                </div>
+  <form id="form">
+    <label>Parça No / Kod</label>
+    <input type="text" id="no" placeholder="01, A1, Pencere-1 vb." required>
+
+    <label>Parça Adı</label>
+    <input type="text" id="ad" placeholder="Arka plan duvarı, Kapı pervazı..." required>
+
+    <label>Açıklama / Detay</label>
+    <textarea id="aciklama" rows="2" placeholder="Tahta çerçeve + bez kaplama..."></textarea>
+
+    <label>Malzeme</label>
+    <input type="text" id="malzeme" placeholder="Kontrplak 18mm, MDF, Pleksi...">
+
+    <label>Ölçü / Adet</label>
+    <input type="text" id="olcu" placeholder="4x3 m, 2 adet...">
+
+    <label>Sorumlu</label>
+    <input type="text" id="sorumlu" placeholder="Ahmet, Ayşe...">
+
+    <label>Planlanan Bitiş</label>
+    <input type="date" id="planlanan">
+
+    <label>Durum</label>
+    <select id="durum">
+      <option value="Planlanıyor">Planlanıyor</option>
+      <option value="Malzeme Bekleniyor">Malzeme Bekleniyor</option>
+      <option value="Kesim / Marangozluk">Kesim / Marangozluk</option>
+      <option value="Zımpara / Astardan">Zımpara / Astardan</option>
+      <option value="Boyama / Kaplama">Boyama / Kaplama</option>
+      <option value="Montaj / Kurulum">Montaj / Kurulum</option>
+      <option value="Tamamlandı">Tamamlandı</option>
+      <option value="Gecikti / Sorun Var">Gecikti / Sorun Var</option>
+    </select>
+
+    <label>Fotoğraf Ekle (telefon kamerası veya galeri)</label>
+    <input type="file" id="foto" accept="image/*">
+
+    <button type="submit">Parçayı Ekle / Güncelle</button>
+  </form>
+
+  <div class="list" id="liste"></div>
+</div>
+
+<script>
+  const form = document.getElementById('form');
+  const liste = document.getElementById('liste');
+  let editId = null;
+
+  // LocalStorage'dan yükle
+  let parcalar = JSON.parse(localStorage.getItem('dekorParcalar')) || [];
+
+  function kaydet() {
+    localStorage.setItem('dekorParcalar', JSON.stringify(parcalar));
+    renderListe();
+  }
+
+  function renderListe() {
+    liste.innerHTML = '';
+    parcalar.forEach((p, index) => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `
+        <div class="item-header">
+          <span class="parca-no">${p.no || '—'}</span>
+          <span class="status status-${p.durum.toLowerCase().replace(/\s+/g,'-').replace(/[ \/]/g,'')}">${p.durum}</span>
+        </div>
+        <strong>${p.ad}</strong><br>
+        ${p.aciklama ? `<small>${p.aciklama}</small><br>` : ''}
+        ${p.malzeme ? `Malzeme: ${p.malzeme}<br>` : ''}
+        ${p.olcu ? `Ölçü/Adet: ${p.olcu}<br>` : ''}
+        ${p.sorumlu ? `Sorumlu: ${p.sorumlu}<br>` : ''}
+        ${p.planlanan ? `Planlanan bitiş: ${p.planlanan}<br>` : ''}
+        ${p.gercekBitis ? `Gerçek bitiş: ${p.gercekBitis}<br>` : ''}
+
+        <div class="foto-alan">
+          ${p.foto ? `<img src="${p.foto}" alt="Parça fotoğrafı">` : ''}
         </div>
 
-        <div id="single-production-view">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <button class="btn-back" onclick="showDashboard()">← Geri</button>
-                    <h2 id="current-prod-title" style="margin: 0; font-size: 24px;">Oyun Adı</h2>
-                </div>
-                <button class="btn-primary" onclick="document.getElementById('modal-add-task').showModal()">+ Atölye İşi Ekle</button>
-            </div>
+        <button class="delete-btn" onclick="sil(${index})">Sil</button>
+        <button onclick="duzenle(${index})" style="margin-left:8px; background:#555; color:white;">Düzenle</button>
+      `;
+      liste.appendChild(div);
+    });
+  }
 
-            <div class="kanban">
-                <div class="column" id="todo" ondrop="drop(event)" ondragover="allowDrop(event)">
-                    <div class="col-header" style="border-color: var(--todo);">📋 Yapılacaklar</div>
-                    <div id="todo-tasks"></div>
-                </div>
-                <div class="column" id="doing" ondrop="drop(event)" ondragover="allowDrop(event)">
-                    <div class="col-header" style="border-color: var(--doing);">⏳ Üretimde</div>
-                    <div id="doing-tasks"></div>
-                </div>
-                <div class="column" id="done" ondrop="drop(event)" ondragover="allowDrop(event)">
-                    <div class="col-header" style="border-color: var(--done);">✅ Tamamlandı</div>
-                    <div id="done-tasks"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+  function sil(index) {
+    if (confirm('Bu parçayı silmek istediğinize emin misiniz?')) {
+      parcalar.splice(index, 1);
+      kaydet();
+    }
+  }
 
-    <dialog id="modal-add-prod">
-        <h3 style="margin-top: 0;">Yeni Oyun Ekle</h3>
-        <label>Oyun Adı:</label>
-        <input type="text" id="input-prod-name" placeholder="Örn: Nihayet Makamı">
-        <div class="dialog-actions">
-            <button class="btn-back" onclick="document.getElementById('modal-add-prod').close()">İptal</button>
-            <button class="btn-primary" onclick="addProduction()">Kaydet</button>
-        </div>
-    </dialog>
+  function duzenle(index) {
+    const p = parcalar[index];
+    editId = index;
 
-    <dialog id="modal-add-task">
-        <h3 style="margin-top: 0;">Yeni İş Ekle</h3>
-        <label>İş / Çizim Tanımı:</label>
-        <input type="text" id="input-task-name" placeholder="Örn: Sabriye - Broşür Tasarımı">
-        <label>Atölye Seçimi:</label>
-        <select id="input-task-type">
-            <option value="Tasarım|#42a5f5">🎨 Tasarım / Çizim</option>
-            <option value="Kostüm|#ec407a">🧵 Kostüm & Bezleme</option>
-            <option value="Marangoz|#8d6e63">🪵 Marangoz</option>
-            <option value="Demir|#78909c">🔩 Demir</option>
-        </select>
-        <div class="dialog-actions">
-            <button class="btn-back" onclick="document.getElementById('modal-add-task').close()">İptal</button>
-            <button class="btn-primary" onclick="addTask()">İşi Ekle</button>
-        </div>
-    </dialog>
+    document.getElementById('no').value = p.no || '';
+    document.getElementById('ad').value = p.ad;
+    document.getElementById('aciklama').value = p.aciklama || '';
+    document.getElementById('malzeme').value = p.malzeme || '';
+    document.getElementById('olcu').value = p.olcu || '';
+    document.getElementById('sorumlu').value = p.sorumlu || '';
+    document.getElementById('planlanan').value = p.planlanan || '';
+    document.getElementById('durum').value = p.durum;
 
-    <script>
-        // --- VERİTABANI VE YÖNETİM ---
-        let appData = JSON.parse(localStorage.getItem('sahneVerileri2')) || { productions: [] };
-        let activeProdId = null;
+    // Fotoğrafı gösteremiyoruz düzenlemede, ama yeni ekleyebilir
+    form.querySelector('button').textContent = 'Değişiklikleri Kaydet';
+  }
 
-        function saveData() { localStorage.setItem('sahneVerileri2', JSON.stringify(appData)); }
+  form.addEventListener('submit', e => {
+    e.preventDefault();
 
-        // --- ANA SAYFA YÜKLEME ---
-        function renderDashboard() {
-            const list = document.getElementById('prod-list');
-            list.innerHTML = '';
-            
-            if (appData.productions.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-muted);">Henüz eklenmiş bir oyun yok. Yukarıdan Yeni Oyun Ekle butonuna basın.</p>';
-                return;
-            }
+    const fotoInput = document.getElementById('foto');
+    let fotoData = null;
 
-            appData.productions.forEach(prod => {
-                list.innerHTML += `
-                    <div class="prod-card">
-                        <div class="prod-header">
-                            <h3 class="prod-title">${prod.name}</h3>
-                            <button class="btn-danger" onclick="deleteProd(${prod.id})">Sil</button>
-                        </div>
-                        <p style="color: var(--text-muted); font-size: 14px;">Toplam İş: ${prod.tasks.length}</p>
-                        <button class="btn-enter" onclick="openProd(${prod.id})">Prodüksiyonu Yönet →</button>
-                    </div>
-                `;
-            });
-        }
+    if (fotoInput.files && fotoInput.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        fotoData = ev.target.result;
+        kaydetParca(fotoData);
+      };
+      reader.readAsDataURL(fotoInput.files[0]);
+    } else {
+      // Eski fotoğrafı koru (düzenlemede)
+      fotoData = editId !== null ? parcalar[editId].foto : null;
+      kaydetParca(fotoData);
+    }
+  });
 
-        // --- OYUN EKLEME ---
-        function addProduction() {
-            const name = document.getElementById('input-prod-name').value;
-            if (!name) return;
-            appData.productions.push({ id: Date.now(), name: name, tasks: [] });
-            saveData();
-            document.getElementById('input-prod-name').value = '';
-            document.getElementById('modal-add-prod').close();
-            renderDashboard();
-        }
+  function kaydetParca(foto) {
+    const yeniParca = {
+      no: document.getElementById('no').value.trim(),
+      ad: document.getElementById('ad').value.trim(),
+      aciklama: document.getElementById('aciklama').value.trim(),
+      malzeme: document.getElementById('malzeme').value.trim(),
+      olcu: document.getElementById('olcu').value.trim(),
+      sorumlu: document.getElementById('sorumlu').value.trim(),
+      planlanan: document.getElementById('planlanan').value,
+      durum: document.getElementById('durum').value,
+      foto: foto
+    };
 
-        function deleteProd(id) {
-            if(confirm("Bu oyunu tamamen silmek istiyor musunuz?")) {
-                appData.productions = appData.productions.filter(p => p.id !== id);
-                saveData(); renderDashboard();
-            }
-        }
+    if (editId !== null) {
+      parcalar[editId] = yeniParca;
+      editId = null;
+      form.querySelector('button').textContent = 'Parçayı Ekle / Güncelle';
+    } else {
+      parcalar.push(yeniParca);
+    }
 
-        // --- OYUN İÇİNE GİRİŞ VE ÇIKIŞ ---
-        function openProd(id) {
-            activeProdId = id;
-            const prod = appData.productions.find(p => p.id === id);
-            document.getElementById('current-prod-title').innerText = prod.name;
-            
-            document.getElementById('productions-view').style.display = 'none';
-            document.getElementById('btn-new-prod').style.display = 'none';
-            document.getElementById('single-production-view').style.display = 'block';
-            
-            renderKanban();
-        }
+    kaydet();
+    form.reset();
+  }
 
-        function showDashboard() {
-            activeProdId = null;
-            document.getElementById('single-production-view').style.display = 'none';
-            document.getElementById('productions-view').style.display = 'block';
-            document.getElementById('btn-new-prod').style.display = 'block';
-            renderDashboard();
-        }
+  // İlk yüklemede listeyi göster
+  renderListe();
+</script>
 
-        // --- KANBAN VE İŞ YÖNETİMİ ---
-        function renderKanban() {
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            document.getElementById('todo-tasks').innerHTML = '';
-            document.getElementById('doing-tasks').innerHTML = '';
-            document.getElementById('done-tasks').innerHTML = '';
-
-            prod.tasks.forEach(task => {
-                const typeData = task.type.split('|');
-                const html = `
-                    <div class="task" draggable="true" ondragstart="drag(event, ${task.id})" id="task-${task.id}">
-                        <h4 class="task-title">${task.name}</h4>
-                        <div class="task-meta">
-                            <span class="tag" style="background-color: ${typeData[1]}">${typeData[0]}</span>
-                            <button class="btn-danger" style="border:none;" onclick="deleteTask(${task.id})">Sil</button>
-                        </div>
-                    </div>
-                `;
-                document.getElementById(task.status + '-tasks').innerHTML += html;
-            });
-        }
-
-        function addTask() {
-            const name = document.getElementById('input-task-name').value;
-            const type = document.getElementById('input-task-type').value;
-            if (!name) return;
-
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            prod.tasks.push({ id: Date.now(), name: name, type: type, status: 'todo' });
-            
-            saveData();
-            document.getElementById('input-task-name').value = '';
-            document.getElementById('modal-add-task').close();
-            renderKanban();
-        }
-
-        function deleteTask(taskId) {
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            prod.tasks = prod.tasks.filter(t => t.id !== taskId);
-            saveData(); renderKanban();
-        }
-
-        // --- SÜRÜKLE BIRAK (DRAG & DROP) ---
-        function allowDrop(ev) { ev.preventDefault(); }
-        function drag(ev, taskId) { ev.dataTransfer.setData("taskId", taskId); }
-        function drop(ev) {
-            ev.preventDefault();
-            const taskId = parseInt(ev.dataTransfer.getData("taskId"));
-            const columnId = ev.target.closest('.column').id; // todo, doing, done
-            
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            const task = prod.tasks.find(t => t.id === taskId);
-            task.status = columnId; // Durumu güncelle
-            
-            saveData();
-            renderKanban();
-        }
-
-        // Başlangıç
-        renderDashboard();
-    </script>
 </body>
 </html>
