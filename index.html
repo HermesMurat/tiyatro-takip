@@ -3,1595 +3,611 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sahne Üretim Takip Sistemi - Profesyonel Tiyatro Prodüksiyon Yönetim">
-    <title>Sahne Üretim Takip Sistemi</title>
+    <title>🎭 Sahne Üretim & Tiyatro Yönetimi</title>
+    <!-- Tailwind CSS (Modern ve Şık Tasarım İçin) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome (İkonlar İçin) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Font Optimization -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        /* ===== RESET & BASE ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-main);
-            color: var(--text-primary);
-            min-height: 100vh;
-            transition: background-color 0.3s ease-out, color 0.3s ease-out;
-        }
-
-        /* ===== CSS VARIABLES ===== */
-        :root {
-            --primary: #8b5cf6;
-            --primary-dark: #7c3aed;
-            --primary-light: #a78bfa;
-            --bg-main: #fafafa;
-            --bg-secondary: #f5f5f7;
-            --bg-tertiary: #efefef;
-            --text-primary: #1d1d1f;
-            --text-secondary: #86868b;
-            --border: #d2d2d7;
-            --success: #34c759;
-            --success-light: #e8f5e9;
-            --warning: #ff9500;
-            --warning-light: #fff3e0;
-            --info: #007aff;
-            --info-light: #e3f2fd;
-            --danger: #ff3b30;
-            --danger-light: #ffebee;
-            --shadow: rgba(0, 0, 0, 0.05);
-            --overlay: rgba(0, 0, 0, 0.3);
-        }
-
-        [data-theme="dark"] {
-            --primary: #a78bfa;
-            --primary-dark: #9333ea;
-            --primary-light: #c4b5fd;
-            --bg-main: #1c1c1e;
-            --bg-secondary: #2c2c2e;
-            --bg-tertiary: #3a3a3c;
-            --text-primary: #f5f5f7;
-            --text-secondary: #98989d;
-            --border: #38383a;
-            --success: #30d158;
-            --success-light: #1e3a28;
-            --warning: #ff9f0a;
-            --warning-light: #3d2f1f;
-            --info: #0a84ff;
-            --info-light: #1e2b3d;
-            --danger: #ff453a;
-            --danger-light: #3d1f1f;
-            --shadow: rgba(0, 0, 0, 0.3);
-            --overlay: rgba(0, 0, 0, 0.6);
-        }
-
-        /* ===== LAYOUT ===== */
-        .app-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* ===== HEADER ===== */
-        .header {
-            text-align: center;
-            padding: 40px 20px 30px;
-            margin-bottom: 30px;
-            border-bottom: 1px solid var(--border);
-            position: relative;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            color: var(--text-primary);
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1em;
-            color: var(--text-secondary);
-        }
-
-        .theme-toggle {
-            position: absolute;
-            top: 40px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s ease-out, border-color 0.2s ease-out;
-        }
-
-        .theme-toggle:hover {
-            background: var(--bg-tertiary);
-        }
-
-        /* ===== VIEW MANAGEMENT ===== */
-        .view {
-            display: none;
-        }
-
-        .view.active {
-            display: block;
-        }
-
-        /* ===== BUTTONS ===== */
-        .btn {
-            padding: 10px 24px;
-            border: 1px solid var(--border);
-            background: var(--bg-main);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.95em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease-out;
-            border-radius: 8px;
-        }
-
-        .btn:hover {
-            background: var(--bg-secondary);
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-small {
-            padding: 8px 14px;
-            font-size: 0.85em;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: var(--bg-main);
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: background-color 0.2s ease-out;
-            font-weight: 500;
-        }
-
-        .btn-small:hover {
-            background: var(--bg-secondary);
-        }
-
-        .btn-delete {
-            color: var(--danger);
-            border-color: var(--danger-light);
-        }
-
-        .btn-delete:hover {
-            background: var(--danger-light);
-        }
-
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease-out, border-color 0.2s ease-out;
-            margin-bottom: 20px;
-        }
-
-        .back-button:hover {
-            background: var(--bg-tertiary);
-            border-color: var(--primary);
-        }
-
-        /* ===== PRODUCTION CARDS ===== */
-        .productions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 24px;
-        }
-
-        .production-card {
-            background: var(--bg-main);
-            border: 2px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-            transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, border-color 0.3s ease-out;
-            box-shadow: 0 2px 12px var(--shadow);
-            cursor: pointer;
-        }
-
-        .production-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px var(--shadow);
-            border-color: var(--primary);
-        }
-
-        .production-poster {
-            width: 100%;
-            height: 400px;
-            background: var(--bg-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 4em;
-            color: var(--text-secondary);
-            border-bottom: 2px solid var(--border);
-            overflow: hidden;
-        }
-
-        .production-poster img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .production-card-content {
-            padding: 24px;
-        }
-
-        .production-card h3 {
-            font-size: 1.6em;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-        }
-
-        .production-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .production-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95em;
-            color: var(--text-secondary);
-        }
-
-        .production-meta-item strong {
-            color: var(--text-primary);
-            min-width: 90px;
-        }
-
-        .pending-tasks-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            background: var(--info-light);
-            color: var(--info);
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95em;
-            margin-top: 12px;
-        }
-
-        .production-actions {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 8px;
-        }
-
-        /* ===== PRODUCTION DETAIL ===== */
-        .production-detail-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 16px;
-            padding: 32px;
-            color: white;
-            margin-bottom: 30px;
-            display: flex;
-            gap: 32px;
-            align-items: flex-start;
-        }
-
-        .production-detail-poster {
-            width: 200px;
-            height: 280px;
-            border-radius: 12px;
-            background: var(--bg-tertiary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3em;
-            flex-shrink: 0;
-            border: 3px solid var(--border);
-            overflow: hidden;
-        }
-
-        .production-detail-poster img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 9px;
-        }
-
-        .production-detail-info {
-            flex: 1;
-        }
-
-        .production-detail-info h2 {
-            font-size: 2.2em;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-
-        .production-detail-info .meta-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        .meta-item {
-            background: var(--bg-tertiary);
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        .meta-item label {
-            font-size: 0.85em;
-            opacity: 0.8;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .meta-item value {
-            font-size: 1.1em;
-            font-weight: 600;
-        }
-
-        /* ===== TABS ===== */
-        .production-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 0;
-            flex-wrap: wrap;
-            overflow-x: auto;
-        }
-
-        .production-tab {
-            padding: 12px 20px;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-family: inherit;
-            font-size: 0.95em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: color 0.2s ease-out;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-            white-space: nowrap;
-        }
-
-        .production-tab:hover {
-            color: var(--text-primary);
-        }
-
-        .production-tab.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-
-        .production-tab-content {
-            display: none;
-        }
-
-        .production-tab-content.active {
-            display: block;
-        }
-
-        /* ===== WORKSHOP ITEMS ===== */
-        .workshop-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .workshop-item {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            transition: box-shadow 0.2s ease-out;
-        }
-
-        .workshop-item:hover {
-            box-shadow: 0 4px 12px var(--shadow);
-        }
-
-        .workshop-item h4 {
-            font-size: 1.2em;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-        }
-
-        .workshop-status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.85em;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
-        .workshop-status-beklemede {
-            background: var(--warning-light);
-            color: var(--warning);
-        }
-
-        .workshop-status-devam {
-            background: var(--info-light);
-            color: var(--info);
-        }
-
-        .workshop-status-tamamlandi {
-            background: var(--success-light);
-            color: var(--success);
-        }
-
-        .workshop-meta {
-            display: flex;
-            gap: 16px;
-            font-size: 0.9em;
-            color: var(--text-secondary);
-            margin: 12px 0;
-        }
-
-        .workshop-photos {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 12px;
-        }
-
-        .workshop-photo {
-            width: 80px;
-            height: 80px;
-            border-radius: 8px;
-            overflow: hidden;
-            cursor: pointer;
-            border: 2px solid var(--border);
-            transition: transform 0.2s ease-out;
-        }
-
-        .workshop-photo:hover {
-            transform: scale(1.05);
-        }
-
-        .workshop-photo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .workshop-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        /* ===== MODAL ===== */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--overlay);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--bg-main);
-            border-radius: 16px;
-            padding: 32px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 1.5em;
-            color: var(--text-secondary);
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            transition: background-color 0.2s ease-out, color 0.2s ease-out;
-            border: none;
-            background: transparent;
-        }
-
-        .close-modal:hover {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-
-        .modal h2 {
-            font-size: 1.5em;
-            font-weight: 600;
-            margin-bottom: 24px;
-            color: var(--text-primary);
-        }
-
-        /* ===== FORMS ===== */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            color: var(--text-primary);
-            font-weight: 500;
-            font-size: 0.9em;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px 12px;
-            background: var(--bg-main);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.95em;
-            transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .file-upload {
-            border: 2px dashed var(--border);
-            border-radius: 8px;
-            padding: 32px;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color 0.2s ease-out, background-color 0.2s ease-out;
-            background: var(--bg-secondary);
-        }
-
-        .file-upload:hover {
-            border-color: var(--primary);
-            background: var(--bg-tertiary);
-        }
-
-        .file-upload input[type="file"] {
-            display: none;
-        }
-
-        .photo-preview {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
-
-        .photo-preview-item {
-            position: relative;
-            width: 100px;
-            height: 100px;
-        }
-
-        .photo-preview-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid var(--border);
-        }
-
-        .photo-preview-item .remove {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: var(--danger);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            border: none;
-        }
-
-        /* ===== EMPTY STATE ===== */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-secondary);
-        }
-
-        .empty-state-icon {
-            font-size: 4em;
-            margin-bottom: 16px;
-            opacity: 0.3;
-        }
-
-        .empty-state h3 {
-            font-size: 1.3em;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-
-        /* ===== FILE CARDS ===== */
-        .file-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            transition: box-shadow 0.2s ease-out;
-        }
-
-        .file-card:hover {
-            box-shadow: 0 4px 12px var(--shadow);
-        }
-
-        .file-card h4 {
-            font-size: 1.2em;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-        }
-
-        .file-tags {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 12px;
-        }
-
-        .file-tag {
-            padding: 4px 12px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            font-size: 0.85em;
-            color: var(--text-primary);
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            .header h1 { font-size: 2em; }
-            .productions-grid { grid-template-columns: 1fr; }
-            .production-detail-header { flex-direction: column; }
-            .production-detail-poster { width: 100%; height: 300px; }
-            .production-tabs { overflow-x: auto; }
-            .theme-toggle { position: static; margin-top: 16px; }
-            .modal-content { width: 95%; padding: 24px; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
+    <script>
+        // Tailwind Özel Renk Ayarları
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                        primary: '#6366f1',
+                        primary_hover: '#4f46e5',
+                        todo: '#f43f5e',
+                        doing: '#f59e0b',
+                        done: '#10b981'
+                    }
+                }
             }
         }
+    </script>
+    <style>
+        /* Özel Kaydırma Çubuğu ve Animasyonlar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Drag & Drop Stilleri */
+        .task-card { cursor: grab; }
+        .task-card:active { cursor: grabbing; transform: scale(0.98); }
+        .drag-over { background-color: rgba(99, 102, 241, 0.1); border: 2px dashed #6366f1; }
+
+        /* Modal Arka Planı */
+        dialog::backdrop { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); }
+        dialog { margin: auto; }
     </style>
 </head>
-<body>
-    <div class="app-container">
-        <header class="header">
-            <h1>SAHNE ÜRETİM TAKİP</h1>
-            <p>Tiyatro Prodüksiyon Yönetim Sistemi</p>
-            <div class="theme-toggle" onclick="toggleTheme()">
-                <span id="themeIcon">🌙</span>
-                <span id="themeText">Karanlık Mod</span>
+<body class="bg-dark text-slate-200 font-sans min-h-screen flex flex-col">
+
+    <!-- Üst Bar -->
+    <header class="bg-card border-b border-slate-700 sticky top-0 z-10 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="showDashboard()">
+                <div class="bg-primary text-white p-2 rounded-lg"><i class="fa-solid fa-masks-theater text-xl"></i></div>
+                <h1 class="text-xl font-bold text-white tracking-wide">Sahne Üretim</h1>
             </div>
-        </header>
+            <div id="header-actions">
+                <button onclick="document.getElementById('modal-add-prod').showModal()" class="bg-primary hover:bg-primary_hover text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-md flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Yeni Prodüksiyon
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ANA İÇERİK ALANI -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         
-        <!-- Main View: Productions List -->
-        <div id="mainView" class="view active">
-            <div style="margin-bottom: 24px;">
-                <button class="btn btn-primary" onclick="openModal('projectModal')">
-                    <span>+ Yeni Oyun Ekle</span>
-                </button>
+        <!-- 1. GÖRÜNÜM: PRODÜKSİYON VİTRİNİ -->
+        <div id="view-dashboard" class="fade-in block">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white">Aktif Oyunlar</h2>
             </div>
             
-            <div class="productions-grid" id="productionsGrid"></div>
-        </div>
-        
-        <!-- Production Detail View -->
-        <div id="productionDetailView" class="view">
-            <button class="back-button" onclick="goToMainView()">
-                ← Ana Sayfaya Dön
-            </button>
-            
-            <div class="production-detail-header" id="productionDetailHeader">
-                <!-- Will be populated dynamically -->
-            </div>
-            
-            <div class="production-tabs">
-                <button class="production-tab active" data-tab="demir">🔩 Demir</button>
-                <button class="production-tab" data-tab="marangoz">🪵 Marangoz</button>
-                <button class="production-tab" data-tab="bezleme">🧵 Bezleme</button>
-                <button class="production-tab" data-tab="butafor">🎨 Butafor</button>
-                <button class="production-tab" data-tab="boya">🖌️ Boya</button>
-                <button class="production-tab" data-tab="procurement">🛒 Satınalma</button>
-                <button class="production-tab" data-tab="files">📁 Dosyalar</button>
-            </div>
-            
-            <!-- Demir Tab -->
-            <div id="demir" class="production-tab-content active">
-                <div style="margin-bottom: 20px;">
-                    <button class="btn btn-primary" onclick="openAddWorkshopModal('Demir')">
-                        <span>+ İş Ekle</span>
-                    </button>
-                </div>
-                <div class="workshop-list" id="demirList"></div>
-            </div>
-            
-            <!-- Marangoz Tab -->
-            <div id="marangoz" class="production-tab-content">
-                <div style="margin-bottom: 20px;">
-                    <button class="btn btn-primary" onclick="openAddWorkshopModal('Marangoz')">
-                        <span>+ İş Ekle</span>
-                    </button>
-                </div>
-                <div class="workshop-list" id="marangozList"></div>
-            </div>
-            
-            <!-- Bezleme Tab -->
-            <div id="bezleme" class="production-tab-content">
-                <div style="margin-bottom: 20px;">
-                    <button class="btn btn-primary" onclick="openAddWorkshopModal('Bezleme')">
-                        <span>+ İş Ekle</span>
-                    </button>
-                </div>
-                <div class="workshop-list" id="bezlemeList"></div>
-            </div>
-            
-            <!-- Butafor Tab -->
-            <div id="butafor" class="production-tab-content">
-                <div style="margin-bottom: 20px;">
-                    <button class="btn btn-primary" onclick="openAddWorkshopModal('Butafor')">
-                        <span>+ İş Ekle</span>
-                    </button>
-                </div>
-                <div class="workshop-list" id="butaforList"></div>
-            </div>
-            
-            <!-- Boya Tab -->
-            <div id="boya" class="production-tab-content">
-                <div style="margin-bottom: 20px;">
-                    <button class="btn btn-primary" onclick="openAddWorkshopModal('Boya')">
-                        <span>+ İş Ekle</span>
-                    </button>
-                </div>
-                <div class="workshop-list" id="boyaList"></div>
-            </div>
-            
-            <!-- Procurement Tab -->
-            <div id="procurement" class="production-tab-content">
-                <div style="margin-bottom: 20px;">
-                    <button class="btn btn-primary" onclick="openModal('procurementModal')">
-                        <span>+ Satınalma Ekle</span>
-                    </button>
-                </div>
-                <div class="workshop-list" id="procurementList"></div>
-            </div>
-            
-            <!-- Files Tab -->
-            <div id="files" class="production-tab-content">
-                <div style="margin-bottom: 20px;">
-                    <button class="btn btn-primary" onclick="openModal('fileModal')">
-                        <span>+ Dosya Ekle</span>
-                    </button>
-                </div>
-                <div class="workshop-list" id="filesList"></div>
+            <div id="productions-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Oyun Kartları Buraya Gelecek -->
             </div>
         </div>
-    </div>
 
-    <!-- Project Modal -->
-    <div id="projectModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('projectModal')">&times;</span>
-            <h2>Yeni Oyun Ekle</h2>
-            
-            <form id="projectForm" onsubmit="handleAddProject(event)">
-                <input type="hidden" name="id" id="projectId">
-                
-                <div class="form-group">
-                    <label>Oyun Adı *</label>
-                    <input type="text" name="title" id="projectTitle" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Sahne</label>
-                    <input type="text" name="stage" id="projectStage">
-                </div>
-                
-                <div class="form-group">
-                    <label>Prömiyér Tarihi</label>
-                    <input type="date" name="premiere" id="projectPremiere">
-                </div>
-                
-                <div class="form-group">
-                    <label>Tasarımcı</label>
-                    <input type="text" name="designer" id="projectDesigner">
-                </div>
-                
-                <div class="form-group">
-                    <label>Poster Görseli</label>
-                    <div class="file-upload" onclick="document.getElementById('projectPosterInput').click()">
-                        <div id="projectPosterPreview"></div>
-                        <div id="projectPosterPlaceholder" style="text-align: center; color: var(--text-secondary);">
-                            📸 Görsel seçmek için tıklayın
-                        </div>
+        <!-- 2. GÖRÜNÜM: OYUN DETAYI VE YÖNETİMİ -->
+        <div id="view-production" class="fade-in hidden">
+            <!-- Oyun Başlığı ve Afiş Özeti -->
+            <div class="relative rounded-2xl overflow-hidden bg-card mb-8 shadow-xl border border-slate-700">
+                <div id="prod-banner" class="h-48 w-full bg-cover bg-center opacity-50"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-card to-transparent"></div>
+                <div class="absolute bottom-0 left-0 p-6 w-full flex justify-between items-end">
+                    <div>
+                        <button onclick="showDashboard()" class="text-slate-300 hover:text-white mb-2 text-sm flex items-center gap-2 transition-colors">
+                            <i class="fa-solid fa-arrow-left"></i> Vitrine Dön
+                        </button>
+                        <h2 id="current-prod-title" class="text-4xl font-extrabold text-white">Oyun Adı</h2>
                     </div>
-                    <input type="file" id="projectPosterInput" accept="image/*" style="display: none;">
-                </div>
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <span>Kaydet</span>
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Workshop Modal -->
-    <div id="workshopModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('workshopModal')">&times;</span>
-            <h2>İş Ekle</h2>
-            
-            <form id="workshopForm" onsubmit="handleAddWorkshop(event)">
-                <input type="hidden" name="id" id="workshopId">
-                <input type="hidden" name="projectId" id="workshopProjectId">
-                <input type="hidden" name="workshop" id="workshopType">
-                
-                <div class="form-group">
-                    <label>İş Başlığı *</label>
-                    <input type="text" name="title" id="workshopTitle" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Açıklama</label>
-                    <textarea name="description" id="workshopDescription"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>Teslim Tarihi</label>
-                    <input type="date" name="deadline" id="workshopDeadline">
-                </div>
-                
-                <div class="form-group">
-                    <label>Durum</label>
-                    <select name="status" id="workshopStatus">
-                        <option value="Beklemede">Beklemede</option>
-                        <option value="Devam Ediyor">Devam Ediyor</option>
-                        <option value="Tamamlandı">Tamamlandı</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Fotoğraflar</label>
-                    <div class="file-upload" onclick="document.getElementById('workshopPhotos').click()">
-                        <div style="text-align: center; color: var(--text-secondary);">
-                            📷 Fotoğraf seçmek için tıklayın
-                        </div>
+                    <div class="flex gap-3">
+                        <button onclick="document.getElementById('modal-add-drawing').showModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-600">
+                            <i class="fa-solid fa-image"></i> Çizim/Dosya Ekle
+                        </button>
+                        <button onclick="document.getElementById('modal-add-task').showModal()" class="bg-primary hover:bg-primary_hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fa-solid fa-plus"></i> Atölye İşi Ekle
+                        </button>
                     </div>
-                    <div id="workshopPhotoPreview" class="photo-preview"></div>
-                    <input type="file" id="workshopPhotos" accept="image/*" multiple style="display: none;">
                 </div>
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <span>Kaydet</span>
-                </button>
-            </form>
-        </div>
-    </div>
+            </div>
 
-    <!-- Procurement Modal -->
-    <div id="procurementModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('procurementModal')">&times;</span>
-            <h2>Satınalma Ekle</h2>
-            
-            <form id="procurementForm" onsubmit="handleAddProcurement(event)">
-                <input type="hidden" name="id" id="procurementId">
-                <input type="hidden" name="projectId" id="procurementProjectId">
-                
-                <div class="form-group">
-                    <label>Ürün Adı *</label>
-                    <input type="text" name="name" id="procurementName" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Miktar</label>
-                    <input type="text" name="quantity" id="procurementQuantity" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Tedarikçi</label>
-                    <input type="text" name="supplier" id="procurementSupplier">
-                </div>
-                
-                <div class="form-group">
-                    <label>Durum</label>
-                    <select name="status" id="procurementStatus">
-                        <option value="Sipariş Verildi">Sipariş Verildi</option>
-                        <option value="Yolda">Yolda</option>
-                        <option value="Teslim Alındı">Teslim Alındı</option>
-                        <option value="Beklemede">Beklemede</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Teslim Tarihi</label>
-                    <input type="date" name="deadline" id="procurementDeadline">
-                </div>
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <span>Kaydet</span>
-                </button>
-            </form>
-        </div>
-    </div>
+            <!-- Sekmeler (Tabs) -->
+            <div class="flex border-b border-slate-700 mb-6 gap-6">
+                <button onclick="switchTab('tab-kanban')" id="btn-tab-kanban" class="pb-3 text-primary border-b-2 border-primary font-medium text-lg transition-colors"><i class="fa-solid fa-hammer mr-2"></i>Atölye Panosu</button>
+                <button onclick="switchTab('tab-gallery')" id="btn-tab-gallery" class="pb-3 text-slate-400 hover:text-slate-200 font-medium text-lg transition-colors border-b-2 border-transparent"><i class="fa-solid fa-palette mr-2"></i>Çizimler & Afişler</button>
+            </div>
 
-    <!-- File Modal -->
-    <div id="fileModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('fileModal')">&times;</span>
-            <h2>Dosya Ekle</h2>
-            
-            <form id="fileForm" onsubmit="handleAddFile(event)">
-                <input type="hidden" name="id" id="fileId">
-                <input type="hidden" name="projectId" id="fileProjectId">
-                
-                <div class="form-group">
-                    <label>Dosya Adı *</label>
-                    <input type="text" name="fileName" id="fileName" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Kategori</label>
-                    <select name="category" id="fileCategory">
-                        <option value="Teknik Çizim">Teknik Çizim</option>
-                        <option value="Maket">Maket</option>
-                        <option value="Kostüm Tasarımı">Kostüm Tasarımı</option>
-                        <option value="Işık Planı">Işık Planı</option>
-                        <option value="Diğer">Diğer</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Etiketler (virgülle ayırın)</label>
-                    <input type="text" name="tags" id="fileTags" placeholder="örn: sahne, dekor, ölçekli">
-                </div>
-                
-                <div class="form-group">
-                    <label>Notlar</label>
-                    <textarea name="notes" id="fileNotes"></textarea>
-                </div>
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <span>Kaydet</span>
-                </button>
-            </form>
-        </div>
-    </div>
+            <!-- Sekme 1: Kanban Panosu -->
+            <div id="tab-kanban" class="block fade-in">
+                <div class="flex flex-col lg:flex-row gap-6 overflow-x-auto pb-4">
+                    
+                    <!-- Yapılacaklar -->
+                    <div class="flex-1 min-w-[320px] bg-slate-800/50 rounded-xl border border-slate-700 p-4 flex flex-col h-[600px]">
+                        <div class="flex items-center justify-between mb-4 border-b border-todo pb-2">
+                            <h3 class="font-bold text-white flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-todo"></div> Yapılacaklar</h3>
+                            <span id="count-todo" class="bg-slate-700 text-xs py-1 px-2 rounded-full">0</span>
+                        </div>
+                        <div id="col-todo" class="flex-1 overflow-y-auto space-y-3" ondrop="drop(event, 'todo')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"></div>
+                    </div>
 
-    <!-- Photo Viewer Modal -->
-    <div id="photoViewerModal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
-            <span class="close-modal" onclick="closeModal('photoViewerModal')">&times;</span>
-            <img id="photoViewerImage" style="width: 100%; border-radius: 8px;">
+                    <!-- Üretimde -->
+                    <div class="flex-1 min-w-[320px] bg-slate-800/50 rounded-xl border border-slate-700 p-4 flex flex-col h-[600px]">
+                        <div class="flex items-center justify-between mb-4 border-b border-doing pb-2">
+                            <h3 class="font-bold text-white flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-doing"></div> Üretimde</h3>
+                            <span id="count-doing" class="bg-slate-700 text-xs py-1 px-2 rounded-full">0</span>
+                        </div>
+                        <div id="col-doing" class="flex-1 overflow-y-auto space-y-3" ondrop="drop(event, 'doing')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"></div>
+                    </div>
+
+                    <!-- Tamamlandı -->
+                    <div class="flex-1 min-w-[320px] bg-slate-800/50 rounded-xl border border-slate-700 p-4 flex flex-col h-[600px]">
+                        <div class="flex items-center justify-between mb-4 border-b border-done pb-2">
+                            <h3 class="font-bold text-white flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-done"></div> Tamamlandı</h3>
+                            <span id="count-done" class="bg-slate-700 text-xs py-1 px-2 rounded-full">0</span>
+                        </div>
+                        <div id="col-done" class="flex-1 overflow-y-auto space-y-3" ondrop="drop(event, 'done')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)"></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Sekme 2: Çizimler ve Dosyalar Galerisi -->
+            <div id="tab-gallery" class="hidden fade-in">
+                <div id="gallery-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <!-- Resimler Buraya Gelecek -->
+                </div>
+            </div>
+
         </div>
-    </div>
+    </main>
+
+    <!-- MODAL 1: YENİ OYUN EKLE (AFİŞLİ) -->
+    <dialog id="modal-add-prod" class="bg-card border border-slate-600 rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
+        <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-white">Yeni Prodüksiyon</h3>
+            <button onclick="document.getElementById('modal-add-prod').close()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <form onsubmit="addProduction(event)" class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Oyun Adı *</label>
+                <input type="text" id="inp-prod-name" required class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Oyun Afişi (Zorunlu Değil)</label>
+                <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative">
+                    <input type="file" id="inp-prod-poster" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewImage(this, 'poster-preview')">
+                    <div id="poster-preview-container" class="hidden flex flex-col items-center">
+                        <img id="poster-preview" class="h-32 object-contain rounded mb-2">
+                        <span class="text-xs text-primary">Değiştirmek için tıkla</span>
+                    </div>
+                    <div id="poster-upload-text">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i>
+                        <p class="text-sm text-slate-400">Afiş seçmek için tıklayın veya sürükleyin</p>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-4 flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('modal-add-prod').close()" class="px-4 py-2 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">İptal</button>
+                <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary_hover text-white font-medium transition-colors">Kaydet</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- MODAL 2: ATÖLYE İŞİ EKLE -->
+    <dialog id="modal-add-task" class="bg-card border border-slate-600 rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
+        <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-white">Yeni Atölye İşi</h3>
+            <button onclick="document.getElementById('modal-add-task').close()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <form onsubmit="addTask(event)" class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">İş Tanımı *</label>
+                <input type="text" id="inp-task-name" placeholder="Örn: Sabriye'nin Maket Arabası" required class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">İlgili Atölye *</label>
+                <select id="inp-task-type" required class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary">
+                    <option value="Marangoz|bg-amber-700|fa-tree">🪵 Marangoz Atölyesi</option>
+                    <option value="Kostüm|bg-pink-600|fa-scissors">🧵 Kostüm & Bezleme</option>
+                    <option value="Demir|bg-slate-500|fa-gavel">🔩 Demir Atölyesi</option>
+                    <option value="Dekor|bg-emerald-600|fa-paint-roller">🎨 Dekor & Boya</option>
+                </select>
+            </div>
+            <div class="pt-4 flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('modal-add-task').close()" class="px-4 py-2 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">İptal</button>
+                <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary_hover text-white font-medium transition-colors">İşi Ekle</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- MODAL 3: ÇİZİM / GÖRSEL EKLE -->
+    <dialog id="modal-add-drawing" class="bg-card border border-slate-600 rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
+        <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-white">Sahne Çizimi / Referans Ekle</h3>
+            <button onclick="document.getElementById('modal-add-drawing').close()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <form onsubmit="addDrawing(event)" class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Görsel (Zorunlu) *</label>
+                <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative bg-dark">
+                    <input type="file" id="inp-draw-file" accept="image/*" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewImage(this, 'draw-preview')">
+                    <div id="draw-preview-container" class="hidden flex flex-col items-center">
+                        <img id="draw-preview" class="h-40 object-contain rounded mb-2">
+                        <span class="text-xs text-primary">Değiştirmek için tıkla</span>
+                    </div>
+                    <div id="draw-upload-text">
+                        <i class="fa-solid fa-file-image text-3xl text-slate-400 mb-2"></i>
+                        <p class="text-sm text-slate-400">Çizimi veya fotoğrafı seçin</p>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Başlık / Açıklama *</label>
+                <input type="text" id="inp-draw-name" placeholder="Örn: 2. Perde Dekor Taslağı" required class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary">
+            </div>
+            <div class="pt-4 flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('modal-add-drawing').close()" class="px-4 py-2 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">İptal</button>
+                <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary_hover text-white font-medium transition-colors">Yükle</button>
+            </div>
+        </form>
+    </dialog>
 
     <script>
-        // ===== STATE =====
-        let currentProject = null;
-        let currentProjectPoster = '';
-        let currentPhotos = [];
-        let currentTheme = localStorage.getItem('theme') || 'light';
-        let currentWorkshopType = '';
+        // --- 1. VERİ TABANI (LOCAL STORAGE) VE UYGULAMA DURUMU ---
+        let appData = JSON.parse(localStorage.getItem('sahnePro')) || { productions: [] };
+        let activeProdId = null;
 
-        // ===== DATA STORAGE =====
-        const storage = {
-            projects: JSON.parse(localStorage.getItem('projects')) || [],
-            workshops: JSON.parse(localStorage.getItem('workshops')) || [],
-            procurements: JSON.parse(localStorage.getItem('procurements')) || [],
-            files: JSON.parse(localStorage.getItem('files')) || [],
-            workshopPhotos: JSON.parse(localStorage.getItem('workshopPhotos')) || {},
-            projectPosters: JSON.parse(localStorage.getItem('projectPosters')) || {}
-        };
-
-        // ===== SAVE TO STORAGE =====
-        function saveStorage() {
-            localStorage.setItem('projects', JSON.stringify(storage.projects));
-            localStorage.setItem('workshops', JSON.stringify(storage.workshops));
-            localStorage.setItem('procurements', JSON.stringify(storage.procurements));
-            localStorage.setItem('files', JSON.stringify(storage.files));
-            localStorage.setItem('workshopPhotos', JSON.stringify(storage.workshopPhotos));
-            localStorage.setItem('projectPosters', JSON.stringify(storage.projectPosters));
-        }
-
-        // ===== THEME MANAGEMENT =====
-        function initTheme() {
-            if (currentTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                document.getElementById('themeIcon').textContent = '☀️';
-                document.getElementById('themeText').textContent = 'Aydınlık Mod';
-            } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-                document.getElementById('themeIcon').textContent = '🌙';
-                document.getElementById('themeText').textContent = 'Karanlık Mod';
+        function saveData() {
+            try {
+                localStorage.setItem('sahnePro', JSON.stringify(appData));
+            } catch (e) {
+                alert("Hafıza dolu! Tarayıcı çok fazla yüksek çözünürlüklü resim kaydetmenize izin vermiyor. Lütfen eski çizimleri silin.");
             }
         }
 
-        function toggleTheme() {
-            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', currentTheme);
-            document.getElementById('themeIcon').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
-            document.getElementById('themeText').textContent = currentTheme === 'dark' ? 'Aydınlık Mod' : 'Karanlık Mod';
-            localStorage.setItem('theme', currentTheme);
-        }
+        // --- 2. RESİM SIKIŞTIRMA MOTORU (Tarayıcı çökmemesi için afiş ve çizimleri küçültür) ---
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = event => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    // Maksimum boyutlar (Kaliteyi koruyup boyutu düşürmek için)
+                    const MAX_WIDTH = 800;
+                    const MAX_HEIGHT = 800;
+                    let width = img.width;
+                    let height = img.height;
 
-        // ===== VIEW NAVIGATION =====
-        function goToMainView() {
-            currentProject = null;
-            document.getElementById('mainView').classList.add('active');
-            document.getElementById('productionDetailView').classList.remove('active');
-            renderProductions();
-        }
-
-        function showProductionDetail(projectId) {
-            const project = storage.projects.find(p => p.id == projectId);
-            if (!project) return;
-
-            currentProject = projectId;
-
-            document.getElementById('mainView').classList.remove('active');
-            document.getElementById('productionDetailView').classList.add('active');
-
-            renderProductionDetail(project);
-            renderAllWorkshops();
-            renderProcurements();
-            renderFiles();
-
-            document.querySelectorAll('.production-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.production-tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelector('.production-tab[data-tab="demir"]').classList.add('active');
-            document.getElementById('demir').classList.add('active');
-        }
-
-        // ===== TAB SWITCHING =====
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('production-tab')) {
-                const tab = e.target.dataset.tab;
-                document.querySelectorAll('.production-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.production-tab-content').forEach(c => c.classList.remove('active'));
-                e.target.classList.add('active');
-                document.getElementById(tab).classList.add('active');
-            }
-        });
-
-        // ===== MODAL FUNCTIONS =====
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-            const forms = document.querySelectorAll(`#${modalId} form`);
-            forms.forEach(form => form.reset());
-            const hiddenIds = document.querySelectorAll(`#${modalId} input[type="hidden"]`);
-            hiddenIds.forEach(input => input.value = '');
-            const previews = document.querySelectorAll('.photo-preview');
-            previews.forEach(p => p.innerHTML = '');
-            currentProjectPoster = '';
-            currentPhotos = [];
-        }
-
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
+                    if (width > height) {
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    } else {
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                    }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    // %70 kaliteyle JPEG'e çevir
+                    callback(canvas.toDataURL('image/jpeg', 0.7));
                 }
-            });
-        });
+            }
+        }
 
-        // ===== PHOTO UPLOAD =====
-        document.getElementById('projectPosterInput').addEventListener('change', function(e) {
-            const file = this.files[0];
+        // --- 3. GÖRSEL ÖNİZLEME (Modallarda resim seçilince göster) ---
+        function previewImage(input, previewId) {
+            const file = input.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    currentProjectPoster = e.target.result;
-                    document.getElementById('projectPosterPreview').innerHTML = `
-                        <div class="photo-preview-item">
-                            <img src="${currentProjectPoster}">
-                            <span class="remove" onclick="removeProjectPoster()">×</span>
-                        </div>
-                    `;
-                    document.getElementById('projectPosterPlaceholder').style.display = 'none';
-                };
+                    document.getElementById(previewId).src = e.target.result;
+                    document.getElementById(previewId + '-container').classList.remove('hidden');
+                    
+                    // Upload text kısmını gizle (id bulma mantığı: poster-preview -> poster-upload-text)
+                    const textId = previewId.split('-')[0] + '-upload-text';
+                    document.getElementById(textId).classList.add('hidden');
+                }
                 reader.readAsDataURL(file);
             }
-        });
-
-        function removeProjectPoster() {
-            currentProjectPoster = '';
-            document.getElementById('projectPosterPreview').innerHTML = '';
-            document.getElementById('projectPosterInput').value = '';
-            document.getElementById('projectPosterPlaceholder').style.display = 'block';
         }
 
-        document.getElementById('workshopPhotos').addEventListener('change', function(e) {
-            const files = Array.from(this.files);
-            files.forEach((file) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    currentPhotos.push(e.target.result);
-                    renderWorkshopPhotoPreview();
-                };
-                reader.readAsDataURL(file);
-            });
-        });
-
-        function removeWorkshopPhoto(index) {
-            currentPhotos.splice(index, 1);
-            renderWorkshopPhotoPreview();
+        function resetFormImage(prefix) {
+            const input = document.getElementById(`inp-${prefix}-file`) || document.getElementById(`inp-${prefix}-poster`);
+            if(input) input.value = '';
+            document.getElementById(`${prefix}-preview-container`).classList.add('hidden');
+            document.getElementById(`${prefix}-preview`).src = '';
+            document.getElementById(`${prefix}-upload-text`).classList.remove('hidden');
         }
 
-        function renderWorkshopPhotoPreview() {
-            const preview = document.getElementById('workshopPhotoPreview');
-            preview.innerHTML = currentPhotos.map((photo, index) => `
-                <div class="photo-preview-item">
-                    <img src="${photo}">
-                    <span class="remove" onclick="removeWorkshopPhoto(${index})">×</span>
-                </div>
-            `).join('');
-        }
+        // --- 4. ARAYÜZ YÖNETİMİ VE RENDER ---
 
-        function viewPhoto(photoSrc) {
-            document.getElementById('photoViewerImage').src = photoSrc;
-            openModal('photoViewerModal');
-        }
+        // Ana Vitrini (Oyunları) Ekrana Çiz
+        function renderDashboard() {
+            const grid = document.getElementById('productions-grid');
+            grid.innerHTML = '';
 
-        // ===== FORM HANDLERS =====
-        function handleAddProject(e) {
-            e.preventDefault();
-            const title = document.getElementById('projectTitle').value;
-            const stage = document.getElementById('projectStage').value;
-            const premiere = document.getElementById('projectPremiere').value;
-            const designer = document.getElementById('projectDesigner').value;
-
-            if (!title.trim()) return;
-
-            const project = {
-                id: Date.now().toString(),
-                title,
-                stage,
-                premiere,
-                designer,
-                createdAt: new Date().toISOString()
-            };
-
-            storage.projects.push(project);
-            if (currentProjectPoster) {
-                storage.projectPosters[project.id] = currentProjectPoster;
-            }
-            saveStorage();
-            closeModal('projectModal');
-            renderProductions();
-        }
-
-        function handleAddWorkshop(e) {
-            e.preventDefault();
-            const title = document.getElementById('workshopTitle').value;
-            const description = document.getElementById('workshopDescription').value;
-            const deadline = document.getElementById('workshopDeadline').value;
-            const status = document.getElementById('workshopStatus').value;
-
-            if (!title.trim()) return;
-
-            const workshop = {
-                id: Date.now().toString(),
-                projectId: currentProject,
-                workshop: currentWorkshopType,
-                title,
-                description,
-                deadline,
-                status,
-                createdAt: new Date().toISOString()
-            };
-
-            storage.workshops.push(workshop);
-            if (currentPhotos.length > 0) {
-                storage.workshopPhotos[workshop.id] = currentPhotos;
-            }
-            saveStorage();
-            closeModal('workshopModal');
-            renderWorkshopCategory(currentWorkshopType);
-        }
-
-        function handleAddProcurement(e) {
-            e.preventDefault();
-            const name = document.getElementById('procurementName').value;
-            const quantity = document.getElementById('procurementQuantity').value;
-            const supplier = document.getElementById('procurementSupplier').value;
-            const status = document.getElementById('procurementStatus').value;
-            const deadline = document.getElementById('procurementDeadline').value;
-
-            if (!name.trim()) return;
-
-            const procurement = {
-                id: Date.now().toString(),
-                projectId: currentProject,
-                name,
-                quantity,
-                supplier,
-                status,
-                deadline,
-                createdAt: new Date().toISOString()
-            };
-
-            storage.procurements.push(procurement);
-            saveStorage();
-            closeModal('procurementModal');
-            renderProcurements();
-        }
-
-        function handleAddFile(e) {
-            e.preventDefault();
-            const fileName = document.getElementById('fileName').value;
-            const category = document.getElementById('fileCategory').value;
-            const tags = document.getElementById('fileTags').value;
-            const notes = document.getElementById('fileNotes').value;
-
-            if (!fileName.trim()) return;
-
-            const file = {
-                id: Date.now().toString(),
-                projectId: currentProject,
-                fileName,
-                category,
-                tags,
-                notes,
-                createdAt: new Date().toISOString()
-            };
-
-            storage.files.push(file);
-            saveStorage();
-            closeModal('fileModal');
-            renderFiles();
-        }
-
-        function openAddWorkshopModal(type) {
-            currentWorkshopType = type;
-            document.getElementById('workshopType').value = type;
-            document.getElementById('workshopProjectId').value = currentProject;
-            currentPhotos = [];
-            document.getElementById('workshopPhotoPreview').innerHTML = '';
-            openModal('workshopModal');
-        }
-
-        // ===== RENDER FUNCTIONS =====
-        function renderProductions() {
-            const grid = document.getElementById('productionsGrid');
-
-            if (storage.projects.length === 0) {
+            if (appData.productions.length === 0) {
                 grid.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🎭</div>
-                        <h3>Henüz Oyun Yok</h3>
-                        <p>Yeni bir oyun ekleyerek başlayın</p>
-                    </div>
-                `;
+                    <div class="col-span-full bg-card border border-slate-700 rounded-xl p-10 text-center">
+                        <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-folder-open text-2xl text-slate-400"></i></div>
+                        <h3 class="text-xl font-bold text-white mb-2">Henüz Oyun Eklenmedi</h3>
+                        <p class="text-slate-400 mb-6">Tiyatro sezonunu başlatmak için ilk prodüksiyonunuzu oluşturun.</p>
+                        <button onclick="document.getElementById('modal-add-prod').showModal()" class="bg-primary hover:bg-primary_hover text-white px-6 py-2 rounded-lg font-medium transition-colors">İlk Oyunu Ekle</button>
+                    </div>`;
                 return;
             }
 
-            grid.innerHTML = storage.projects.map(project => {
-                const poster = storage.projectPosters[project.id];
-                const pendingCount = storage.workshops.filter(w =>
-                    w.projectId == project.id &&
-                    (w.status === 'Beklemede' || w.status === 'Devam Ediyor')
-                ).length;
+            appData.productions.forEach(prod => {
+                // Afiş yoksa varsayılan bir renk gradyanı göster
+                const posterBg = prod.poster ? `url(${prod.poster})` : 'linear-gradient(to right bottom, #1e293b, #0f172a)';
+                const taskCount = prod.tasks ? prod.tasks.length : 0;
+                const doneCount = prod.tasks ? prod.tasks.filter(t => t.status === 'done').length : 0;
+                let progress = taskCount === 0 ? 0 : Math.round((doneCount / taskCount) * 100);
 
-                return `
-                <div class="production-card" onclick="showProductionDetail('${project.id}')">
-                    <div class="production-poster">
-                        ${poster ? `<img src="${poster}" alt="${project.title}" loading="lazy">` : '🎭'}
-                    </div>
-                    <div class="production-card-content">
-                        <h3>${project.title}</h3>
-
-                        <div class="production-meta">
-                            ${project.stage ? `
-                            <div class="production-meta-item">
-                                <strong>Sahne:</strong> ${project.stage}
-                            </div>` : ''}
-                            ${project.premiere ? `
-                            <div class="production-meta-item">
-                                <strong>Prömiyér:</strong> ${new Date(project.premiere).toLocaleDateString('tr-TR')}
-                            </div>` : ''}
-                            ${project.designer ? `
-                            <div class="production-meta-item">
-                                <strong>Tasarımcı:</strong> ${project.designer}
-                            </div>` : ''}
-                        </div>
-
-                        ${pendingCount > 0 ? `
-                        <div class="pending-tasks-badge">
-                            📋 ${pendingCount} Yapılacak İş
-                        </div>` : ''}
-
-                        <div class="production-actions" onclick="event.stopPropagation()">
-                            <button class="btn-small" onclick="editProject('${project.id}')">Düzenle</button>
-                            <button class="btn-small btn-delete" onclick="deleteProject('${project.id}')">Sil</button>
-                        </div>
-                    </div>
-                </div>
-            `}).join('');
-        }
-
-        function renderProductionDetail(project) {
-            const poster = storage.projectPosters[project.id];
-
-            document.getElementById('productionDetailHeader').innerHTML = `
-                <div class="production-detail-poster">
-                    ${poster ? `<img src="${poster}" alt="${project.title}" loading="lazy">` : '🎭'}
-                </div>
-                <div class="production-detail-info">
-                    <h2>${project.title}</h2>
-
-                    <div class="meta-grid">
-                        ${project.stage ? `<div class="meta-item"><label>Sahne</label><value>${project.stage}</value></div>` : ''}
-                        ${project.premiere ? `<div class="meta-item"><label>Prömiyér</label><value>${new Date(project.premiere).toLocaleDateString('tr-TR')}</value></div>` : ''}
-                        ${project.designer ? `<div class="meta-item"><label>Tasarımcı</label><value>${project.designer}</value></div>` : ''}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderAllWorkshops() {
-            const categories = ['Demir', 'Marangoz', 'Bezleme', 'Butafor', 'Boya'];
-            categories.forEach(category => renderWorkshopCategory(category));
-        }
-
-        function renderWorkshopCategory(category) {
-            const list = document.getElementById(category.toLowerCase() + 'List');
-            const workshops = storage.workshops.filter(w =>
-                w.projectId == currentProject && w.workshop === category
-            );
-
-            if (workshops.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🔨</div>
-                        <h3>Henüz ${category} İşi Yok</h3>
-                        <p>Yeni iş ekleyin</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const statusTexts = {
-                'Beklemede': 'Beklemede',
-                'Devam Ediyor': 'Devam Ediyor',
-                'Tamamlandı': 'Tamamlandı'
-            };
-
-            const statusClasses = {
-                'Beklemede': 'workshop-status-beklemede',
-                'Devam Ediyor': 'workshop-status-devam',
-                'Tamamlandı': 'workshop-status-tamamlandi'
-            };
-
-            list.innerHTML = workshops.map(item => {
-                const photos = storage.workshopPhotos[item.id] || [];
-                return `
-                <div class="workshop-item">
-                    <h4>${item.title}</h4>
-                    <span class="workshop-status-badge ${statusClasses[item.status || 'Beklemede']}">${statusTexts[item.status || 'Beklemede']}</span>
-
-                    <div class="workshop-meta">
-                        <span>📅 Teslim: ${item.deadline ? new Date(item.deadline).toLocaleDateString('tr-TR') : '-'}</span>
-                    </div>
-                    ${item.description ? `<p style="margin-top: 10px; color: var(--text-secondary);">${item.description}</p>` : ''}
-
-                    ${photos.length > 0 ? `
-                    <div class="workshop-photos">
-                        ${photos.map((photo, idx) => `
-                            <div class="workshop-photo" onclick="viewPhoto('${photo}')">
-                                <img src="${photo}" alt="Fotoğraf ${idx + 1}" loading="lazy">
+                grid.innerHTML += `
+                    <div class="bg-card border border-slate-700 rounded-2xl overflow-hidden hover:border-primary transition-colors group cursor-pointer" onclick="openProduction(${prod.id})">
+                        <div class="h-48 bg-cover bg-center relative" style="background-image: ${posterBg}">
+                            <div class="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-20 transition-all"></div>
+                            <div class="absolute top-3 right-3 bg-dark/80 backdrop-blur text-xs font-bold px-2 py-1 rounded text-white border border-slate-600">
+                                %${progress} Tamamlandı
                             </div>
-                        `).join('')}
-                    </div>` : ''}
-
-                    <div class="workshop-actions">
-                        <button class="btn-small" onclick="editWorkshop('${item.id}')">Düzenle</button>
-                        <button class="btn-small btn-delete" onclick="deleteWorkshop('${item.id}')">Sil</button>
-                    </div>
-                </div>
-            `}).join('');
-        }
-
-        function renderProcurements() {
-            const list = document.getElementById('procurementList');
-            const procurements = storage.procurements.filter(p => p.projectId == currentProject);
-
-            if (procurements.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🛒</div>
-                        <h3>Henüz Satınalma Yok</h3>
-                        <p>Yeni satınalma ekleyin</p>
+                        </div>
+                        <div class="p-5 relative">
+                            <h3 class="text-xl font-bold text-white mb-1">${prod.name}</h3>
+                            <div class="flex gap-4 text-sm text-slate-400 mt-3">
+                                <span class="flex items-center gap-1"><i class="fa-solid fa-hammer"></i> ${taskCount} İş</span>
+                                <span class="flex items-center gap-1"><i class="fa-solid fa-image"></i> ${prod.drawings ? prod.drawings.length : 0} Görsel</span>
+                            </div>
+                            <button onclick="event.stopPropagation(); deleteProd(${prod.id})" class="absolute bottom-5 right-5 text-slate-500 hover:text-todo transition-colors" title="Oyunu Sil"><i class="fa-solid fa-trash"></i></button>
+                        </div>
                     </div>
                 `;
+            });
+        }
+
+        // --- 5. OYUN İÇİ EKRAN (KANBAN VE GALERİ) ---
+
+        function openProduction(id) {
+            activeProdId = id;
+            const prod = appData.productions.find(p => p.id === id);
+            
+            document.getElementById('current-prod-title').innerText = prod.name;
+            const banner = document.getElementById('prod-banner');
+            banner.style.backgroundImage = prod.poster ? `url(${prod.poster})` : 'linear-gradient(to right, #312e81, #0f172a)';
+            
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('header-actions').classList.add('hidden');
+            document.getElementById('view-production').classList.remove('hidden');
+            
+            // Varsayılan olarak Kanban sekmesini aç
+            switchTab('tab-kanban');
+            renderKanban();
+            renderGallery();
+        }
+
+        function showDashboard() {
+            activeProdId = null;
+            document.getElementById('view-production').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            document.getElementById('header-actions').classList.remove('hidden');
+            renderDashboard();
+        }
+
+        function switchTab(tabId) {
+            // Sekme içeriklerini gizle/göster
+            document.getElementById('tab-kanban').classList.add('hidden');
+            document.getElementById('tab-gallery').classList.add('hidden');
+            document.getElementById(tabId).classList.remove('hidden');
+
+            // Buton stillerini güncelle
+            const btnKanban = document.getElementById('btn-tab-kanban');
+            const btnGallery = document.getElementById('btn-tab-gallery');
+            
+            btnKanban.className = "pb-3 font-medium text-lg transition-colors border-b-2";
+            btnGallery.className = "pb-3 font-medium text-lg transition-colors border-b-2";
+
+            if(tabId === 'tab-kanban') {
+                btnKanban.classList.add('text-primary', 'border-primary');
+                btnGallery.classList.add('text-slate-400', 'hover:text-slate-200', 'border-transparent');
+            } else {
+                btnGallery.classList.add('text-primary', 'border-primary');
+                btnKanban.classList.add('text-slate-400', 'hover:text-slate-200', 'border-transparent');
+            }
+        }
+
+        // Kanban Render
+        function renderKanban() {
+            const prod = appData.productions.find(p => p.id === activeProdId);
+            const cols = { todo: document.getElementById('col-todo'), doing: document.getElementById('col-doing'), done: document.getElementById('col-done') };
+            const counts = { todo: 0, doing: 0, done: 0 };
+            
+            Object.values(cols).forEach(col => col.innerHTML = '');
+
+            if(prod.tasks) {
+                prod.tasks.forEach(task => {
+                    counts[task.status]++;
+                    const typeData = task.type.split('|'); // Örn: "Marangoz|bg-amber-700|fa-tree"
+                    
+                    const card = document.createElement('div');
+                    card.className = "task-card bg-card p-4 rounded-lg border border-slate-600 shadow-sm hover:border-slate-500 transition-colors relative group";
+                    card.draggable = true;
+                    card.id = `task-${task.id}`;
+                    card.ondragstart = (e) => dragStart(e, task.id);
+                    
+                    card.innerHTML = `
+                        <h4 class="font-medium text-white mb-3 pr-6 leading-tight">${task.name}</h4>
+                        <div class="flex justify-between items-center">
+                            <span class="${typeData[1]} text-white text-xs px-2 py-1 rounded font-medium flex items-center gap-1"><i class="fa-solid ${typeData[2]}"></i> ${typeData[0]}</span>
+                            <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fa-regular fa-clock"></i> ${new Date(task.id).toLocaleDateString('tr-TR')}</span>
+                        </div>
+                        <button onclick="deleteTask(${task.id})" class="absolute top-3 right-3 text-slate-500 hover:text-todo opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-trash text-sm"></i></button>
+                    `;
+                    cols[task.status].appendChild(card);
+                });
+            }
+
+            document.getElementById('count-todo').innerText = counts.todo;
+            document.getElementById('count-doing').innerText = counts.doing;
+            document.getElementById('count-done').innerText = counts.done;
+        }
+
+        // Galeri Render
+        function renderGallery() {
+            const prod = appData.productions.find(p => p.id === activeProdId);
+            const grid = document.getElementById('gallery-grid');
+            grid.innerHTML = '';
+
+            if(!prod.drawings || prod.drawings.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">Bu prodüksiyon için henüz çizim veya referans görseli yüklenmemiş.</div>`;
                 return;
             }
 
-            list.innerHTML = procurements.map(item => `
-                <div class="workshop-item">
-                    <h4>📦 ${item.name}</h4>
-                    <div class="workshop-meta">
-                        <span>Miktar: ${item.quantity}</span>
-                        <span>Tedarikçi: ${item.supplier || '-'}</span>
-                        <span>📅 Teslim: ${item.deadline ? new Date(item.deadline).toLocaleDateString('tr-TR') : '-'}</span>
-                    </div>
-                    <p style="margin-top: 10px; color: var(--text-secondary);">Durum: ${item.status}</p>
-                    <div class="workshop-actions">
-                        <button class="btn-small" onclick="editProcurement('${item.id}')">Düzenle</button>
-                        <button class="btn-small btn-delete" onclick="deleteProcurement('${item.id}')">Sil</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderFiles() {
-            const list = document.getElementById('filesList');
-            const files = storage.files.filter(f => f.projectId == currentProject);
-
-            if (files.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📁</div>
-                        <h3>Henüz Dosya Yok</h3>
-                        <p>Yeni dosya ekleyin</p>
+            prod.drawings.forEach(draw => {
+                grid.innerHTML += `
+                    <div class="bg-card border border-slate-700 rounded-xl overflow-hidden group">
+                        <div class="h-48 w-full bg-dark flex items-center justify-center overflow-hidden cursor-pointer" onclick="window.open('${draw.image}', '_blank')">
+                            <img src="${draw.image}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300">
+                        </div>
+                        <div class="p-4 relative">
+                            <h4 class="font-bold text-white text-sm mb-1 truncate" title="${draw.name}">${draw.name}</h4>
+                            <p class="text-xs text-slate-400">${new Date(draw.id).toLocaleDateString('tr-TR')}</p>
+                            <button onclick="deleteDrawing(${draw.id})" class="absolute top-4 right-4 text-slate-500 hover:text-todo transition-colors"><i class="fa-solid fa-trash"></i></button>
+                        </div>
                     </div>
                 `;
-                return;
-            }
-
-            list.innerHTML = files.map(item => `
-                <div class="file-card">
-                    <h4>📄 ${item.fileName}</h4>
-                    <p style="color: var(--text-secondary); font-size: 0.9em;">Kategori: ${item.category}</p>
-                    ${item.notes ? `<p style="margin-top: 8px; color: var(--text-secondary);">${item.notes}</p>` : ''}
-                    ${item.tags ? `
-                    <div class="file-tags">
-                        ${item.tags.split(',').map(tag => `<span class="file-tag">${tag.trim()}</span>`).join('')}
-                    </div>` : ''}
-                    <div class="workshop-actions" style="margin-top: 12px;">
-                        <button class="btn-small" onclick="editFile('${item.id}')">Düzenle</button>
-                        <button class="btn-small btn-delete" onclick="deleteFile('${item.id}')">Sil</button>
-                    </div>
-                </div>
-            `).join('');
+            });
         }
 
-        // ===== DELETE FUNCTIONS =====
-        function deleteProject(id) {
-            if (confirm('Bu oyunu silmek istediğinize emin misiniz?')) {
-                storage.projects = storage.projects.filter(p => p.id !== id);
-                storage.workshops = storage.workshops.filter(w => w.projectId !== id);
-                storage.procurements = storage.procurements.filter(p => p.projectId !== id);
-                storage.files = storage.files.filter(f => f.projectId !== id);
-                delete storage.projectPosters[id];
-                saveStorage();
-                renderProductions();
-            }
-        }
 
-        function deleteWorkshop(id) {
-            if (confirm('Bu işi silmek istediğinize emin misiniz?')) {
-                storage.workshops = storage.workshops.filter(w => w.id !== id);
-                delete storage.workshopPhotos[id];
-                saveStorage();
-                renderAllWorkshops();
+        // --- 6. EKLEME İŞLEMLERİ (Afiş, İş, Çizim) ---
+
+        // Prodüksiyon Ekle (Afişli)
+        function addProduction(e) {
+            e.preventDefault();
+            const name = document.getElementById('inp-prod-name').value;
+            const fileInput = document.getElementById('inp-prod-poster');
+            
+            const createRecord = (posterBase64 = null) => {
+                appData.productions.push({
+                    id: Date.now(),
+                    name: name,
+                    poster: posterBase64,
+                    tasks: [],
+                    drawings: []
+                });
+                saveData();
+                document.getElementById('inp-prod-name').value = '';
+                resetFormImage('poster');
+                document.getElementById('modal-add-prod').close();
+                renderDashboard();
+            };
+
+            if (fileInput.files.length > 0) {
+                // Afiş seçildiyse sıkıştırıp kaydet
+                compressImage(fileInput.files[0], createRecord);
+            } else {
+                // Afişsiz kaydet
+                createRecord();
             }
         }
 
-        function deleteProcurement(id) {
-            if (confirm('Bu satınalmayı silmek istediğinize emin misiniz?')) {
-                storage.procurements = storage.procurements.filter(p => p.id !== id);
-                saveStorage();
-                renderProcurements();
+        // İş Ekle
+        function addTask(e) {
+            e.preventDefault();
+            const name = document.getElementById('inp-task-name').value;
+            const type = document.getElementById('inp-task-type').value;
+
+            const prod = appData.productions.find(p => p.id === activeProdId);
+            if(!prod.tasks) prod.tasks = [];
+            
+            prod.tasks.push({ id: Date.now(), name: name, type: type, status: 'todo' });
+            
+            saveData();
+            document.getElementById('inp-task-name').value = '';
+            document.getElementById('modal-add-task').close();
+            renderKanban();
+        }
+
+        // Çizim/Dosya Ekle (Görselli)
+        function addDrawing(e) {
+            e.preventDefault();
+            const name = document.getElementById('inp-draw-name').value;
+            const fileInput = document.getElementById('inp-draw-file');
+
+            if (fileInput.files.length > 0) {
+                // Görseli sıkıştırıp kaydet
+                compressImage(fileInput.files[0], (base64Img) => {
+                    const prod = appData.productions.find(p => p.id === activeProdId);
+                    if(!prod.drawings) prod.drawings = [];
+                    
+                    prod.drawings.push({
+                        id: Date.now(),
+                        name: name,
+                        image: base64Img
+                    });
+                    
+                    saveData();
+                    document.getElementById('inp-draw-name').value = '';
+                    resetFormImage('draw');
+                    document.getElementById('modal-add-drawing').close();
+                    renderGallery();
+                });
             }
         }
 
-        function deleteFile(id) {
-            if (confirm('Bu dosyayı silmek istediğinize emin misiniz?')) {
-                storage.files = storage.files.filter(f => f.id !== id);
-                saveStorage();
-                renderFiles();
+        // --- 7. SİLME İŞLEMLERİ ---
+        function deleteProd(id) {
+            if(confirm("Tüm oyun, afişleri, çizimleri ve işleri kalıcı olarak silinecek. Emin misiniz?")) {
+                appData.productions = appData.productions.filter(p => p.id !== id);
+                saveData(); renderDashboard();
+            }
+        }
+        function deleteTask(id) {
+            if(confirm("İşi silmek istiyor musunuz?")) {
+                const prod = appData.productions.find(p => p.id === activeProdId);
+                prod.tasks = prod.tasks.filter(t => t.id !== id);
+                saveData(); renderKanban();
+            }
+        }
+        function deleteDrawing(id) {
+            if(confirm("Bu çizimi kalıcı olarak silmek istiyor musunuz?")) {
+                const prod = appData.productions.find(p => p.id === activeProdId);
+                prod.drawings = prod.drawings.filter(d => d.id !== id);
+                saveData(); renderGallery();
             }
         }
 
-        // ===== PLACEHOLDER FUNCTIONS =====
-        function editProject(id) { alert('Düzenleme özelliği yakında gelecek'); }
-        function editWorkshop(id) { alert('Düzenleme özelliği yakında gelecek'); }
-        function editProcurement(id) { alert('Düzenleme özelliği yakında gelecek'); }
-        function editFile(id) { alert('Düzenleme özelliği yakında gelecek'); }
+        // --- 8. SÜRÜKLE BIRAK (DRAG & DROP) MANTIĞI ---
+        function dragStart(ev, taskId) {
+            ev.dataTransfer.setData("taskId", taskId);
+            ev.target.classList.add('opacity-50');
+        }
 
-        // ===== INIT =====
-        document.addEventListener('DOMContentLoaded', function() {
-            initTheme();
-            renderProductions();
-        });
+        function allowDrop(ev) {
+            ev.preventDefault();
+            const column = ev.target.closest('.flex-1'); // Sütunu bul
+            if(column) column.classList.add('drag-over');
+        }
+
+        function dragLeave(ev) {
+            const column = ev.target.closest('.flex-1');
+            if(column) column.classList.remove('drag-over');
+        }
+
+        function drop(ev, newStatus) {
+            ev.preventDefault();
+            const column = ev.target.closest('.flex-1');
+            if(column) column.classList.remove('drag-over');
+
+            const taskId = parseInt(ev.dataTransfer.getData("taskId"));
+            if(!taskId) return;
+
+            const prod = appData.productions.find(p => p.id === activeProdId);
+            const task = prod.tasks.find(t => t.id === taskId);
+            
+            if(task && task.status !== newStatus) {
+                task.status = newStatus;
+                saveData();
+                renderKanban();
+            } else {
+                // Aynı yere bırakıldıysa sadece görseli düzelt
+                renderKanban();
+            }
+        }
+
+        // Uygulamayı Başlat
+        renderDashboard();
     </script>
 </body>
 </html>
