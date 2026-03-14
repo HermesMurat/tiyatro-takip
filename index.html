@@ -204,6 +204,10 @@
                     <option value="Dekor|bg-emerald-600|fa-paint-roller">🎨 Dekor & Boya</option>
                 </select>
             </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Açıklama / Notlar (İsteğe Bağlı)</label>
+                <textarea id="inp-task-desc" rows="3" placeholder="Ölçü, renk veya özel notlar ekleyebilirsiniz..." class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary resize-none"></textarea>
+            </div>
             <div class="pt-4 flex justify-end gap-3">
                 <button type="button" onclick="document.getElementById('modal-add-task').close()" class="px-4 py-2 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">İptal</button>
                 <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary_hover text-white font-medium transition-colors">İşi Ekle</button>
@@ -241,6 +245,28 @@
                 <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary_hover text-white font-medium transition-colors">Yükle</button>
             </div>
         </form>
+    </dialog>
+
+    <!-- MODAL 4: İŞ DETAYI GÖRÜNTÜLE -->
+    <dialog id="modal-view-task" class="bg-card border border-slate-600 rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
+        <div class="p-6 border-b border-slate-700 flex justify-between items-start gap-4">
+            <h3 id="view-task-name" class="text-xl font-bold text-white leading-tight">İş Adı</h3>
+            <button onclick="document.getElementById('modal-view-task').close()" class="text-slate-400 hover:text-white mt-1"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex gap-3 flex-wrap">
+                <span id="view-task-type" class="text-white text-xs px-2 py-1 rounded font-medium flex items-center gap-1 w-fit">Atölye</span>
+                <span id="view-task-status" class="bg-slate-700 text-white text-xs px-2 py-1 rounded font-medium w-fit">Durum</span>
+                <span id="view-task-date" class="text-slate-400 text-xs px-2 py-1 flex items-center gap-1"><i class="fa-regular fa-clock"></i> Tarih</span>
+            </div>
+            <div>
+                <h4 class="text-sm font-medium text-slate-400 mb-2">Açıklama / Notlar</h4>
+                <p id="view-task-desc" class="text-slate-200 text-sm whitespace-pre-wrap bg-dark p-4 rounded-lg border border-slate-700 min-h-[80px]"></p>
+            </div>
+            <div class="pt-4 flex justify-end">
+                <button onclick="document.getElementById('modal-view-task').close()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-medium transition-colors">Kapat</button>
+            </div>
+        </div>
     </dialog>
 
     <script>
@@ -424,6 +450,8 @@
                     card.draggable = true;
                     card.id = `task-${task.id}`;
                     card.ondragstart = (e) => dragStart(e, task.id);
+                    // Tıklanınca iş detaylarını aç
+                    card.onclick = () => openTaskDetails(task.id);
                     
                     card.innerHTML = `
                         <h4 class="font-medium text-white mb-3 pr-6 leading-tight">${task.name}</h4>
@@ -431,7 +459,7 @@
                             <span class="${typeData[1]} text-white text-xs px-2 py-1 rounded font-medium flex items-center gap-1"><i class="fa-solid ${typeData[2]}"></i> ${typeData[0]}</span>
                             <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fa-regular fa-clock"></i> ${new Date(task.id).toLocaleDateString('tr-TR')}</span>
                         </div>
-                        <button onclick="deleteTask(${task.id})" class="absolute top-3 right-3 text-slate-500 hover:text-todo opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-trash text-sm"></i></button>
+                        <button onclick="event.stopPropagation(); deleteTask(${task.id})" class="absolute top-3 right-3 text-slate-500 hover:text-todo opacity-0 group-hover:opacity-100 transition-opacity" title="İşi Sil"><i class="fa-solid fa-trash text-sm"></i></button>
                     `;
                     cols[task.status].appendChild(card);
                 });
@@ -469,6 +497,38 @@
             });
         }
 
+        // İş Detaylarını Modal İçinde Göster
+        function openTaskDetails(taskId) {
+            const prod = appData.productions.find(p => p.id === activeProdId);
+            const task = prod.tasks.find(t => t.id === taskId);
+            if(!task) return;
+
+            document.getElementById('view-task-name').innerText = task.name;
+            
+            const typeData = task.type.split('|');
+            const typeSpan = document.getElementById('view-task-type');
+            typeSpan.className = `${typeData[1]} text-white text-xs px-2 py-1 rounded font-medium flex items-center gap-1 w-fit`;
+            typeSpan.innerHTML = `<i class="fa-solid ${typeData[2]}"></i> ${typeData[0]}`;
+
+            const statusMap = {
+                'todo': { label: 'Yapılacak', bg: 'bg-todo' },
+                'doing': { label: 'Üretimde', bg: 'bg-doing' },
+                'done': { label: 'Tamamlandı', bg: 'bg-done' }
+            };
+            const statusSpan = document.getElementById('view-task-status');
+            statusSpan.className = `${statusMap[task.status].bg} text-white text-xs px-2 py-1 rounded font-medium w-fit`;
+            statusSpan.innerText = statusMap[task.status].label;
+
+            document.getElementById('view-task-date').innerHTML = `<i class="fa-regular fa-clock"></i> ${new Date(task.id).toLocaleDateString('tr-TR')}`;
+            
+            const descEl = document.getElementById('view-task-desc');
+            descEl.innerText = task.desc ? task.desc : 'Bu iş için ekstra açıklama veya not eklenmemiş.';
+            
+            if(!task.desc) descEl.classList.add('italic', 'text-slate-500');
+            else descEl.classList.remove('italic', 'text-slate-500');
+
+            document.getElementById('modal-view-task').showModal();
+        }
 
         // --- 6. EKLEME İŞLEMLERİ (Afiş, İş, Çizim) ---
 
@@ -507,14 +567,16 @@
             e.preventDefault();
             const name = document.getElementById('inp-task-name').value;
             const type = document.getElementById('inp-task-type').value;
+            const desc = document.getElementById('inp-task-desc').value;
 
             const prod = appData.productions.find(p => p.id === activeProdId);
             if(!prod.tasks) prod.tasks = [];
             
-            prod.tasks.push({ id: Date.now(), name: name, type: type, status: 'todo' });
+            prod.tasks.push({ id: Date.now(), name: name, type: type, desc: desc, status: 'todo' });
             
             saveData();
             document.getElementById('inp-task-name').value = '';
+            document.getElementById('inp-task-desc').value = '';
             document.getElementById('modal-add-task').close();
             renderKanban();
         }
