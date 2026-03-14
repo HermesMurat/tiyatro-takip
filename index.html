@@ -6,986 +6,1373 @@
     <title>🎭 Sahne Üretim Takip</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        dark: '#0f172a',
-                        card: '#1e293b',
-                        primary: '#8A2BE2',        // Mor
-                        primary_hover: '#6A1E9A',    // Koyu mor
-                        todo: '#800020',              // Bordo
-                        doing: '#C9A44A',              // Oksit sarı
-                        done: '#006400'                // Koyu yeşil
+                        dark: '#0a0a0f',
+                        surface: '#13131a',
+                        card: '#1a1a24',
+                        border: '#2a2a38',
+                        primary: '#c084fc',
+                        primary_dim: '#7c3aed',
+                        gold: '#f59e0b',
+                        todo: '#ef4444',
+                        doing: '#f59e0b',
+                        done: '#22c55e'
+                    },
+                    fontFamily: {
+                        display: ['Playfair Display', 'serif'],
+                        body: ['DM Sans', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
     <style>
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .task-card { cursor: grab; }
-        .task-card:active { cursor: grabbing; transform: scale(0.98); }
-        .drag-over { background-color: rgba(138, 43, 226, 0.1) !important; border: 2px dashed #8A2BE2 !important; }
+        * { font-family: 'DM Sans', sans-serif; }
+        h1, h2, .display { font-family: 'Playfair Display', serif; }
 
-        dialog::backdrop { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); }
-        dialog { margin: auto; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0f; }
+        ::-webkit-scrollbar-thumb { background: #2a2a38; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3a3a50; }
+
+        /* Grain texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.4;
+        }
+
+        .fade-in { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-hover { transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+
+        .task-card { cursor: grab; transition: all 0.15s ease; }
+        .task-card:active { cursor: grabbing; transform: scale(0.97) rotate(1deg); opacity: 0.8; }
+        .drag-over { background: rgba(192, 132, 252, 0.06) !important; border-color: #c084fc !important; }
+        .drag-ghost { opacity: 0.4 !important; }
+
+        dialog::backdrop { background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); }
+        dialog { margin: auto; animation: dialogIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes dialogIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        .progress-bar { transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* Toast */
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 12px 18px; border-radius: 10px; font-size: 14px; font-weight: 500; animation: toastIn 0.3s ease; display: flex; align-items: center; gap-8px; gap: 8px; min-width: 200px; max-width: 320px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+        .toast-success { background: #14532d; border: 1px solid #22c55e; color: #86efac; }
+        .toast-error { background: #450a0a; border: 1px solid #ef4444; color: #fca5a5; }
+        .toast-info { background: #1e1b4b; border: 1px solid #818cf8; color: #c7d2fe; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateX(20px); } }
+
+        /* Spotlight effect on prod cards */
+        .prod-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(192,132,252,0.07) 0%, transparent 60%);
+            pointer-events: none;
+            border-radius: inherit;
+            transition: opacity 0.3s;
+            opacity: 0;
+        }
+        .prod-card:hover::after { opacity: 1; }
+
+        .badge-atelier { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 4px; }
         
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #c084fc !important;
+            box-shadow: 0 0 0 3px rgba(192,132,252,0.1);
+        }
+
+        .kanban-col-header { letter-spacing: 0.08em; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+
+        /* Deadline urgency */
+        .deadline-urgent { color: #ef4444; }
+        .deadline-soon { color: #f59e0b; }
+        .deadline-ok { color: #6b7280; }
+
         @media (max-width: 768px) {
             .kanban-col { min-width: 280px !important; }
-            #productions-grid { grid-template-columns: 1fr !important; }
         }
+
+        /* Search highlight */
+        .search-highlight { background: rgba(192,132,252,0.25); border-radius: 2px; }
+
+        /* Edit prod button */
+        .prod-actions { opacity: 0; transition: opacity 0.2s; }
+        .prod-card:hover .prod-actions { opacity: 1; }
     </style>
 </head>
-<body class="bg-dark text-slate-200 font-sans min-h-screen flex flex-col">
+<body class="bg-dark text-slate-300 min-h-screen flex flex-col">
 
-    <!-- Üst Bar -->
-    <header class="bg-card border-b border-slate-700 sticky top-0 z-10 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3 cursor-pointer" onclick="showDashboard()" role="button" tabindex="0" aria-label="Ana sayfaya dön">
-                <div class="bg-primary text-white p-2 rounded-lg"><i class="fa-solid fa-masks-theater text-xl"></i></div>
-                <h1 class="text-xl font-bold text-white tracking-wide">Sahne Üretim Takip</h1>
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Header -->
+<header class="bg-surface border-b border-border sticky top-0 z-50" style="box-shadow: 0 1px 0 rgba(192,132,252,0.1)">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3 cursor-pointer select-none" onclick="showDashboard()" role="button" tabindex="0" aria-label="Ana sayfaya dön">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-primary" style="background: rgba(192,132,252,0.12); border: 1px solid rgba(192,132,252,0.2)">
+                <i class="fa-solid fa-masks-theater text-lg"></i>
             </div>
-            <div id="header-actions">
-                <button onclick="document.getElementById('modal-add-prod').showModal()" class="bg-primary hover:bg-primary_hover text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-md" aria-label="Yeni prodüksiyon ekle">
-                    <i class="fa-solid fa-plus"></i> Yeni Oyun Ekle
-                </button>
-            </div>
+            <h1 class="text-lg font-bold text-white tracking-tight" style="font-family:'Playfair Display',serif">Sahne Takip</h1>
         </div>
-    </header>
 
-    <!-- ANA İÇERİK ALANI -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        
-        <!-- 1. GÖRÜNÜM: PRODÜKSİYON VİTRİNİ -->
-        <div id="view-dashboard" class="fade-in block">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-white">Aktif Oyunlar</h2>
-            </div>
-            
-            <div id="productions-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Oyun Kartları Buraya Gelecek -->
+        <!-- Search Bar (Dashboard'da görünür) -->
+        <div id="header-search" class="flex-1 max-w-xs hidden sm:block">
+            <div class="relative">
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                <input type="text" id="global-search" placeholder="Oyun ara..." oninput="searchProductions(this.value)"
+                    class="w-full bg-card border border-border rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:border-primary transition-all">
             </div>
         </div>
 
-        <!-- 2. GÖRÜNÜM: OYUN DETAYI VE YÖNETİMİ -->
-        <div id="view-production" class="fade-in hidden">
-            <!-- Oyun Başlığı ve Afiş Özeti -->
-            <div class="relative rounded-2xl overflow-hidden bg-card mb-8 shadow-xl border border-slate-700">
-                <div id="prod-banner" class="h-48 w-full bg-cover bg-center opacity-50"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-card to-transparent"></div>
-                <div class="absolute bottom-0 left-0 p-6 w-full flex justify-between items-end flex-wrap gap-4">
-                    <div class="flex-1 min-w-[200px]">
-                        <button onclick="showDashboard()" class="text-slate-300 hover:text-white mb-2 text-sm flex items-center gap-2 transition-colors" aria-label="Vitrine dön">
-                            <i class="fa-solid fa-arrow-left"></i> ← Ana Sayfaya Dön
-                        </button>
-                        <h2 id="current-prod-title" class="text-3xl sm:text-4xl font-extrabold text-white break-words">Oyun Adı</h2>
-                    </div>
-                    <div class="flex gap-3 flex-wrap">
-                        <button onclick="document.getElementById('modal-add-drawing').showModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" aria-label="Çizim veya dosya ekle">
-                            <i class="fa-solid fa-image"></i> + Dosya Ekle
-                        </button>
-                        <button onclick="document.getElementById('modal-add-task').showModal()" class="bg-primary hover:bg-primary_hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" aria-label="Atölye işi ekle">
-                            <i class="fa-solid fa-plus"></i> + İş Ekle
-                        </button>
-                    </div>
+        <div id="header-actions" class="flex items-center gap-2">
+            <button onclick="openAddProdModal()"
+                class="flex items-center gap-2 text-sm font-medium text-white px-4 py-2 rounded-lg transition-all"
+                style="background: rgba(192,132,252,0.15); border: 1px solid rgba(192,132,252,0.3)">
+                <i class="fa-solid fa-plus"></i>
+                <span class="hidden sm:inline">Yeni Oyun</span>
+            </button>
+        </div>
+        <div id="header-prod-actions" class="hidden items-center gap-2">
+            <!-- Prodüksiyon içindeyken gösterilecek -->
+        </div>
+    </div>
+</header>
+
+<!-- Ana İçerik -->
+<main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+    <!-- 1. Vitrin -->
+    <div id="view-dashboard" class="fade-in block">
+        <div class="flex justify-between items-end mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-white" style="font-family:'Playfair Display',serif">Aktif Oyunlar</h2>
+                <p id="prod-count-label" class="text-slate-500 text-sm mt-1">Yükleniyor...</p>
+            </div>
+        </div>
+        <div id="productions-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </div>
+
+    <!-- 2. Oyun Detayı -->
+    <div id="view-production" class="fade-in hidden">
+        <!-- Banner -->
+        <div class="relative rounded-2xl overflow-hidden mb-8 border border-border" style="box-shadow: 0 4px 40px rgba(0,0,0,0.5)">
+            <div id="prod-banner" class="h-52 w-full bg-cover bg-center" style="filter:brightness(0.5)"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 p-6 w-full flex justify-between items-end flex-wrap gap-4">
+                <div class="flex-1 min-w-[200px]">
+                    <button onclick="showDashboard()" class="text-slate-400 hover:text-primary mb-3 text-sm flex items-center gap-2 transition-colors">
+                        <i class="fa-solid fa-arrow-left text-xs"></i> Ana Sayfa
+                    </button>
+                    <h2 id="current-prod-title" class="text-3xl sm:text-4xl font-extrabold text-white leading-tight break-words" style="font-family:'Playfair Display',serif">—</h2>
+                    <div id="prod-stats-bar" class="flex gap-4 mt-3 text-sm text-slate-400"></div>
                 </div>
-            </div>
-
-            <!-- Sekmeler (Tabs) -->
-            <div class="flex border-b border-slate-700 mb-6 gap-6 overflow-x-auto">
-                <button onclick="switchTab('tab-kanban')" id="btn-tab-kanban" class="pb-3 text-primary border-b-2 border-primary font-medium text-lg transition-colors whitespace-nowrap" role="tab" aria-selected="true"><i class="fa-solid fa-hammer mr-2"></i>🔩 Demir / Marangoz / Bezleme / Butafor / Boya / Satınalma</button>
-                <button onclick="switchTab('tab-gallery')" id="btn-tab-gallery" class="pb-3 text-slate-400 hover:text-slate-200 font-medium text-lg transition-colors border-b-2 border-transparent whitespace-nowrap" role="tab" aria-selected="false"><i class="fa-solid fa-image mr-2"></i>📁 Dosyalar</button>
-            </div>
-
-            <!-- Sekme 1: Kanban Panosu -->
-            <div id="tab-kanban" class="block fade-in">
-                <!-- Atölye Filtreleri -->
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button onclick="filterWorkshop('all')" id="filter-all" class="px-3 py-1 rounded-full text-sm font-medium bg-primary text-white">Tümü</button>
-                    <button onclick="filterWorkshop('Demir')" id="filter-Demir" class="px-3 py-1 rounded-full text-sm font-medium bg-slate-700 text-white hover:bg-slate-600">🔩 Demir</button>
-                    <button onclick="filterWorkshop('Marangoz')" id="filter-Marangoz" class="px-3 py-1 rounded-full text-sm font-medium bg-slate-700 text-white hover:bg-slate-600">🪵 Marangoz</button>
-                    <button onclick="filterWorkshop('Kostüm')" id="filter-Kostüm" class="px-3 py-1 rounded-full text-sm font-medium bg-slate-700 text-white hover:bg-slate-600">🧵 Bezleme</button>
-                    <button onclick="filterWorkshop('Dekor')" id="filter-Dekor" class="px-3 py-1 rounded-full text-sm font-medium bg-slate-700 text-white hover:bg-slate-600">🎨 Butafor/Boya</button>
-                    <button onclick="filterWorkshop('Satınalma')" id="filter-Satınalma" class="px-3 py-1 rounded-full text-sm font-medium bg-slate-700 text-white hover:bg-slate-600">🛒 Satınalma</button>
-                </div>
-                <div class="flex flex-col lg:flex-row gap-6 overflow-x-auto pb-4">
-                    
-                    <!-- Yapılacaklar -->
-                    <div class="kanban-col flex-1 min-w-[320px] bg-slate-800/50 rounded-xl border border-slate-700 p-4 flex flex-col h-[600px]">
-                        <div class="flex items-center justify-between mb-4 border-b border-todo pb-2">
-                            <h3 class="font-bold text-white flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-todo"></div> Yapılacaklar</h3>
-                            <span id="count-todo" class="bg-slate-700 text-xs py-1 px-2 rounded-full">0</span>
-                        </div>
-                        <div id="col-todo" class="flex-1 overflow-y-auto space-y-3" ondrop="drop(event, 'todo')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" role="region" aria-label="Yapılacaklar kolonu"></div>
-                    </div>
-
-                    <!-- Üretimde -->
-                    <div class="kanban-col flex-1 min-w-[320px] bg-slate-800/50 rounded-xl border border-slate-700 p-4 flex flex-col h-[600px]">
-                        <div class="flex items-center justify-between mb-4 border-b border-doing pb-2">
-                            <h3 class="font-bold text-white flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-doing"></div> Üretimde</h3>
-                            <span id="count-doing" class="bg-slate-700 text-xs py-1 px-2 rounded-full">0</span>
-                        </div>
-                        <div id="col-doing" class="flex-1 overflow-y-auto space-y-3" ondrop="drop(event, 'doing')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" role="region" aria-label="Üretimde kolonu"></div>
-                    </div>
-
-                    <!-- Tamamlandı -->
-                    <div class="kanban-col flex-1 min-w-[320px] bg-slate-800/50 rounded-xl border border-slate-700 p-4 flex flex-col h-[600px]">
-                        <div class="flex items-center justify-between mb-4 border-b border-done pb-2">
-                            <h3 class="font-bold text-white flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-done"></div> Tamamlandı</h3>
-                            <span id="count-done" class="bg-slate-700 text-xs py-1 px-2 rounded-full">0</span>
-                        </div>
-                        <div id="col-done" class="flex-1 overflow-y-auto space-y-3" ondrop="drop(event, 'done')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" role="region" aria-label="Tamamlandı kolonu"></div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Sekme 2: Çizimler ve Dosyalar Galerisi -->
-            <div id="tab-gallery" class="hidden fade-in">
-                <div id="gallery-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    <!-- Resimler Buraya Gelecek -->
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- MODAL 1: YENİ OYUN EKLE (AFİŞLİ) -->
-    <dialog id="modal-add-prod" class="bg-card border border-slate-600 rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
-        <div class="p-6 border-b border-slate-700 flex justify-between items-center">
-            <h3 class="text-xl font-bold text-white">Yeni Oyun Ekle</h3>
-            <button onclick="document.getElementById('modal-add-prod').close()" class="text-slate-400 hover:text-white" aria-label="Kapat"><i class="fa-solid fa-xmark text-xl"></i></button>
-        </div>
-        <form onsubmit="addProduction(event)" class="p-6 space-y-4" novalidate>
-            <div>
-                <label for="inp-prod-name" class="block text-sm font-medium mb-1">Oyun Adı *</label>
-                <input type="text" id="inp-prod-name" required maxlength="100" class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary" placeholder="Oyun adını girin">
-                <span class="text-xs text-slate-400 mt-1 block">Maksimum 100 karakter</span>
-            </div>
-            <div>
-                <label for="inp-prod-poster" class="block text-sm font-medium mb-1">Poster Görseli</label>
-                <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative">
-                    <input type="file" id="inp-prod-poster" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewImage(this, 'poster-preview')">
-                    <div id="poster-preview-container" class="hidden flex flex-col items-center">
-                        <img id="poster-preview" class="h-32 object-contain rounded mb-2" alt="Afiş önizlemesi">
-                        <span class="text-xs text-primary">Değiştirmek için tıkla</span>
-                    </div>
-                    <div id="poster-upload-text">
-                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i>
-                        <p class="text-sm text-slate-400">📸 Görsel seçmek için tıklayın</p>
-                    </div>
-                </div>
-            </div>
-            <div class="pt-4 flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('modal-add-prod').close()" class="px-4 py-2 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">İptal</button>
-                <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary_hover text-white font-medium transition-colors">Kaydet</button>
-            </div>
-        </form>
-    </dialog>
-
-    <!-- MODAL 2: ATÖLYE İŞİ EKLE -->
-    <dialog id="modal-add-task" class="bg-card border border-slate-600 rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
-        <div class="p-6 border-b border-slate-700 flex justify-between items-center">
-            <h3 class="text-xl font-bold text-white">İş Ekle</h3>
-            <button onclick="document.getElementById('modal-add-task').close()" class="text-slate-400 hover:text-white" aria-label="Kapat"><i class="fa-solid fa-xmark text-xl"></i></button>
-        </div>
-        <form onsubmit="addTask(event)" class="p-6 space-y-4" novalidate>
-            <div>
-                <label for="inp-task-name" class="block text-sm font-medium mb-1">İş Başlığı *</label>
-                <input type="text" id="inp-task-name" placeholder="Örn: Sabriye'nin Maket Arabası" required maxlength="150" class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary">
-            </div>
-            <div>
-                <label for="inp-task-type" class="block text-sm font-medium mb-1">İlgili Atölye *</label>
-                <select id="inp-task-type" required class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary">
-                    <option value="">-- Seçiniz --</option>
-                    <option value="Marangoz|bg-amber-700|fa-tree">🪵 Marangoz</option>
-                    <option value="Kostüm|bg-pink-600|fa-scissors">🧵 Bezleme</option>
-                    <option value="Demir|bg-slate-500|fa-gavel">🔩 Demir</option>
-                    <option value="Dekor|bg-emerald-600|fa-paint-roller">🎨 Butafor / Boya</option>
-                    <option value="Satınalma|bg-emerald-600|fa-cart-shopping">🛒 Satınalma</option>
-                </select>
-            </div>
-            <div>
-                <label for="inp-task-desc" class="block text-sm font-medium mb-1">Açıklama</label>
-                <textarea id="inp-task-desc" rows="3" placeholder="Ölçü, renk veya özel notlar ekleyebilirsiniz..." maxlength="500" class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary"></textarea>
-            </div>
-            <div class="pt-4 flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('modal-add-task').close()" class="px-4 py-2 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">İptal</button>
-                <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary_hover text-white font-medium transition-colors">Kaydet</button>
-            </div>
-        </form>
-    </dialog>
-
-    <!-- MODAL 3: ÇİZİM / GÖRSEL EKLE (Prodüksiyon Geneli) -->
-    <dialog id="modal-add-drawing" class="bg-card border border-slate-600 rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
-        <div class="p-6 border-b border-slate-700 flex justify-between items-center">
-            <h3 class="text-xl font-bold text-white">Dosya Ekle (Prodüksiyon Galerisi)</h3>
-            <button onclick="document.getElementById('modal-add-drawing').close()" class="text-slate-400 hover:text-white" aria-label="Kapat"><i class="fa-solid fa-xmark text-xl"></i></button>
-        </div>
-        <form onsubmit="addDrawing(event)" class="p-6 space-y-4" novalidate>
-            <div>
-                <label for="inp-draw-file" class="block text-sm font-medium mb-1">Görsel *</label>
-                <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative bg-dark">
-                    <input type="file" id="inp-draw-file" accept="image/*" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewImage(this, 'draw-preview')">
-                    <div id="draw-preview-container" class="hidden flex flex-col items-center">
-                        <img id="draw-preview" class="h-40 object-contain rounded mb-2" alt="Çizim önizlemesi">
-                        <span class="text-xs text-primary">Değiştirmek için tıkla</span>
-                    </div>
-                    <div id="draw-upload-text">
-                        <i class="fa-solid fa-file-image text-3xl text-slate-400 mb-2"></i>
-                        <p class="text-sm text-slate-400">📷 Fotoğraf seçmek için tıklayın</p>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <label for="inp-draw-name" class="block text-sm font-medium mb-1">Dosya Adı *</label>
-                <input type="text" id="inp-draw-name" placeholder="Örn: 2. Perde Dekor Taslağı" required maxlength="150" class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary">
-            </div>
-            <div class="pt-4 flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('modal-add-drawing').close()" class="px-4 py-2 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">İptal</button>
-                <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary_hover text-white font-medium transition-colors">Kaydet</button>
-            </div>
-        </form>
-    </dialog>
-
-    <!-- MODAL 4: İŞ DETAYI GÖRÜNTÜLE (Düzenleme ve silme butonları eklendi) -->
-    <dialog id="modal-view-task" class="bg-card border border-slate-600 rounded-2xl shadow-2xl p-0 w-full max-w-2xl text-slate-200">
-        <div class="p-6 border-b border-slate-700 flex justify-between items-start gap-4">
-            <h3 id="view-task-name" class="text-xl font-bold text-white leading-tight">İş Adı</h3>
-            <div class="flex gap-2">
-                <button onclick="editCurrentTask()" class="text-slate-400 hover:text-primary transition-colors" title="Düzenle"><i class="fa-solid fa-pen-to-square text-xl"></i></button>
-                <button onclick="deleteCurrentTask()" class="text-slate-400 hover:text-todo transition-colors" title="Sil"><i class="fa-solid fa-trash-can text-xl"></i></button>
-                <button onclick="document.getElementById('modal-view-task').close()" class="text-slate-400 hover:text-white" aria-label="Kapat"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-        </div>
-        <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-            <div class="flex gap-3 flex-wrap">
-                <span id="view-task-type" class="text-white text-xs px-2 py-1 rounded font-medium flex items-center gap-1 w-fit">Atölye</span>
-                <span id="view-task-status" class="bg-slate-700 text-white text-xs px-2 py-1 rounded font-medium w-fit">Durum</span>
-                <span id="view-task-date" class="text-slate-400 text-xs px-2 py-1 flex items-center gap-1"><i class="fa-regular fa-clock"></i> Tarih</span>
-            </div>
-            <div>
-                <h4 class="text-sm font-medium text-slate-400 mb-2">Açıklama / Notlar</h4>
-                <p id="view-task-desc" class="text-slate-200 text-sm whitespace-pre-wrap bg-dark p-4 rounded-lg border border-slate-700 min-h-[80px]"></p>
-            </div>
-
-            <!-- Çizimler Bölümü -->
-            <div>
-                <div class="flex items-center justify-between mb-2">
-                    <h4 class="text-sm font-medium text-slate-400">Çizimler / Referanslar</h4>
-                    <button onclick="addDrawingToTask()" class="text-xs bg-primary hover:bg-primary_hover text-white px-3 py-1 rounded-full transition-colors">
-                        <i class="fa-solid fa-plus"></i> Çizim Ekle
+                <div class="flex gap-2 flex-wrap">
+                    <button onclick="openAddDrawingModal()"
+                        class="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-all text-slate-300 hover:text-white"
+                        style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1)">
+                        <i class="fa-solid fa-image text-xs"></i> Dosya Ekle
+                    </button>
+                    <button onclick="openAddTaskModal()"
+                        class="flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg transition-all text-white"
+                        style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.35)">
+                        <i class="fa-solid fa-plus text-xs"></i> İş Ekle
                     </button>
                 </div>
-                <div id="task-drawings-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <!-- Çizimler dinamik olarak buraya eklenecek -->
-                </div>
-                <p id="no-drawings-msg" class="text-xs text-slate-500 italic mt-2">Bu iş için henüz çizim eklenmemiş.</p>
+            </div>
+            <!-- Progress Bar -->
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-border">
+                <div id="prod-progress-bar" class="h-full progress-bar" style="width:0%; background: linear-gradient(90deg, #7c3aed, #c084fc)"></div>
             </div>
         </div>
-    </dialog>
 
-    <!-- MODAL 5: İŞ DÜZENLEME (YENİ) -->
-    <dialog id="modal-edit-task" class="bg-card border border-slate-600 rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
-        <div class="p-6 border-b border-slate-700 flex justify-between items-center">
-            <h3 class="text-xl font-bold text-white">İş Düzenle</h3>
-            <button onclick="document.getElementById('modal-edit-task').close()" class="text-slate-400 hover:text-white" aria-label="Kapat"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <!-- Sekmeler -->
+        <div class="flex border-b border-border mb-6 gap-1">
+            <button onclick="switchTab('tab-kanban')" id="btn-tab-kanban" role="tab"
+                class="tab-btn px-5 py-3 text-sm font-medium transition-all rounded-t-lg relative">
+                <i class="fa-solid fa-hammer mr-2"></i>Atölye İşleri
+            </button>
+            <button onclick="switchTab('tab-gallery')" id="btn-tab-gallery" role="tab"
+                class="tab-btn px-5 py-3 text-sm font-medium transition-all rounded-t-lg relative">
+                <i class="fa-solid fa-images mr-2"></i>Dosyalar
+            </button>
         </div>
-        <form onsubmit="updateTask(event)" class="p-6 space-y-4" novalidate>
-            <input type="hidden" id="edit-task-id">
-            <div>
-                <label for="edit-task-name" class="block text-sm font-medium mb-1">İş Başlığı *</label>
-                <input type="text" id="edit-task-name" required maxlength="150" class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary">
-            </div>
-            <div>
-                <label for="edit-task-type" class="block text-sm font-medium mb-1">İlgili Atölye *</label>
-                <select id="edit-task-type" required class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary">
-                    <option value="Marangoz|bg-amber-700|fa-tree">🪵 Marangoz</option>
-                    <option value="Kostüm|bg-pink-600|fa-scissors">🧵 Bezleme</option>
-                    <option value="Demir|bg-slate-500|fa-gavel">🔩 Demir</option>
-                    <option value="Dekor|bg-emerald-600|fa-paint-roller">🎨 Butafor / Boya</option>
-                    <option value="Satınalma|bg-emerald-600|fa-cart-shopping">🛒 Satınalma</option>
-                </select>
-            </div>
-            <div>
-                <label for="edit-task-desc" class="block text-sm font-medium mb-1">Açıklama</label>
-                <textarea id="edit-task-desc" rows="3" maxlength="500" class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary"></textarea>
-            </div>
-            <div class="pt-4 flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('modal-edit-task').close()" class="px-4 py-2 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">İptal</button>
-                <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary_hover text-white font-medium transition-colors">Güncelle</button>
-            </div>
-        </form>
-    </dialog>
 
-    <!-- MODAL 6: İŞE ÇİZİM EKLE (Mini) -->
-    <dialog id="modal-add-task-drawing" class="bg-card border border-slate-600 rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
-        <div class="p-6 border-b border-slate-700 flex justify-between items-center">
-            <h3 class="text-xl font-bold text-white">İşe Çizim Ekle</h3>
-            <button onclick="document.getElementById('modal-add-task-drawing').close()" class="text-slate-400 hover:text-white" aria-label="Kapat"><i class="fa-solid fa-xmark text-xl"></i></button>
-        </div>
-        <form onsubmit="addTaskDrawing(event)" class="p-6 space-y-4" novalidate>
-            <div>
-                <label for="inp-task-draw-file" class="block text-sm font-medium mb-1">Görsel *</label>
-                <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative bg-dark">
-                    <input type="file" id="inp-task-draw-file" accept="image/*" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewImage(this, 'task-draw-preview')">
-                    <div id="task-draw-preview-container" class="hidden flex flex-col items-center">
-                        <img id="task-draw-preview" class="h-32 object-contain rounded mb-2" alt="Çizim önizlemesi">
-                        <span class="text-xs text-primary">Değiştirmek için tıkla</span>
-                    </div>
-                    <div id="task-draw-upload-text">
-                        <i class="fa-solid fa-file-image text-3xl text-slate-400 mb-2"></i>
-                        <p class="text-sm text-slate-400">📷 Çizim seçin</p>
-                    </div>
+        <!-- Kanban -->
+        <div id="tab-kanban" class="block fade-in">
+            <div class="flex flex-wrap gap-2 mb-5 items-center">
+                <span class="text-xs text-slate-500 mr-1">Filtrele:</span>
+                <button onclick="filterWorkshop('all')" data-filter="all" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">Tümü</button>
+                <button onclick="filterWorkshop('Demir')" data-filter="Demir" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🔩 Demir</button>
+                <button onclick="filterWorkshop('Marangoz')" data-filter="Marangoz" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🪵 Marangoz</button>
+                <button onclick="filterWorkshop('Kostum')" data-filter="Kostum" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🧵 Bezleme</button>
+                <button onclick="filterWorkshop('Dekor')" data-filter="Dekor" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🎨 Butafor/Boya</button>
+                <button onclick="filterWorkshop('Satinalma')" data-filter="Satinalma" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🛒 Satınalma</button>
+
+                <!-- Arama -->
+                <div class="ml-auto relative">
+                    <i class="fa-solid fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                    <input type="text" id="task-search" placeholder="İş ara..." oninput="renderKanban()"
+                        class="bg-card border border-border rounded-full pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-600 w-36 focus:w-48 transition-all">
                 </div>
             </div>
-            <div>
-                <label for="inp-task-draw-name" class="block text-sm font-medium mb-1">Açıklama (isteğe bağlı)</label>
-                <input type="text" id="inp-task-draw-name" placeholder="Örn: Ölçülü çizim" maxlength="150" class="w-full bg-dark border border-slate-600 rounded-lg p-3 text-white focus:outline-none focus:border-primary">
+
+            <div class="flex flex-col lg:flex-row gap-5 overflow-x-auto pb-4">
+                <!-- Yapılacaklar -->
+                <div class="kanban-col flex-1 min-w-[300px] rounded-xl border border-border flex flex-col" style="background:rgba(239,68,68,0.03)">
+                    <div class="flex items-center justify-between p-4 border-b border-border">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-todo"></div>
+                            <span class="kanban-col-header text-slate-400">Yapılacaklar</span>
+                        </div>
+                        <span id="count-todo" class="text-xs font-bold text-slate-500 bg-card px-2 py-0.5 rounded-full border border-border">0</span>
+                    </div>
+                    <div id="col-todo" class="flex-1 overflow-y-auto p-3 space-y-2 min-h-[400px]"
+                        ondrop="drop(event,'todo')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" role="region" aria-label="Yapılacaklar"></div>
+                </div>
+
+                <!-- Üretimde -->
+                <div class="kanban-col flex-1 min-w-[300px] rounded-xl border border-border flex flex-col" style="background:rgba(245,158,11,0.03)">
+                    <div class="flex items-center justify-between p-4 border-b border-border">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-doing"></div>
+                            <span class="kanban-col-header text-slate-400">Üretimde</span>
+                        </div>
+                        <span id="count-doing" class="text-xs font-bold text-slate-500 bg-card px-2 py-0.5 rounded-full border border-border">0</span>
+                    </div>
+                    <div id="col-doing" class="flex-1 overflow-y-auto p-3 space-y-2 min-h-[400px]"
+                        ondrop="drop(event,'doing')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" role="region" aria-label="Üretimde"></div>
+                </div>
+
+                <!-- Tamamlandı -->
+                <div class="kanban-col flex-1 min-w-[300px] rounded-xl border border-border flex flex-col" style="background:rgba(34,197,94,0.03)">
+                    <div class="flex items-center justify-between p-4 border-b border-border">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-done"></div>
+                            <span class="kanban-col-header text-slate-400">Tamamlandı</span>
+                        </div>
+                        <span id="count-done" class="text-xs font-bold text-slate-500 bg-card px-2 py-0.5 rounded-full border border-border">0</span>
+                    </div>
+                    <div id="col-done" class="flex-1 overflow-y-auto p-3 space-y-2 min-h-[400px]"
+                        ondrop="drop(event,'done')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" role="region" aria-label="Tamamlandı"></div>
+                </div>
             </div>
-            <div class="pt-4 flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('modal-add-task-drawing').close()" class="px-4 py-2 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors">İptal</button>
-                <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary_hover text-white font-medium transition-colors">Yükle</button>
+        </div>
+
+        <!-- Galeri -->
+        <div id="tab-gallery" class="hidden fade-in">
+            <div id="gallery-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </div>
+    </div>
+</main>
+
+<!-- ======= MODALLER ======= -->
+
+<!-- MODAL 1: Yeni Oyun Ekle -->
+<dialog id="modal-add-prod" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
+    <div class="p-5 border-b border-border flex justify-between items-center">
+        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">Yeni Oyun Ekle</h3>
+        <button onclick="closeProdModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="form-add-prod" class="p-5 space-y-4" novalidate>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Oyun Adı *</label>
+            <input type="text" id="inp-prod-name" required maxlength="100"
+                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm"
+                placeholder="Oyun adını girin...">
+            <span class="text-xs text-slate-600 mt-1 block" id="prod-name-counter">0 / 100</span>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Poster Görseli</label>
+            <div class="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative" onclick="document.getElementById('inp-prod-poster').click()">
+                <input type="file" id="inp-prod-poster" accept="image/*" class="hidden" onchange="handlePosterChange(this)">
+                <div id="poster-preview-container" class="hidden flex-col items-center">
+                    <img id="poster-preview" class="h-32 object-contain rounded mb-2 mx-auto" alt="Önizleme">
+                    <span class="text-xs text-primary">Değiştirmek için tıkla</span>
+                </div>
+                <div id="poster-upload-text" class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-600"></i>
+                    <p class="text-sm text-slate-500">Görsel seçin</p>
+                    <p class="text-xs text-slate-600">JPG, PNG, WebP · Max 2MB</p>
+                </div>
             </div>
-        </form>
-    </dialog>
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeProdModal()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
+            <button type="button" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)" onclick="addProduction()">Kaydet</button>
+        </div>
+    </form>
+</dialog>
 
-    <script>
-        // --- 1. VERİ TABANI (LOCAL STORAGE) VE UYGULAMA DURUMU ---
-        let appData = JSON.parse(localStorage.getItem('sahneProRenkli')) || { productions: [] };
-        let activeProdId = null;
-        let activeTaskIdForDrawing = null; // Hangi işe çizim ekleneceğini tutar
-        let currentWorkshopFilter = 'all'; // Aktif atölye filtresi
-        const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+<!-- MODAL 2: Oyun Düzenle -->
+<dialog id="modal-edit-prod" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
+    <div class="p-5 border-b border-border flex justify-between items-center">
+        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">Oyunu Düzenle</h3>
+        <button onclick="document.getElementById('modal-edit-prod').close()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form class="p-5 space-y-4" novalidate>
+        <input type="hidden" id="edit-prod-id">
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Oyun Adı *</label>
+            <input type="text" id="edit-prod-name" required maxlength="100"
+                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Yeni Poster (isteğe bağlı)</label>
+            <div class="border-2 border-dashed border-border rounded-lg p-3 text-center cursor-pointer hover:border-primary transition-colors relative" onclick="document.getElementById('edit-prod-poster').click()">
+                <input type="file" id="edit-prod-poster" accept="image/*" class="hidden" onchange="handleEditPosterChange(this)">
+                <div id="edit-poster-preview-wrap" class="hidden flex-col items-center">
+                    <img id="edit-poster-preview" class="h-24 object-contain rounded mb-1 mx-auto" alt="">
+                    <span class="text-xs text-primary">Değiştirmek için tıkla</span>
+                </div>
+                <div id="edit-poster-upload-text" class="flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-image text-xl text-slate-600"></i>
+                    <p class="text-xs text-slate-500">Yeni görsel seç</p>
+                </div>
+            </div>
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="document.getElementById('modal-edit-prod').close()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
+            <button type="button" onclick="updateProduction()" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)">Güncelle</button>
+        </div>
+    </form>
+</dialog>
 
-        function saveData() {
-            try {
-                const dataStr = JSON.stringify(appData);
-                localStorage.setItem('sahneProRenkli', dataStr);
-            } catch (e) {
-                if (e.name === 'QuotaExceededError') {
-                    alert("🚨 Hafıza dolu! Lütfen eski çizimleri silin.\n\nTarayıcı localStorage'ı ~5-10MB ile sınırlıdır.");
-                } else {
-                    alert("❌ Veri kaydedilemedi: " + e.message);
-                }
-                console.error('Save error:', e);
-            }
+<!-- MODAL 3: İş Ekle -->
+<dialog id="modal-add-task" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
+    <div class="p-5 border-b border-border flex justify-between items-center">
+        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">İş Ekle</h3>
+        <button onclick="closeAddTaskModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="form-add-task" class="p-5 space-y-4" novalidate>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">İş Başlığı *</label>
+            <input type="text" id="inp-task-name" required maxlength="150"
+                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm"
+                placeholder="Örn: Sabriye'nin Maket Arabası">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Atölye *</label>
+            <select id="inp-task-type" required class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
+                <option value="">— Seçiniz —</option>
+                <option value="Marangoz|bg-amber-700|fa-tree">🪵 Marangoz</option>
+                <option value="Kostum|bg-pink-600|fa-scissors">🧵 Bezleme</option>
+                <option value="Demir|bg-slate-500|fa-gavel">🔩 Demir</option>
+                <option value="Dekor|bg-emerald-700|fa-paint-roller">🎨 Butafor / Boya</option>
+                <option value="Satinalma|bg-blue-700|fa-cart-shopping">🛒 Satınalma</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Açıklama</label>
+            <textarea id="inp-task-desc" rows="3" maxlength="500"
+                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm resize-none"
+                placeholder="Ölçü, renk veya özel notlar..."></textarea>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Son Tarih (isteğe bağlı)</label>
+            <input type="date" id="inp-task-deadline"
+                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeAddTaskModal()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
+            <button type="button" onclick="addTask()" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)">Kaydet</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- MODAL 4: Dosya / Çizim Ekle -->
+<dialog id="modal-add-drawing" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
+    <div class="p-5 border-b border-border flex justify-between items-center">
+        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">Dosya Ekle</h3>
+        <button onclick="closeDrawingModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="form-add-drawing" class="p-5 space-y-4" novalidate>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Görsel *</label>
+            <div class="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative" onclick="document.getElementById('inp-draw-file').click()">
+                <input type="file" id="inp-draw-file" accept="image/*" required class="hidden" onchange="handleDrawChange(this)">
+                <div id="draw-preview-container" class="hidden flex-col items-center">
+                    <img id="draw-preview" class="h-36 object-contain rounded mb-2 mx-auto" alt="">
+                    <span class="text-xs text-primary">Değiştirmek için tıkla</span>
+                </div>
+                <div id="draw-upload-text" class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-file-image text-2xl text-slate-600"></i>
+                    <p class="text-sm text-slate-500">Fotoğraf seçin</p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Dosya Adı *</label>
+            <input type="text" id="inp-draw-name" required maxlength="150"
+                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm"
+                placeholder="Örn: 2. Perde Dekor Taslağı">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeDrawingModal()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
+            <button type="button" onclick="addDrawing()" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)">Yükle</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- MODAL 5: İş Detayı -->
+<dialog id="modal-view-task" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-2xl text-slate-200">
+    <div class="p-5 border-b border-border flex justify-between items-start gap-3">
+        <h3 id="view-task-name" class="text-lg font-bold text-white leading-snug flex-1" style="font-family:'Playfair Display',serif">—</h3>
+        <div class="flex gap-1 shrink-0">
+            <button onclick="editCurrentTask()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-primary hover:bg-border transition-all" title="Düzenle"><i class="fa-solid fa-pen text-sm"></i></button>
+            <button onclick="deleteCurrentTask()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-todo hover:bg-border transition-all" title="Sil"><i class="fa-solid fa-trash-can text-sm"></i></button>
+            <button onclick="document.getElementById('modal-view-task').close()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+    <div class="p-5 space-y-5 max-h-[72vh] overflow-y-auto">
+        <div class="flex gap-2 flex-wrap">
+            <span id="view-task-type" class="text-white text-xs px-2.5 py-1.5 rounded-md font-semibold flex items-center gap-1.5">Atölye</span>
+            <span id="view-task-status" class="text-white text-xs px-2.5 py-1.5 rounded-md font-semibold">Durum</span>
+            <span id="view-task-deadline-badge" class="text-xs px-2.5 py-1.5 rounded-md font-semibold hidden"></span>
+            <span id="view-task-date" class="text-slate-500 text-xs px-2 py-1.5 flex items-center gap-1"><i class="fa-regular fa-clock"></i> —</span>
+        </div>
+        <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Açıklama / Notlar</p>
+            <p id="view-task-desc" class="text-sm whitespace-pre-wrap bg-dark p-4 rounded-lg border border-border min-h-[70px] text-slate-300"></p>
+        </div>
+        <!-- Durum Değiştirme -->
+        <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Durumu Değiştir</p>
+            <div class="flex gap-2">
+                <button onclick="changeTaskStatus('todo')" class="status-btn flex-1 text-xs py-2 rounded-lg border transition-all font-medium" data-status="todo" style="border-color: #ef4444; color: #ef4444">Yapılacak</button>
+                <button onclick="changeTaskStatus('doing')" class="status-btn flex-1 text-xs py-2 rounded-lg border transition-all font-medium" data-status="doing" style="border-color: #f59e0b; color: #f59e0b">Üretimde</button>
+                <button onclick="changeTaskStatus('done')" class="status-btn flex-1 text-xs py-2 rounded-lg border transition-all font-medium" data-status="done" style="border-color: #22c55e; color: #22c55e">Tamamlandı</button>
+            </div>
+        </div>
+        <!-- Çizimler -->
+        <div>
+            <div class="flex items-center justify-between mb-2">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Çizimler / Referanslar</p>
+                <button onclick="openTaskDrawingModal()"
+                    class="text-xs font-medium text-primary hover:text-white px-3 py-1 rounded-full transition-all"
+                    style="background:rgba(192,132,252,0.1); border:1px solid rgba(192,132,252,0.2)">
+                    <i class="fa-solid fa-plus mr-1"></i>Ekle
+                </button>
+            </div>
+            <div id="task-drawings-grid" class="grid grid-cols-3 gap-2"></div>
+            <p id="no-drawings-msg" class="text-xs text-slate-600 italic mt-2">Henüz çizim eklenmemiş.</p>
+        </div>
+    </div>
+</dialog>
+
+<!-- MODAL 6: İş Düzenle -->
+<dialog id="modal-edit-task" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
+    <div class="p-5 border-b border-border flex justify-between items-center">
+        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">İş Düzenle</h3>
+        <button onclick="document.getElementById('modal-edit-task').close()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form class="p-5 space-y-4" novalidate>
+        <input type="hidden" id="edit-task-id">
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">İş Başlığı *</label>
+            <input type="text" id="edit-task-name" required maxlength="150" class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Atölye *</label>
+            <select id="edit-task-type" required class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
+                <option value="Marangoz|bg-amber-700|fa-tree">🪵 Marangoz</option>
+                <option value="Kostum|bg-pink-600|fa-scissors">🧵 Bezleme</option>
+                <option value="Demir|bg-slate-500|fa-gavel">🔩 Demir</option>
+                <option value="Dekor|bg-emerald-700|fa-paint-roller">🎨 Butafor / Boya</option>
+                <option value="Satinalma|bg-blue-700|fa-cart-shopping">🛒 Satınalma</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Açıklama</label>
+            <textarea id="edit-task-desc" rows="3" maxlength="500" class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm resize-none"></textarea>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Son Tarih</label>
+            <input type="date" id="edit-task-deadline" class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="document.getElementById('modal-edit-task').close()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
+            <button type="button" onclick="updateTask()" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)">Güncelle</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- MODAL 7: İşe Çizim Ekle -->
+<dialog id="modal-add-task-drawing" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
+    <div class="p-5 border-b border-border flex justify-between items-center">
+        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">İşe Çizim Ekle</h3>
+        <button onclick="closeTaskDrawingModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="form-task-drawing" class="p-5 space-y-4" novalidate>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Görsel *</label>
+            <div class="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative" onclick="document.getElementById('inp-task-draw-file').click()">
+                <input type="file" id="inp-task-draw-file" accept="image/*" required class="hidden" onchange="handleTaskDrawChange(this)">
+                <div id="task-draw-preview-container" class="hidden flex-col items-center">
+                    <img id="task-draw-preview" class="h-28 object-contain rounded mb-2 mx-auto" alt="">
+                    <span class="text-xs text-primary">Değiştirmek için tıkla</span>
+                </div>
+                <div id="task-draw-upload-text" class="flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-file-image text-2xl text-slate-600"></i>
+                    <p class="text-sm text-slate-500">Çizim seçin</p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Açıklama (isteğe bağlı)</label>
+            <input type="text" id="inp-task-draw-name" maxlength="150"
+                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm"
+                placeholder="Örn: Ölçülü çizim">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeTaskDrawingModal()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
+            <button type="button" onclick="addTaskDrawing()" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)">Yükle</button>
+        </div>
+    </form>
+</dialog>
+
+<script>
+// =============================================
+//  VERİ & DURUM
+// =============================================
+const STORAGE_KEY = 'sahneProV2';
+let appData = (() => {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    // Eski anahtardan taşı
+    try {
+        const legacy = localStorage.getItem('sahneProRenkli');
+        if (legacy) return JSON.parse(legacy);
+    } catch(e) {}
+    return { productions: [] };
+})();
+
+let activeProdId = null;
+let activeTaskId = null;
+let currentWorkshopFilter = 'all';
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
+
+// =============================================
+//  KAYDETME
+// =============================================
+function saveData() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    } catch(e) {
+        if (e.name === 'QuotaExceededError') {
+            showToast('⚠️ Depolama doldu! Eski görselleri silin.', 'error');
+        } else {
+            showToast('Kayıt başarısız: ' + e.message, 'error');
         }
+    }
+}
 
-        // --- 2. RESİM SIKIŞTIRMA MOTORU ---
-        function compressImage(file, callback, errorCallback) {
-            if (!file.type.startsWith('image/')) {
-                errorCallback('❌ Lütfen geçerli bir resim dosyası seçin (JPG, PNG, WebP, vb.)');
-                return;
-            }
-            if (file.size > MAX_FILE_SIZE) {
-                errorCallback(`❌ Dosya çok büyük! Maksimum ${MAX_FILE_SIZE / 1024 / 1024}MB olmalıdır.`);
-                return;
-            }
-            const reader = new FileReader();
-            reader.onerror = () => errorCallback('❌ Dosya okunamadı. Lütfen başka bir dosya seçin.');
-            reader.onload = event => {
-                const img = new Image();
-                img.onerror = () => errorCallback('❌ Resim yüklenemedi. Dosya bozuk olabilir.');
-                img.onload = () => {
-                    try {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800;
-                        const MAX_HEIGHT = 800;
-                        let width = img.width;
-                        let height = img.height;
-                        if (width > height) {
-                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                        } else {
-                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        callback(canvas.toDataURL('image/jpeg', 0.7));
-                    } catch (err) {
-                        errorCallback('❌ Resim işlenemedi: ' + err.message);
-                    }
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
+// =============================================
+//  TOAST BİLDİRİMLER
+// =============================================
+function showToast(msg, type = 'info', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    const icons = { success: 'fa-check-circle', error: 'fa-circle-exclamation', info: 'fa-circle-info' };
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `<i class="fa-solid ${icons[type]}"></i> ${msg}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'toastOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
 
-        // --- 3. GÖRSEL ÖNİZLEME ---
-        function previewImage(input, previewId) {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.getElementById(previewId);
-                    img.src = e.target.result;
-                    document.getElementById(previewId + '-container').classList.remove('hidden');
-                    const textId = previewId.split('-')[0] + '-upload-text';
-                    document.getElementById(textId).classList.add('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
+// =============================================
+//  GÖRSEL SIKIŞTIRMA
+// =============================================
+function compressImage(file, callback, errorCb) {
+    if (!file.type.startsWith('image/')) { errorCb('Geçerli bir resim dosyası seçin.'); return; }
+    if (file.size > MAX_FILE_SIZE) { errorCb(`Dosya çok büyük! Max 2MB.`); return; }
+    const reader = new FileReader();
+    reader.onerror = () => errorCb('Dosya okunamadı.');
+    reader.onload = ev => {
+        const img = new Image();
+        img.onerror = () => errorCb('Resim yüklenemedi.');
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let [w, h] = [img.width, img.height];
+            const MAX = 900;
+            if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
+            else { if (h > MAX) { w = w * MAX / h; h = MAX; } }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            callback(canvas.toDataURL('image/jpeg', 0.75));
+        };
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+}
 
-        function resetFormImage(prefix) {
-            const input = document.getElementById(`inp-${prefix}-file`) || document.getElementById(`inp-${prefix}-poster`);
-            if(input) input.value = '';
-            const container = document.getElementById(`${prefix}-preview-container`);
-            const img = document.getElementById(`${prefix}-preview`);
-            const text = document.getElementById(`${prefix}-upload-text`);
-            if(container) container.classList.add('hidden');
-            if(img) img.src = '';
-            if(text) text.classList.remove('hidden');
-        }
+// =============================================
+//  GÖRSEL ÖNİZLEME handlers (DÜZELTİLDİ)
+// =============================================
+function handlePosterChange(input) { showPreview(input, 'poster-preview', 'poster-preview-container', 'poster-upload-text'); }
+function handleDrawChange(input) { showPreview(input, 'draw-preview', 'draw-preview-container', 'draw-upload-text'); }
+function handleTaskDrawChange(input) { showPreview(input, 'task-draw-preview', 'task-draw-preview-container', 'task-draw-upload-text'); }
+function handleEditPosterChange(input) { showPreview(input, 'edit-poster-preview', 'edit-poster-preview-wrap', 'edit-poster-upload-text'); }
 
-        // --- 4. ARAYÜZ YÖNETİMİ VE RENDER ---
-        function renderDashboard() {
-            const grid = document.getElementById('productions-grid');
-            grid.innerHTML = '';
+function showPreview(input, imgId, containerId, textId) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById(imgId).src = e.target.result;
+        document.getElementById(containerId).classList.remove('hidden');
+        document.getElementById(containerId).style.display = 'flex';
+        document.getElementById(textId).classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+}
 
-            if (appData.productions.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full bg-card border border-slate-700 rounded-xl p-10 text-center">
-                        <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-folder-open text-2xl text-slate-400"></i></div>
-                        <h3 class="text-xl font-bold text-white mb-2">Henüz Oyun Yok</h3>
-                        <p class="text-slate-400 mb-6">Yeni bir oyun ekleyerek başlayın</p>
-                        <button onclick="document.getElementById('modal-add-prod').showModal()" class="bg-primary hover:bg-primary_hover text-white px-6 py-2 rounded-lg font-medium transition-colors"><i class="fa-solid fa-plus"></i> Yeni Oyun Ekle</button>
-                    </div>`;
-                return;
-            }
+function resetPreview(containerId, imgId, textId, inputId) {
+    const el = document.getElementById(containerId);
+    if (el) { el.classList.add('hidden'); el.style.display = ''; }
+    const img = document.getElementById(imgId);
+    if (img) img.src = '';
+    const txt = document.getElementById(textId);
+    if (txt) txt.classList.remove('hidden');
+    const inp = document.getElementById(inputId);
+    if (inp) inp.value = '';
+}
 
-            appData.productions.forEach(prod => {
-                const posterBg = prod.poster ? `url(${prod.poster})` : 'linear-gradient(to right bottom, #1e293b, #0f172a)';
-                const taskCount = prod.tasks ? prod.tasks.length : 0;
-                const doneCount = prod.tasks ? prod.tasks.filter(t => t.status === 'done').length : 0;
-                let progress = taskCount === 0 ? 0 : Math.round((doneCount / taskCount) * 100);
+// =============================================
+//  MODAL AÇMA / KAPAMA YARDIMCIları
+// =============================================
+function openAddProdModal() {
+    document.getElementById('form-add-prod').reset();
+    resetPreview('poster-preview-container','poster-preview','poster-upload-text','inp-prod-poster');
+    document.getElementById('modal-add-prod').showModal();
+}
+function closeProdModal() {
+    document.getElementById('modal-add-prod').close();
+}
+function openAddTaskModal() {
+    document.getElementById('form-add-task').reset();
+    document.getElementById('modal-add-task').showModal();
+}
+function closeAddTaskModal() {
+    document.getElementById('modal-add-task').close();
+}
+function openAddDrawingModal() {
+    document.getElementById('form-add-drawing').reset();
+    resetPreview('draw-preview-container','draw-preview','draw-upload-text','inp-draw-file');
+    document.getElementById('modal-add-drawing').showModal();
+}
+function closeDrawingModal() {
+    document.getElementById('modal-add-drawing').close();
+}
+function openTaskDrawingModal() {
+    document.getElementById('form-task-drawing').reset();
+    resetPreview('task-draw-preview-container','task-draw-preview','task-draw-upload-text','inp-task-draw-file');
+    document.getElementById('modal-add-task-drawing').showModal();
+}
+function closeTaskDrawingModal() {
+    document.getElementById('modal-add-task-drawing').close();
+}
 
-                grid.innerHTML += `
-                    <div class="bg-card border border-slate-700 rounded-2xl overflow-hidden hover:border-primary transition-colors group cursor-pointer" onclick="openProduction(${prod.id})">
-                        <div class="h-48 bg-cover bg-center relative" style="background-image: ${posterBg}">
-                            <div class="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-20 transition-all"></div>
-                            <div class="absolute top-3 right-3 bg-dark/80 backdrop-blur text-xs font-bold px-2 py-1 rounded text-white border border-slate-600">
-                                %${progress} Tamamlandı
-                            </div>
-                        </div>
-                        <div class="p-5 relative">
-                            <h3 class="text-xl font-bold text-white mb-1 truncate">${prod.name}</h3>
-                            <div class="flex gap-4 text-sm text-slate-400 mt-3">
-                                <span class="flex items-center gap-1"><i class="fa-solid fa-hammer"></i> ${taskCount} İş</span>
-                                <span class="flex items-center gap-1"><i class="fa-solid fa-image"></i> ${prod.drawings ? prod.drawings.length : 0} Görsel</span>
-                            </div>
-                            <button onclick="event.stopPropagation(); deleteProd(${prod.id})" class="absolute bottom-5 right-5 text-slate-500 hover:text-todo transition-colors" title="Oyunu Sil" aria-label="Oyunu sil"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+// =============================================
+//  VİTRİN
+// =============================================
+function renderDashboard() {
+    const grid = document.getElementById('productions-grid');
+    const searchVal = (document.getElementById('global-search')?.value || '').toLowerCase().trim();
+    let prods = appData.productions;
+    if (searchVal) prods = prods.filter(p => p.name.toLowerCase().includes(searchVal));
 
-        // --- 5. OYUN İÇİ EKRAN ---
-        function openProduction(id) {
-            activeProdId = id;
-            const prod = appData.productions.find(p => p.id === id);
-            if(!prod) return;
-            
-            document.getElementById('current-prod-title').innerText = prod.name;
-            const banner = document.getElementById('prod-banner');
-            banner.style.backgroundImage = prod.poster ? `url(${prod.poster})` : 'linear-gradient(to right, #312e81, #0f172a)';
-            
-            document.getElementById('view-dashboard').classList.add('hidden');
-            document.getElementById('header-actions').classList.add('hidden');
-            document.getElementById('view-production').classList.remove('hidden');
-            
-            switchTab('tab-kanban');
-            renderKanban();
-            renderGallery();
-        }
+    document.getElementById('prod-count-label').textContent = `${prods.length} prodüksiyon`;
 
-        function showDashboard() {
-            activeProdId = null;
-            document.getElementById('view-production').classList.add('hidden');
-            document.getElementById('view-dashboard').classList.remove('hidden');
-            document.getElementById('header-actions').classList.remove('hidden');
-            renderDashboard();
-        }
+    if (prods.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full border border-dashed border-border rounded-2xl p-14 text-center">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-600" style="background:rgba(255,255,255,0.03)">
+                    <i class="fa-solid fa-masks-theater text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2" style="font-family:'Playfair Display',serif">${searchVal ? 'Sonuç bulunamadı' : 'Henüz Oyun Yok'}</h3>
+                <p class="text-slate-500 mb-6 text-sm">${searchVal ? 'Farklı bir arama deneyin.' : 'Yeni bir oyun ekleyerek üretimi başlatın.'}</p>
+                ${!searchVal ? `<button onclick="openAddProdModal()" class="text-sm font-semibold text-white px-5 py-2 rounded-lg transition-all" style="background:rgba(192,132,252,0.15);border:1px solid rgba(192,132,252,0.3)"><i class="fa-solid fa-plus mr-2"></i>Yeni Oyun Ekle</button>` : ''}
+            </div>`;
+        return;
+    }
 
-        function switchTab(tabId) {
-            document.getElementById('tab-kanban').classList.add('hidden');
-            document.getElementById('tab-gallery').classList.add('hidden');
-            document.getElementById(tabId).classList.remove('hidden');
+    grid.innerHTML = '';
+    prods.forEach((prod, i) => {
+        const tasks = prod.tasks || [];
+        const done = tasks.filter(t => t.status === 'done').length;
+        const progress = tasks.length === 0 ? 0 : Math.round((done / tasks.length) * 100);
+        const posterBg = prod.poster
+            ? `url(${prod.poster}) center/cover no-repeat`
+            : `linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)`;
+        const urgentCount = tasks.filter(t => t.deadline && isUrgent(t.deadline) && t.status !== 'done').length;
 
-            const btnKanban = document.getElementById('btn-tab-kanban');
-            const btnGallery = document.getElementById('btn-tab-gallery');
-            
-            btnKanban.classList.remove('text-primary', 'border-primary', 'text-slate-400', 'hover:text-slate-200', 'border-transparent');
-            btnGallery.classList.remove('text-primary', 'border-primary', 'text-slate-400', 'hover:text-slate-200', 'border-transparent');
-            
-            if(tabId === 'tab-kanban') {
-                btnKanban.classList.add('text-primary', 'border-primary');
-                btnGallery.classList.add('text-slate-400', 'hover:text-slate-200', 'border-transparent');
-                btnKanban.setAttribute('aria-selected', 'true');
-                btnGallery.setAttribute('aria-selected', 'false');
-            } else {
-                btnGallery.classList.add('text-primary', 'border-primary');
-                btnKanban.classList.add('text-slate-400', 'hover:text-slate-200', 'border-transparent');
-                btnGallery.setAttribute('aria-selected', 'true');
-                btnKanban.setAttribute('aria-selected', 'false');
-            }
-        }
-
-        // Atölye filtresi
-        function filterWorkshop(workshop) {
-            currentWorkshopFilter = workshop;
-            document.querySelectorAll('[id^="filter-"]').forEach(btn => {
-                btn.classList.remove('bg-primary', 'text-white');
-                btn.classList.add('bg-slate-700', 'text-white', 'hover:bg-slate-600');
-            });
-            const activeBtn = document.getElementById(`filter-${workshop}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('bg-slate-700', 'hover:bg-slate-600');
-                activeBtn.classList.add('bg-primary', 'text-white');
-            } else {
-                document.getElementById('filter-all').classList.remove('bg-slate-700', 'hover:bg-slate-600');
-                document.getElementById('filter-all').classList.add('bg-primary', 'text-white');
-            }
-            renderKanban();
-        }
-
-        // Kanban Render
-        function renderKanban() {
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            if(!prod) return;
-            
-            const cols = { 
-                todo: document.getElementById('col-todo'), 
-                doing: document.getElementById('col-doing'), 
-                done: document.getElementById('col-done') 
-            };
-            const counts = { todo: 0, doing: 0, done: 0 };
-            
-            Object.values(cols).forEach(col => col.innerHTML = '');
-
-            let tasksToShow = prod.tasks || [];
-            if (currentWorkshopFilter !== 'all') {
-                tasksToShow = tasksToShow.filter(t => {
-                    const typeBase = t.type.split('|')[0];
-                    return typeBase === currentWorkshopFilter;
-                });
-            }
-
-            tasksToShow.forEach(task => {
-                counts[task.status]++;
-                const typeData = task.type.split('|');
-                
-                const card = document.createElement('div');
-                card.className = "task-card bg-card p-4 rounded-lg border border-slate-600 shadow-sm hover:border-slate-500 transition-colors relative group";
-                card.draggable = true;
-                card.id = `task-${task.id}`;
-                card.ondragstart = (e) => dragStart(e, task.id);
-                card.onclick = () => openTaskDetails(task.id);
-                
-                card.innerHTML = `
-                    <h4 class="font-medium text-white mb-3 pr-6 leading-tight">${escapeHtml(task.name)}</h4>
-                    <div class="flex justify-between items-center flex-wrap gap-2">
-                        <span class="${typeData[1]} text-white text-xs px-2 py-1 rounded font-medium flex items-center gap-1"><i class="fa-solid ${typeData[2]}"></i> ${typeData[0]}</span>
-                        <span class="text-xs text-slate-500 flex items-center gap-1"><i class="fa-regular fa-clock"></i> ${formatDate(task.id)}</span>
-                    </div>
-                    <button onclick="event.stopPropagation(); deleteTask(${task.id})" class="absolute top-3 right-3 text-slate-500 hover:text-todo opacity-0 group-hover:opacity-100 transition-opacity" aria-label="İşi sil"><i class="fa-solid fa-trash-can"></i></button>
-                `;
-                cols[task.status].appendChild(card);
-            });
-
-            document.getElementById('count-todo').innerText = counts.todo;
-            document.getElementById('count-doing').innerText = counts.doing;
-            document.getElementById('count-done').innerText = counts.done;
-        }
-
-        // Galeri Render
-        function renderGallery() {
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            if(!prod) return;
-            
-            const grid = document.getElementById('gallery-grid');
-            grid.innerHTML = '';
-
-            if(!prod.drawings || prod.drawings.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">Bu prodüksiyon için henüz çizim veya referans görseli yüklenmemiş.</div>`;
-                return;
-            }
-
-            prod.drawings.forEach(draw => {
-                grid.innerHTML += `
-                    <div class="bg-card border border-slate-700 rounded-xl overflow-hidden group">
-                        <div class="h-48 w-full bg-dark flex items-center justify-center overflow-hidden cursor-pointer" onclick="window.open('${draw.image}', '_blank')" role="button" tabindex="0">
-                            <img src="${draw.image}" alt="${escapeHtml(draw.name)}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300">
-                        </div>
-                        <div class="p-4 relative">
-                            <h4 class="font-bold text-white text-sm mb-1 truncate" title="${escapeHtml(draw.name)}">${escapeHtml(draw.name)}</h4>
-                            <p class="text-xs text-slate-400">${formatDate(draw.id)}</p>
-                            <button onclick="deleteDrawing(${draw.id})" class="absolute top-4 right-4 text-slate-500 hover:text-todo transition-colors" aria-label="Çizimi sil"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // İş Detaylarını Modal İçinde Göster
-        function openTaskDetails(taskId) {
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            if(!prod) return;
-            
-            const task = prod.tasks.find(t => t.id === taskId);
-            if(!task) return;
-
-            activeTaskIdForDrawing = taskId;
-
-            document.getElementById('view-task-name').innerText = escapeHtml(task.name);
-            
-            const typeData = task.type.split('|');
-            const typeSpan = document.getElementById('view-task-type');
-            typeSpan.className = `${typeData[1]} text-white text-xs px-2 py-1 rounded font-medium flex items-center gap-1 w-fit`;
-            typeSpan.innerHTML = `<i class="fa-solid ${typeData[2]}"></i> ${typeData[0]}`;
-
-            const statusMap = {
-                'todo': { label: 'Beklemede', bg: 'bg-todo' },
-                'doing': { label: 'Devam Ediyor', bg: 'bg-doing' },
-                'done': { label: 'Tamamlandı', bg: 'bg-done' }
-            };
-            const statusSpan = document.getElementById('view-task-status');
-            statusSpan.className = `${statusMap[task.status].bg} text-white text-xs px-2 py-1 rounded font-medium w-fit`;
-            statusSpan.innerText = statusMap[task.status].label;
-
-            document.getElementById('view-task-date').innerHTML = `<i class="fa-regular fa-clock"></i> ${formatDate(task.id)}`;
-            
-            const descEl = document.getElementById('view-task-desc');
-            if (task.desc && task.desc.trim()) {
-                descEl.innerText = task.desc;
-                descEl.classList.remove('italic', 'text-slate-500');
-            } else {
-                descEl.innerText = 'Bu iş için ekstra açıklama veya not eklenmemiş.';
-                descEl.classList.add('italic', 'text-slate-500');
-            }
-
-            renderTaskDrawings(task);
-            document.getElementById('modal-view-task').showModal();
-        }
-
-        // İşe ait çizimleri göster
-        function renderTaskDrawings(task) {
-            const grid = document.getElementById('task-drawings-grid');
-            const noMsg = document.getElementById('no-drawings-msg');
-            grid.innerHTML = '';
-
-            if (!task.drawings || task.drawings.length === 0) {
-                noMsg.classList.remove('hidden');
-                return;
-            }
-            noMsg.classList.add('hidden');
-            task.drawings.forEach(draw => {
-                const div = document.createElement('div');
-                div.className = 'relative group';
-                div.innerHTML = `
-                    <img src="${draw.image}" alt="${escapeHtml(draw.name || 'Çizim')}" class="w-full h-24 object-cover rounded-lg border border-slate-600 cursor-pointer hover:opacity-80 transition-opacity" onclick="window.open('${draw.image}', '_blank')">
-                    <p class="text-xs text-slate-400 mt-1 truncate">${escapeHtml(draw.name || 'Çizim')}</p>
-                    <button onclick="deleteTaskDrawing(${task.id}, '${draw.id}')" class="absolute top-1 right-1 bg-dark/80 rounded-full w-5 h-5 flex items-center justify-center text-slate-400 hover:text-todo opacity-0 group-hover:opacity-100 transition-opacity" title="Çizimi sil"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                `;
-                grid.appendChild(div);
-            });
-        }
-
-        // --- DÜZENLEME İŞLEMLERİ ---
-        function editCurrentTask() {
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            if (!prod) return;
-            const task = prod.tasks.find(t => t.id === activeTaskIdForDrawing);
-            if (!task) return;
-
-            document.getElementById('edit-task-id').value = task.id;
-            document.getElementById('edit-task-name').value = task.name;
-            // Açıklama
-            document.getElementById('edit-task-desc').value = task.desc || '';
-            // Atölye seçimini ayarla
-            const select = document.getElementById('edit-task-type');
-            const options = select.options;
-            for (let i = 0; i < options.length; i++) {
-                if (options[i].value === task.type) {
-                    options[i].selected = true;
-                    break;
-                }
-            }
-            document.getElementById('modal-view-task').close();
-            document.getElementById('modal-edit-task').showModal();
-        }
-
-        function updateTask(e) {
-            e.preventDefault();
-            const taskId = Number(document.getElementById('edit-task-id').value);
-            const name = document.getElementById('edit-task-name').value.trim();
-            const type = document.getElementById('edit-task-type').value;
-            const desc = document.getElementById('edit-task-desc').value.trim();
-
-            if (!name || !type) {
-                alert('❌ İş başlığı ve atölye zorunludur.');
-                return;
-            }
-
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            if (!prod) return;
-            const task = prod.tasks.find(t => t.id === taskId);
-            if (!task) return;
-
-            task.name = name;
-            task.type = type;
-            task.desc = desc;
-
-            saveData();
-            document.getElementById('modal-edit-task').close();
-            renderKanban();
-            // Detay modalını yeniden aç (isteğe bağlı)
-            openTaskDetails(taskId);
-        }
-
-        // --- SİLME İŞLEMLERİ ---
-        function deleteCurrentTask() {
-            if (!confirm('⚠️ Bu işi silmek istediğinize emin misiniz?')) return;
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            if (!prod) return;
-            prod.tasks = prod.tasks.filter(t => t.id !== activeTaskIdForDrawing);
-            saveData();
-            document.getElementById('modal-view-task').close();
-            renderKanban();
-        }
-
-        function deleteTask(id) {
-            if (!confirm('⚠️ Bu işi silmek istediğinize emin misiniz?')) return;
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            if (!prod) return;
-            prod.tasks = prod.tasks.filter(t => t.id !== id);
-            saveData();
-            renderKanban();
-        }
-
-        function deleteTaskDrawing(taskId, drawingId) {
-            if (!confirm('Bu çizimi silmek istediğinize emin misiniz?')) return;
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            if (!prod) return;
-            const task = prod.tasks.find(t => t.id === taskId);
-            if (!task || !task.drawings) return;
-            task.drawings = task.drawings.filter(d => d.id !== drawingId);
-            saveData();
-            renderTaskDrawings(task);
-        }
-
-        // --- 6. EKLEME İŞLEMLERİ (Yeni iş, çizim) ---
-        function addTask(e) {
-            e.preventDefault();
-            const name = document.getElementById('inp-task-name').value.trim();
-            const type = document.getElementById('inp-task-type').value;
-            const desc = document.getElementById('inp-task-desc').value.trim();
-
-            if (!name) {
-                alert('❌ Lütfen iş tanımı girin');
-                return;
-            }
-            if (!type) {
-                alert('❌ Lütfen atölye seçin');
-                return;
-            }
-
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            if(!prod) return;
-            
-            if(!prod.tasks) prod.tasks = [];
-            
-            prod.tasks.push({ 
-                id: Date.now(), 
-                name: name, 
-                type: type, 
-                desc: desc, 
-                status: 'todo',
-                drawings: []
-            });
-            
-            saveData();
-            document.getElementById('inp-task-name').value = '';
-            document.getElementById('inp-task-desc').value = '';
-            document.getElementById('modal-add-task').close();
-            renderKanban();
-        }
-
-        function addDrawing(e) {
-            e.preventDefault();
-            const name = document.getElementById('inp-draw-name').value.trim();
-            const fileInput = document.getElementById('inp-draw-file');
-
-            if (!name) {
-                alert('❌ Lütfen çizim başlığı girin');
-                return;
-            }
-
-            if (fileInput.files.length > 0) {
-                compressImage(fileInput.files[0], (base64Img) => {
-                    const prod = appData.productions.find(p => p.id === activeProdId);
-                    if(!prod) return;
-                    
-                    if(!prod.drawings) prod.drawings = [];
-                    
-                    prod.drawings.push({
-                        id: Date.now(),
-                        name: name,
-                        image: base64Img
-                    });
-                    
-                    saveData();
-                    document.getElementById('inp-draw-name').value = '';
-                    resetFormImage('draw');
-                    document.getElementById('modal-add-drawing').close();
-                    renderGallery();
-                }, (err) => alert(err));
-            } else {
-                alert('❌ Lütfen bir görsel seçin');
-            }
-        }
-
-        function addDrawingToTask() {
-            if (!activeTaskIdForDrawing) return;
-            document.getElementById('modal-add-task-drawing').showModal();
-        }
-
-        function addTaskDrawing(e) {
-            e.preventDefault();
-            const fileInput = document.getElementById('inp-task-draw-file');
-            const nameInput = document.getElementById('inp-task-draw-name');
-            const name = nameInput.value.trim() || 'Çizim';
-
-            if (fileInput.files.length === 0) {
-                alert('❌ Lütfen bir görsel seçin');
-                return;
-            }
-
-            compressImage(fileInput.files[0], (base64Img) => {
-                const prod = appData.productions.find(p => p.id === activeProdId);
-                if (!prod) return;
-                const task = prod.tasks.find(t => t.id === activeTaskIdForDrawing);
-                if (!task) return;
-
-                if (!task.drawings) task.drawings = [];
-                task.drawings.push({
-                    id: Date.now() + '-' + Math.random().toString(36).substr(2, 5),
-                    name: name,
-                    image: base64Img
-                });
-
-                saveData();
-                document.getElementById('modal-add-task-drawing').close();
-                resetFormImage('task-draw');
-                nameInput.value = '';
-                renderTaskDrawings(task);
-            }, (err) => alert(err));
-        }
-
-        // --- 7. SİLME İŞLEMLERİ (Prodüksiyon, çizim) ---
-        function deleteProd(id) {
-            if(confirm("⚠️ Tüm oyun, afişleri, çizimleri ve işleri kalıcı olarak silinecek.\n\nEmin misiniz?")) {
-                appData.productions = appData.productions.filter(p => p.id !== id);
-                saveData();
-                renderDashboard();
-            }
-        }
-
-        function deleteDrawing(id) {
-            if(confirm("⚠️ Bu çizimi kalıcı olarak silmek istiyor musunuz?")) {
-                const prod = appData.productions.find(p => p.id === activeProdId);
-                if(!prod) return;
-                
-                prod.drawings = prod.drawings.filter(d => d.id !== id);
-                saveData();
-                renderGallery();
-            }
-        }
-
-        // --- 8. SÜRÜKLE BIRAK ---
-        let draggedTaskId = null;
-
-        function dragStart(ev, taskId) {
-            draggedTaskId = taskId;
-            ev.dataTransfer.effectAllowed = "move";
-            ev.target.closest('.task-card').classList.add('opacity-50');
-        }
-
-        function allowDrop(ev) {
-            ev.preventDefault();
-            ev.dataTransfer.dropEffect = "move";
-            const colDiv = ev.target.closest('[ondrop]');
-            if(colDiv) colDiv.classList.add('drag-over');
-        }
-
-        function dragLeave(ev) {
-            const colDiv = ev.target.closest('[ondrop]');
-            if(colDiv) colDiv.classList.remove('drag-over');
-        }
-
-        function drop(ev, newStatus) {
-            ev.preventDefault();
-            ev.stopPropagation();
-            
-            document.querySelectorAll('[ondrop]').forEach(col => {
-                col.classList.remove('drag-over');
-            });
-
-            if(!draggedTaskId) return;
-
-            const prod = appData.productions.find(p => p.id === activeProdId);
-            if(!prod || !prod.tasks) return;
-            
-            const task = prod.tasks.find(t => t.id === draggedTaskId);
-            
-            if(task && task.status !== newStatus) {
-                task.status = newStatus;
-                saveData();
-                renderKanban();
-            } else {
-                renderKanban();
-            }
-
-            draggedTaskId = null;
-        }
-
-        // --- 9. YARDIMCI FONKSİYONLAR ---
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function formatDate(timestamp) {
-            try {
-                return new Date(timestamp).toLocaleDateString('tr-TR', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-            } catch (e) {
-                return 'Tarih';
-            }
-        }
-
-        // Uygulamayı Başlat
-        window.addEventListener('load', () => {
-            renderDashboard();
-            filterWorkshop('all');
+        const card = document.createElement('div');
+        card.className = 'prod-card card-hover bg-card border border-border rounded-2xl overflow-hidden cursor-pointer relative';
+        card.style.animationDelay = `${i * 0.05}s`;
+        card.innerHTML = `
+            <div class="h-44 relative" style="background: ${posterBg}">
+                <div class="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent"></div>
+                <div class="absolute top-3 left-3 flex gap-2">
+                    ${urgentCount > 0 ? `<span class="text-xs font-bold px-2 py-1 rounded-full bg-red-950 text-red-400 border border-red-800"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${urgentCount} acil</span>` : ''}
+                </div>
+                <div class="prod-actions absolute top-3 right-3 flex gap-1">
+                    <button onclick="event.stopPropagation(); openEditProdModal(${prod.id})"
+                        class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-white transition-all"
+                        style="background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.1)" title="Düzenle">
+                        <i class="fa-solid fa-pen text-xs"></i>
+                    </button>
+                    <button onclick="event.stopPropagation(); deleteProd(${prod.id})"
+                        class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-todo transition-all"
+                        style="background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.1)" title="Sil">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+                <div class="absolute bottom-3 right-3 text-xs font-bold px-2 py-1 rounded-full text-white"
+                    style="background:rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.1)">
+                    %${progress}
+                </div>
+            </div>
+            <div class="p-4">
+                <h3 class="text-base font-bold text-white mb-1 truncate" style="font-family:'Playfair Display',serif">${escapeHtml(prod.name)}</h3>
+                <div class="flex items-center gap-3 text-xs text-slate-500 mb-3">
+                    <span><i class="fa-solid fa-hammer mr-1"></i>${tasks.length} iş</span>
+                    <span><i class="fa-solid fa-check mr-1 text-done"></i>${done} tamamlandı</span>
+                    <span><i class="fa-solid fa-images mr-1"></i>${(prod.drawings||[]).length}</span>
+                </div>
+                <div class="h-1 bg-border rounded-full overflow-hidden">
+                    <div class="h-full progress-bar rounded-full" style="width:${progress}%; background: linear-gradient(90deg,#7c3aed,#c084fc)"></div>
+                </div>
+            </div>`;
+        card.onclick = () => openProduction(prod.id);
+        // Spotlight mouse effect
+        card.addEventListener('mousemove', e => {
+            const r = card.getBoundingClientRect();
+            card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+            card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
         });
-    </script>
+        grid.appendChild(card);
+    });
+}
+
+function searchProductions(val) { renderDashboard(); }
+
+// =============================================
+//  OYUN AÇMA / KAPATMA
+// =============================================
+function openProduction(id) {
+    activeProdId = id;
+    currentWorkshopFilter = 'all';
+    const prod = appData.productions.find(p => p.id === id);
+    if (!prod) return;
+
+    document.getElementById('current-prod-title').textContent = prod.name;
+    const banner = document.getElementById('prod-banner');
+    banner.style.backgroundImage = prod.poster
+        ? `url(${prod.poster})`
+        : 'linear-gradient(135deg, #312e81 0%, #1e1b4b 50%, #0f172a 100%)';
+
+    document.getElementById('view-dashboard').classList.add('hidden');
+    document.getElementById('header-actions').classList.add('hidden');
+    document.getElementById('header-search').classList.add('hidden');
+    document.getElementById('view-production').classList.remove('hidden');
+
+    updateProdStats();
+    switchTab('tab-kanban');
+    setActiveFilter('all');
+    renderKanban();
+    renderGallery();
+}
+
+function showDashboard() {
+    activeProdId = null;
+    document.getElementById('view-production').classList.add('hidden');
+    document.getElementById('view-dashboard').classList.remove('hidden');
+    document.getElementById('header-actions').classList.remove('hidden');
+    document.getElementById('header-search').classList.remove('hidden');
+    renderDashboard();
+}
+
+function updateProdStats() {
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    if (!prod) return;
+    const tasks = prod.tasks || [];
+    const done = tasks.filter(t => t.status === 'done').length;
+    const progress = tasks.length === 0 ? 0 : Math.round((done / tasks.length) * 100);
+
+    document.getElementById('prod-stats-bar').innerHTML = `
+        <span><i class="fa-solid fa-hammer mr-1 text-primary opacity-60"></i>${tasks.length} iş</span>
+        <span><i class="fa-solid fa-check mr-1 text-done opacity-70"></i>${done} tamamlandı</span>
+        <span><i class="fa-solid fa-images mr-1 opacity-60"></i>${(prod.drawings||[]).length} dosya</span>
+    `;
+    document.getElementById('prod-progress-bar').style.width = progress + '%';
+}
+
+// =============================================
+//  SEKMELER
+// =============================================
+function switchTab(tabId) {
+    ['tab-kanban','tab-gallery'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById(tabId).classList.remove('hidden');
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('text-primary', 'border-b-2', 'border-primary');
+        btn.classList.add('text-slate-500', 'hover:text-slate-300');
+    });
+    const active = tabId === 'tab-kanban' ? 'btn-tab-kanban' : 'btn-tab-gallery';
+    const activeBtn = document.getElementById(active);
+    activeBtn.classList.remove('text-slate-500','hover:text-slate-300');
+    activeBtn.classList.add('text-primary','border-b-2','border-primary');
+}
+
+// =============================================
+//  FİLTRE
+// =============================================
+function setActiveFilter(workshop) {
+    currentWorkshopFilter = workshop;
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        const isActive = btn.dataset.filter === workshop;
+        btn.style.background = isActive ? 'rgba(192,132,252,0.15)' : 'rgba(255,255,255,0.04)';
+        btn.style.border = isActive ? '1px solid rgba(192,132,252,0.35)' : '1px solid rgba(255,255,255,0.07)';
+        btn.style.color = isActive ? '#c084fc' : '#94a3b8';
+    });
+}
+
+function filterWorkshop(workshop) {
+    setActiveFilter(workshop);
+    renderKanban();
+}
+
+// =============================================
+//  KANBAN RENDER
+// =============================================
+function renderKanban() {
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    if (!prod) return;
+
+    const searchTerm = (document.getElementById('task-search')?.value || '').toLowerCase();
+    const cols = { todo: document.getElementById('col-todo'), doing: document.getElementById('col-doing'), done: document.getElementById('col-done') };
+    const counts = { todo: 0, doing: 0, done: 0 };
+    Object.values(cols).forEach(c => c.innerHTML = '');
+
+    let tasks = prod.tasks || [];
+    if (currentWorkshopFilter !== 'all') {
+        tasks = tasks.filter(t => t.type.split('|')[0] === currentWorkshopFilter);
+    }
+    if (searchTerm) {
+        tasks = tasks.filter(t => t.name.toLowerCase().includes(searchTerm) || (t.desc||'').toLowerCase().includes(searchTerm));
+    }
+
+    if (tasks.length === 0 && (prod.tasks||[]).length === 0) {
+        cols.todo.innerHTML = `<div class="text-center py-8 text-slate-600 text-sm">
+            <i class="fa-solid fa-inbox text-xl mb-2 block"></i>
+            Henüz iş yok. <button onclick="openAddTaskModal()" class="text-primary hover:underline">Ekle</button>
+        </div>`;
+    }
+
+    tasks.forEach(task => {
+        counts[task.status] = (counts[task.status] || 0) + 1;
+        const [typeName, typeBg, typeIcon] = task.type.split('|');
+        const deadlineHtml = getDeadlineHtml(task);
+
+        const card = document.createElement('div');
+        card.className = 'task-card bg-card p-3.5 rounded-xl border border-border hover:border-slate-600 transition-all relative group';
+        card.draggable = true;
+        card.id = `task-${task.id}`;
+        card.ondragstart = e => dragStart(e, task.id);
+        card.ondragend = e => dragEnd(e);
+        card.onclick = () => openTaskDetails(task.id);
+
+        const drawCount = (task.drawings||[]).length;
+        card.innerHTML = `
+            <h4 class="font-medium text-white text-sm mb-2.5 pr-6 leading-snug">${escapeHtml(task.name)}</h4>
+            <div class="flex items-center justify-between flex-wrap gap-1.5">
+                <span class="${typeBg} text-white badge-atelier flex items-center gap-1"><i class="fa-solid ${typeIcon} text-xs"></i>${typeName}</span>
+                <div class="flex items-center gap-2">
+                    ${drawCount > 0 ? `<span class="text-xs text-slate-500"><i class="fa-solid fa-image text-xs"></i> ${drawCount}</span>` : ''}
+                    ${deadlineHtml}
+                </div>
+            </div>
+            <button onclick="event.stopPropagation(); deleteTask(${task.id})"
+                class="absolute top-2.5 right-2.5 w-6 h-6 rounded flex items-center justify-center text-slate-600 hover:text-todo opacity-0 group-hover:opacity-100 transition-all"
+                aria-label="Sil"><i class="fa-solid fa-trash-can text-xs"></i></button>
+        `;
+        cols[task.status].appendChild(card);
+    });
+
+    document.getElementById('count-todo').textContent = counts.todo || 0;
+    document.getElementById('count-doing').textContent = counts.doing || 0;
+    document.getElementById('count-done').textContent = counts.done || 0;
+}
+
+function getDeadlineHtml(task) {
+    if (!task.deadline) return `<span class="text-xs text-slate-600"><i class="fa-regular fa-clock"></i> ${formatDate(task.id)}</span>`;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dl = new Date(task.deadline);
+    const diff = Math.ceil((dl - today) / (1000*60*60*24));
+    if (diff < 0) return `<span class="text-xs text-red-500 font-semibold"><i class="fa-solid fa-triangle-exclamation"></i> ${Math.abs(diff)}g gecikti</span>`;
+    if (diff <= 3) return `<span class="text-xs text-amber-500 font-semibold"><i class="fa-solid fa-clock"></i> ${diff}g kaldı</span>`;
+    return `<span class="text-xs text-slate-500"><i class="fa-regular fa-calendar"></i> ${dl.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</span>`;
+}
+
+function isUrgent(deadline) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dl = new Date(deadline);
+    return Math.ceil((dl - today) / (1000*60*60*24)) <= 3;
+}
+
+// =============================================
+//  GALERİ RENDER
+// =============================================
+function renderGallery() {
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    if (!prod) return;
+    const grid = document.getElementById('gallery-grid');
+
+    if (!(prod.drawings||[]).length) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-600">
+            <i class="fa-solid fa-images text-3xl mb-3 block"></i>
+            <p class="text-sm">Henüz dosya yüklenmemiş.</p>
+            <button onclick="openAddDrawingModal()" class="mt-3 text-sm text-primary hover:underline">Dosya ekle</button>
+        </div>`;
+        return;
+    }
+
+    grid.innerHTML = '';
+    prod.drawings.forEach(draw => {
+        grid.innerHTML += `
+            <div class="bg-card border border-border rounded-xl overflow-hidden group card-hover">
+                <div class="h-44 overflow-hidden cursor-pointer" onclick="window.open('${draw.image}','_blank')">
+                    <img src="${draw.image}" alt="${escapeHtml(draw.name)}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300">
+                </div>
+                <div class="p-3 flex items-center justify-between">
+                    <div class="min-w-0">
+                        <h4 class="font-semibold text-white text-xs truncate">${escapeHtml(draw.name)}</h4>
+                        <p class="text-xs text-slate-600 mt-0.5">${formatDate(draw.id)}</p>
+                    </div>
+                    <button onclick="deleteDrawing(${draw.id})" class="w-7 h-7 rounded flex items-center justify-center text-slate-600 hover:text-todo transition-colors shrink-0" title="Sil"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                </div>
+            </div>`;
+    });
+}
+
+// =============================================
+//  İŞ DETAYI
+// =============================================
+function openTaskDetails(taskId) {
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    if (!prod) return;
+    const task = prod.tasks.find(t => t.id === taskId);
+    if (!task) return;
+    activeTaskId = taskId;
+
+    document.getElementById('view-task-name').textContent = task.name;
+
+    const [typeName, typeBg, typeIcon] = task.type.split('|');
+    const typeSpan = document.getElementById('view-task-type');
+    typeSpan.className = `${typeBg} text-white text-xs px-2.5 py-1.5 rounded-md font-semibold flex items-center gap-1.5`;
+    typeSpan.innerHTML = `<i class="fa-solid ${typeIcon}"></i>${typeName}`;
+
+    const statusCfg = { todo:{label:'Yapılacak',cls:'bg-red-950 text-red-400 border border-red-900'}, doing:{label:'Üretimde',cls:'bg-amber-950 text-amber-400 border border-amber-900'}, done:{label:'Tamamlandı',cls:'bg-green-950 text-green-400 border border-green-900'} };
+    const sSpan = document.getElementById('view-task-status');
+    sSpan.className = `text-xs px-2.5 py-1.5 rounded-md font-semibold ${statusCfg[task.status].cls}`;
+    sSpan.textContent = statusCfg[task.status].label;
+
+    // Deadline badge
+    const dlBadge = document.getElementById('view-task-deadline-badge');
+    if (task.deadline) {
+        dlBadge.classList.remove('hidden');
+        const today = new Date(); today.setHours(0,0,0,0);
+        const dl = new Date(task.deadline);
+        const diff = Math.ceil((dl - today) / (1000*60*60*24));
+        if (diff < 0) { dlBadge.className = 'text-xs px-2.5 py-1.5 rounded-md font-semibold bg-red-950 text-red-400 border border-red-900'; dlBadge.textContent = `${Math.abs(diff)}g gecikti`; }
+        else if (diff <= 3) { dlBadge.className = 'text-xs px-2.5 py-1.5 rounded-md font-semibold bg-amber-950 text-amber-400 border border-amber-900'; dlBadge.textContent = `${diff}g kaldı`; }
+        else { dlBadge.className = 'text-xs px-2.5 py-1.5 rounded-md font-semibold bg-slate-800 text-slate-400 border border-border'; dlBadge.textContent = new Date(task.deadline).toLocaleDateString('tr-TR'); }
+    } else {
+        dlBadge.classList.add('hidden');
+    }
+
+    document.getElementById('view-task-date').innerHTML = `<i class="fa-regular fa-clock"></i> ${formatDate(task.id)}`;
+
+    const descEl = document.getElementById('view-task-desc');
+    if (task.desc && task.desc.trim()) {
+        descEl.textContent = task.desc;
+        descEl.classList.remove('italic','text-slate-500');
+        descEl.classList.add('text-slate-300');
+    } else {
+        descEl.textContent = 'Açıklama eklenmemiş.';
+        descEl.classList.add('italic','text-slate-500');
+        descEl.classList.remove('text-slate-300');
+    }
+
+    // Durum butonları aktif seç
+    document.querySelectorAll('.status-btn').forEach(btn => {
+        const isActive = btn.dataset.status === task.status;
+        btn.style.opacity = isActive ? '1' : '0.4';
+        btn.style.fontWeight = isActive ? '700' : '500';
+    });
+
+    renderTaskDrawings(task);
+    document.getElementById('modal-view-task').showModal();
+}
+
+function renderTaskDrawings(task) {
+    const grid = document.getElementById('task-drawings-grid');
+    const noMsg = document.getElementById('no-drawings-msg');
+    grid.innerHTML = '';
+    const drawings = task.drawings || [];
+    noMsg.classList.toggle('hidden', drawings.length > 0);
+
+    drawings.forEach(draw => {
+        const div = document.createElement('div');
+        div.className = 'relative group';
+        div.innerHTML = `
+            <img src="${draw.image}" alt="${escapeHtml(draw.name||'Çizim')}"
+                class="w-full h-24 object-cover rounded-lg border border-border cursor-pointer hover:opacity-90 transition"
+                onclick="window.open('${draw.image}','_blank')">
+            <p class="text-xs text-slate-500 mt-1 truncate">${escapeHtml(draw.name||'Çizim')}</p>
+            <button onclick="deleteTaskDrawing(${task.id},'${draw.id}')"
+                class="absolute top-1 right-1 w-5 h-5 rounded flex items-center justify-center bg-dark/80 text-slate-400 hover:text-todo opacity-0 group-hover:opacity-100 transition">
+                <i class="fa-solid fa-trash-can text-xs"></i></button>`;
+        grid.appendChild(div);
+    });
+}
+
+function changeTaskStatus(newStatus) {
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    if (!prod) return;
+    const task = prod.tasks.find(t => t.id === activeTaskId);
+    if (!task) return;
+    task.status = newStatus;
+    saveData();
+    renderKanban();
+    updateProdStats();
+    // Refresh view
+    openTaskDetails(activeTaskId);
+    showToast('Durum güncellendi ✓', 'success');
+}
+
+// =============================================
+//  DÜZENLEME
+// =============================================
+function editCurrentTask() {
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    if (!prod) return;
+    const task = prod.tasks.find(t => t.id === activeTaskId);
+    if (!task) return;
+
+    document.getElementById('edit-task-id').value = task.id;
+    document.getElementById('edit-task-name').value = task.name;
+    document.getElementById('edit-task-desc').value = task.desc || '';
+    document.getElementById('edit-task-deadline').value = task.deadline || '';
+    const sel = document.getElementById('edit-task-type');
+    for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === task.type) { sel.selectedIndex = i; break; }
+    }
+    document.getElementById('modal-view-task').close();
+    document.getElementById('modal-edit-task').showModal();
+}
+
+function updateTask() {
+    const name = document.getElementById('edit-task-name').value.trim();
+    const type = document.getElementById('edit-task-type').value;
+    const desc = document.getElementById('edit-task-desc').value.trim();
+    const deadline = document.getElementById('edit-task-deadline').value;
+    const taskId = Number(document.getElementById('edit-task-id').value);
+
+    if (!name || !type) { showToast('Başlık ve atölye zorunludur.', 'error'); return; }
+
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    const task = prod?.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    Object.assign(task, { name, type, desc, deadline: deadline || null });
+    saveData();
+    document.getElementById('modal-edit-task').close();
+    renderKanban();
+    showToast('İş güncellendi ✓', 'success');
+    openTaskDetails(taskId);
+}
+
+function openEditProdModal(prodId) {
+    const prod = appData.productions.find(p => p.id === prodId);
+    if (!prod) return;
+    document.getElementById('edit-prod-id').value = prod.id;
+    document.getElementById('edit-prod-name').value = prod.name;
+    resetPreview('edit-poster-preview-wrap','edit-poster-preview','edit-poster-upload-text','edit-prod-poster');
+    document.getElementById('modal-edit-prod').showModal();
+}
+
+function updateProduction() {
+    const name = document.getElementById('edit-prod-name').value.trim();
+    const id = Number(document.getElementById('edit-prod-id').value);
+    const fileInput = document.getElementById('edit-prod-poster');
+    if (!name) { showToast('Oyun adı zorunludur.', 'error'); return; }
+
+    const prod = appData.productions.find(p => p.id === id);
+    if (!prod) return;
+
+    if (fileInput.files.length > 0) {
+        compressImage(fileInput.files[0], img => {
+            prod.name = name; prod.poster = img;
+            saveData();
+            document.getElementById('modal-edit-prod').close();
+            renderDashboard();
+            showToast('Oyun güncellendi ✓', 'success');
+        }, err => showToast(err, 'error'));
+    } else {
+        prod.name = name;
+        saveData();
+        document.getElementById('modal-edit-prod').close();
+        renderDashboard();
+        showToast('Oyun güncellendi ✓', 'success');
+    }
+}
+
+// =============================================
+//  EKLEME
+// =============================================
+function addProduction() {
+    const name = document.getElementById('inp-prod-name').value.trim();
+    if (!name) { showToast('Oyun adı zorunludur.', 'error'); return; }
+
+    const fileInput = document.getElementById('inp-prod-poster');
+    const newProd = { id: Date.now(), name, poster: null, tasks: [], drawings: [] };
+
+    if (fileInput.files.length > 0) {
+        compressImage(fileInput.files[0], img => {
+            newProd.poster = img;
+            appData.productions.push(newProd);
+            saveData();
+            closeProdModal();
+            renderDashboard();
+            showToast(`"${name}" eklendi ✓`, 'success');
+        }, err => showToast(err, 'error'));
+    } else {
+        appData.productions.push(newProd);
+        saveData();
+        closeProdModal();
+        renderDashboard();
+        showToast(`"${name}" eklendi ✓`, 'success');
+    }
+}
+
+function addTask() {
+    const name = document.getElementById('inp-task-name').value.trim();
+    const type = document.getElementById('inp-task-type').value;
+    const desc = document.getElementById('inp-task-desc').value.trim();
+    const deadline = document.getElementById('inp-task-deadline').value;
+
+    if (!name) { showToast('İş tanımı zorunludur.', 'error'); return; }
+    if (!type) { showToast('Atölye seçimi zorunludur.', 'error'); return; }
+
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    if (!prod) return;
+    if (!prod.tasks) prod.tasks = [];
+
+    prod.tasks.push({ id: Date.now(), name, type, desc, status: 'todo', drawings: [], deadline: deadline || null });
+    saveData();
+    closeAddTaskModal();
+    renderKanban();
+    updateProdStats();
+    showToast('İş eklendi ✓', 'success');
+}
+
+function addDrawing() {
+    const name = document.getElementById('inp-draw-name').value.trim();
+    const fileInput = document.getElementById('inp-draw-file');
+    if (!name) { showToast('Dosya adı zorunludur.', 'error'); return; }
+    if (!fileInput.files.length) { showToast('Görsel seçilmedi.', 'error'); return; }
+
+    compressImage(fileInput.files[0], img => {
+        const prod = appData.productions.find(p => p.id === activeProdId);
+        if (!prod) return;
+        if (!prod.drawings) prod.drawings = [];
+        prod.drawings.push({ id: Date.now(), name, image: img });
+        saveData();
+        closeDrawingModal();
+        renderGallery();
+        updateProdStats();
+        showToast('Dosya yüklendi ✓', 'success');
+    }, err => showToast(err, 'error'));
+}
+
+function addTaskDrawing() {
+    const fileInput = document.getElementById('inp-task-draw-file');
+    const name = document.getElementById('inp-task-draw-name').value.trim() || 'Çizim';
+    if (!fileInput.files.length) { showToast('Görsel seçilmedi.', 'error'); return; }
+
+    compressImage(fileInput.files[0], img => {
+        const prod = appData.productions.find(p => p.id === activeProdId);
+        const task = prod?.tasks.find(t => t.id === activeTaskId);
+        if (!task) return;
+        if (!task.drawings) task.drawings = [];
+        task.drawings.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,5), name, image: img });
+        saveData();
+        closeTaskDrawingModal();
+        renderTaskDrawings(task);
+        renderKanban();
+        showToast('Çizim eklendi ✓', 'success');
+    }, err => showToast(err, 'error'));
+}
+
+// =============================================
+//  SİLME
+// =============================================
+function deleteCurrentTask() {
+    if (!confirm('Bu işi silmek istediğinize emin misiniz?')) return;
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    if (!prod) return;
+    prod.tasks = prod.tasks.filter(t => t.id !== activeTaskId);
+    saveData();
+    document.getElementById('modal-view-task').close();
+    renderKanban();
+    updateProdStats();
+    showToast('İş silindi', 'info');
+}
+
+function deleteTask(id) {
+    if (!confirm('Bu işi silmek istediğinize emin misiniz?')) return;
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    if (!prod) return;
+    prod.tasks = prod.tasks.filter(t => t.id !== id);
+    saveData();
+    renderKanban();
+    updateProdStats();
+    showToast('İş silindi', 'info');
+}
+
+function deleteProd(id) {
+    const prod = appData.productions.find(p => p.id === id);
+    if (!confirm(`"${prod?.name}" oyununu tüm içeriğiyle birlikte silmek istiyor musunuz?`)) return;
+    appData.productions = appData.productions.filter(p => p.id !== id);
+    saveData();
+    renderDashboard();
+    showToast('Oyun silindi', 'info');
+}
+
+function deleteDrawing(id) {
+    if (!confirm('Bu dosyayı silmek istiyor musunuz?')) return;
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    if (!prod) return;
+    prod.drawings = prod.drawings.filter(d => d.id !== id);
+    saveData();
+    renderGallery();
+    updateProdStats();
+    showToast('Dosya silindi', 'info');
+}
+
+function deleteTaskDrawing(taskId, drawId) {
+    if (!confirm('Bu çizimi silmek istiyor musunuz?')) return;
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    const task = prod?.tasks.find(t => t.id === taskId);
+    if (!task) return;
+    task.drawings = (task.drawings||[]).filter(d => String(d.id) !== String(drawId));
+    saveData();
+    renderTaskDrawings(task);
+    renderKanban();
+    showToast('Çizim silindi', 'info');
+}
+
+// =============================================
+//  SÜRÜKLE-BIRAK (DÜZELTİLDİ — dragend eklendi)
+// =============================================
+let draggedTaskId = null;
+
+function dragStart(e, taskId) {
+    draggedTaskId = taskId;
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => e.target.classList.add('drag-ghost'), 0);
+}
+
+function dragEnd(e) {
+    e.target.classList.remove('drag-ghost','opacity-50');
+    document.querySelectorAll('.kanban-col > div:last-child').forEach(c => c.classList.remove('drag-over'));
+}
+
+function allowDrop(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const col = e.currentTarget;
+    col.classList.add('drag-over');
+}
+
+function dragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+function drop(e, newStatus) {
+    e.preventDefault();
+    document.querySelectorAll('[ondrop]').forEach(c => c.classList.remove('drag-over'));
+    if (!draggedTaskId) return;
+
+    const prod = appData.productions.find(p => p.id === activeProdId);
+    const task = prod?.tasks.find(t => t.id === draggedTaskId);
+    if (task && task.status !== newStatus) {
+        task.status = newStatus;
+        saveData();
+        updateProdStats();
+        showToast('Durum değiştirildi ✓', 'success');
+    }
+    draggedTaskId = null;
+    renderKanban();
+}
+
+// =============================================
+//  YARDIMCILAR
+// =============================================
+function escapeHtml(text) {
+    if (!text) return '';
+    const d = document.createElement('div');
+    d.textContent = String(text);
+    return d.innerHTML;
+}
+
+function formatDate(timestamp) {
+    try {
+        return new Date(Number(timestamp)).toLocaleDateString('tr-TR', { day:'numeric', month:'short', year:'numeric' });
+    } catch { return '—'; }
+}
+
+// Karakter sayacı
+document.getElementById('inp-prod-name')?.addEventListener('input', function() {
+    document.getElementById('prod-name-counter').textContent = `${this.value.length} / 100`;
+});
+
+// Başlat
+window.addEventListener('load', () => {
+    renderDashboard();
+    // Tab stilleri başlat
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.add('text-slate-500','hover:text-slate-300');
+    });
+    document.getElementById('btn-tab-kanban').classList.remove('text-slate-500','hover:text-slate-300');
+    document.getElementById('btn-tab-kanban').classList.add('text-primary','border-b-2','border-primary');
+});
+</script>
 </body>
 </html>
