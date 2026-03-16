@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎭 Sahne Üretim Takip</title>
+    <title>🎭 Oyun Üretim Takip</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -33,6 +33,8 @@
         }
     </script>
     <style>
+        
+
         * { font-family: 'DM Sans', sans-serif; }
         h1, h2, .display { font-family: 'Playfair Display', serif; }
 
@@ -41,7 +43,107 @@
         ::-webkit-scrollbar-thumb { background: #2a2a38; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #3a3a50; }
 
-        /* Grain texture overlay */
+        /* ===== TEMA SİSTEMİ ===== */
+        :root {
+            --bg:       #0a0a0f;
+            --surface:  #13131a;
+            --card:     #1a1a24;
+            --border:   #2a2a38;
+            --text:     #cbd5e1;
+            --text2:    #94a3b8;
+            --text3:    #64748b;
+            --white:    #f1f5f9;
+            --input-bg: #0a0a0f;
+            --shadow:   rgba(0,0,0,0.5);
+        }
+        html.light {
+            --bg:       #f0f4f8;
+            --surface:  #ffffff;
+            --card:     #f8fafc;
+            --border:   #dde3ec;
+            --text:     #374151;
+            --text2:    #6b7280;
+            --text3:    #9ca3af;
+            --white:    #111827;
+            --input-bg: #ffffff;
+            --shadow:   rgba(0,0,0,0.12);
+        }
+
+        body           { background: var(--bg) !important; color: var(--text); transition: background 0.25s, color 0.25s; }
+        header         { background: var(--surface) !important; border-color: var(--border) !important; }
+        main           { color: var(--text); }
+
+        /* Cards & surfaces */
+        .t-card        { background: var(--card); border: 1px solid var(--border); }
+        .t-surface     { background: var(--surface); }
+        .t-border      { border-color: var(--border) !important; }
+
+        /* Text helpers */
+        .t-text        { color: var(--text) !important; }
+        .t-text2       { color: var(--text2) !important; }
+        .t-text3       { color: var(--text3) !important; }
+        .t-white       { color: var(--white) !important; }
+
+        /* Inputs */
+        input, select, textarea {
+            background: var(--input-bg) !important;
+            color: var(--white) !important;
+            border-color: var(--border) !important;
+        }
+        input::placeholder, textarea::placeholder { color: var(--text3) !important; }
+
+        /* Dialog */
+        dialog {
+            background: var(--card) !important;
+            border-color: var(--border) !important;
+            color: var(--text);
+        }
+
+        /* Kanban cols */
+        .kanban-col {
+            background: var(--card) !important;
+            border-color: var(--border) !important;
+        }
+
+        /* Task cards */
+        .task-card {
+            background: var(--card) !important;
+            border-color: var(--border) !important;
+        }
+        .task-card:hover { border-color: var(--text3) !important; }
+
+        /* Prod cards */
+        .prod-card {
+            background: var(--card) !important;
+            border-color: var(--border) !important;
+        }
+
+        /* Filter buttons */
+        .filter-btn { color: var(--text2); }
+
+        /* Toast */
+        .toast-success { background: #14532d; border: 1px solid #166534; color: #86efac; }
+        .toast-error   { background: #450a0a; border: 1px solid #7f1d1d; color: #fca5a5; }
+        .toast-info    { background: #1e1b4b; border: 1px solid #3730a3; color: #c7d2fe; }
+
+        /* Theme toggle */
+        #theme-toggle {
+            width:36px; height:36px; border-radius:8px;
+            display:flex; align-items:center; justify-content:center;
+            cursor:pointer; transition:all 0.2s; font-size:15px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text2);
+            flex-shrink: 0;
+        }
+        #theme-toggle:hover { color: var(--white); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+                /* Grain texture overlay */
         body::before {
             content: '';
             position: fixed;
@@ -117,8 +219,16 @@
         .prod-actions { opacity: 0; transition: opacity 0.2s; }
         .prod-card:hover .prod-actions { opacity: 1; }
     </style>
+    <script>
+        // Sayfa yüklenmeden önce temayı uygula (flash önleme)
+        (function(){
+            var t = localStorage.getItem('theme');
+            var preferLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+            if (t === 'light' || (!t && preferLight)) document.documentElement.classList.add('light');
+        })();
+    </script>
 </head>
-<body class="bg-dark text-slate-300 min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col" id="app-body">
 
 <!-- Toast Container -->
 <div id="toast-container"></div>
@@ -130,7 +240,7 @@
             <div class="w-9 h-9 rounded-lg flex items-center justify-center text-primary" style="background: rgba(192,132,252,0.12); border: 1px solid rgba(192,132,252,0.2)">
                 <i class="fa-solid fa-masks-theater text-lg"></i>
             </div>
-            <h1 class="text-lg font-bold text-white tracking-tight" style="font-family:'Playfair Display',serif">Sahne Takip</h1>
+            <h1 class="text-lg font-bold text-white tracking-tight" style="font-family:'Playfair Display',serif">Oyun Üretim Takip</h1>
         </div>
 
         <!-- Search Bar (Dashboard'da görünür) -->
@@ -143,6 +253,9 @@
         </div>
 
         <div id="header-actions" class="flex items-center gap-2">
+            <button id="theme-toggle" onclick="toggleTheme()" title="Tema değiştir" aria-label="Açık/Koyu mod">
+                <i id="theme-icon" class="fa-solid fa-moon"></i>
+            </button>
             <button onclick="openAddProdModal()"
                 class="flex items-center gap-2 text-sm font-medium text-white px-4 py-2 rounded-lg transition-all"
                 style="background: rgba(192,132,252,0.15); border: 1px solid rgba(192,132,252,0.3)">
@@ -223,7 +336,8 @@
                 <button onclick="filterWorkshop('Demir')" data-filter="Demir" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🔩 Demir</button>
                 <button onclick="filterWorkshop('Marangoz')" data-filter="Marangoz" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🪵 Marangoz</button>
                 <button onclick="filterWorkshop('Kostum')" data-filter="Kostum" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🧵 Bezleme</button>
-                <button onclick="filterWorkshop('Dekor')" data-filter="Dekor" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🎨 Butafor/Boya</button>
+                <button onclick="filterWorkshop('Butafor')" data-filter="Butafor" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🎭 Butafor</button>
+                <button onclick="filterWorkshop('Resimleme')" data-filter="Resimleme" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🖌️ Resimleme</button>
                 <button onclick="filterWorkshop('Satinalma')" data-filter="Satinalma" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🛒 Satınalma</button>
 
                 <!-- Arama -->
@@ -375,7 +489,8 @@
                 <option value="Marangoz|bg-amber-700|fa-tree">🪵 Marangoz</option>
                 <option value="Kostum|bg-pink-600|fa-scissors">🧵 Bezleme</option>
                 <option value="Demir|bg-slate-500|fa-gavel">🔩 Demir</option>
-                <option value="Dekor|bg-emerald-700|fa-paint-roller">🎨 Butafor / Boya</option>
+                <option value="Butafor|bg-emerald-700|fa-theater-masks">🎭 Butafor</option>
+                <option value="Resimleme|bg-violet-700|fa-paint-brush">🖌️ Resimleme</option>
                 <option value="Satinalma|bg-blue-700|fa-cart-shopping">🛒 Satınalma</option>
             </select>
         </div>
@@ -389,6 +504,23 @@
             <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Son Tarih (isteğe bağlı)</label>
             <input type="date" id="inp-task-deadline"
                 class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Çizim / Referans (isteğe bağlı)</label>
+            <div class="border-2 border-dashed border-border rounded-lg p-3 text-center hover:border-primary transition-colors cursor-pointer relative" onclick="document.getElementById('inp-task-inline-draw').click()">
+                <input type="file" id="inp-task-inline-draw" accept="image/*" class="hidden" onchange="handleTaskInlineDrawChange(this)">
+                <div id="task-inline-draw-preview-container" style="display:none" class="flex-col items-center">
+                    <img id="task-inline-draw-preview" class="h-28 object-contain rounded mb-1 mx-auto" alt="">
+                    <span class="text-xs text-primary">Değiştirmek için tıkla</span>
+                </div>
+                <div id="task-inline-draw-upload-text" class="flex flex-col items-center gap-1 py-2">
+                    <i class="fa-solid fa-image text-xl text-slate-600"></i>
+                    <p class="text-xs text-slate-500">Çizim veya referans görseli ekle</p>
+                </div>
+            </div>
+            <input type="text" id="inp-task-inline-draw-name" maxlength="150"
+                class="w-full bg-dark border border-border rounded-lg p-2.5 text-white text-xs mt-2"
+                placeholder="Görsel açıklaması (isteğe bağlı)">
         </div>
         <div class="pt-2 flex justify-end gap-2">
             <button type="button" onclick="closeAddTaskModal()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
@@ -407,7 +539,7 @@
         <div>
             <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Görsel *</label>
             <div class="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative" onclick="document.getElementById('inp-draw-file').click()">
-                <input type="file" id="inp-draw-file" accept="image/*" required class="hidden" onchange="handleDrawChange(this)">
+                <input type="file" id="inp-draw-file" accept="image/*" class="hidden" onchange="handleDrawChange(this)">
                 <div id="draw-preview-container" class="hidden flex-col items-center">
                     <img id="draw-preview" class="h-36 object-contain rounded mb-2 mx-auto" alt="">
                     <span class="text-xs text-primary">Değiştirmek için tıkla</span>
@@ -495,7 +627,8 @@
                 <option value="Marangoz|bg-amber-700|fa-tree">🪵 Marangoz</option>
                 <option value="Kostum|bg-pink-600|fa-scissors">🧵 Bezleme</option>
                 <option value="Demir|bg-slate-500|fa-gavel">🔩 Demir</option>
-                <option value="Dekor|bg-emerald-700|fa-paint-roller">🎨 Butafor / Boya</option>
+                <option value="Butafor|bg-emerald-700|fa-theater-masks">🎭 Butafor</option>
+                <option value="Resimleme|bg-violet-700|fa-paint-brush">🖌️ Resimleme</option>
                 <option value="Satinalma|bg-blue-700|fa-cart-shopping">🛒 Satınalma</option>
             </select>
         </div>
@@ -524,7 +657,7 @@
         <div>
             <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Görsel *</label>
             <div class="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative" onclick="document.getElementById('inp-task-draw-file').click()">
-                <input type="file" id="inp-task-draw-file" accept="image/*" required class="hidden" onchange="handleTaskDrawChange(this)">
+                <input type="file" id="inp-task-draw-file" accept="image/*" class="hidden" onchange="handleTaskDrawChange(this)">
                 <div id="task-draw-preview-container" class="hidden flex-col items-center">
                     <img id="task-draw-preview" class="h-28 object-contain rounded mb-2 mx-auto" alt="">
                     <span class="text-xs text-primary">Değiştirmek için tıkla</span>
@@ -634,6 +767,18 @@ function compressImage(file, callback, errorCb) {
 function handlePosterChange(input) { showPreview(input, 'poster-preview', 'poster-preview-container', 'poster-upload-text'); }
 function handleDrawChange(input) { showPreview(input, 'draw-preview', 'draw-preview-container', 'draw-upload-text'); }
 function handleTaskDrawChange(input) { showPreview(input, 'task-draw-preview', 'task-draw-preview-container', 'task-draw-upload-text'); }
+function handleTaskInlineDrawChange(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const img = document.getElementById('task-inline-draw-preview');
+        img.src = e.target.result;
+        document.getElementById('task-inline-draw-preview-container').style.display = 'flex';
+        document.getElementById('task-inline-draw-upload-text').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
 function handleEditPosterChange(input) { showPreview(input, 'edit-poster-preview', 'edit-poster-preview-wrap', 'edit-poster-upload-text'); }
 
 function showPreview(input, imgId, containerId, textId) {
@@ -677,6 +822,15 @@ function openAddTaskModal() {
 }
 function closeAddTaskModal() {
     document.getElementById('modal-add-task').close();
+    // inline görseli sıfırla
+    const inp = document.getElementById('inp-task-inline-draw');
+    if (inp) inp.value = '';
+    const prev = document.getElementById('task-inline-draw-preview-container');
+    if (prev) prev.style.display = 'none';
+    const txt = document.getElementById('task-inline-draw-upload-text');
+    if (txt) txt.style.display = '';
+    const nameInp = document.getElementById('inp-task-inline-draw-name');
+    if (nameInp) nameInp.value = '';
 }
 function openAddDrawingModal() {
     document.getElementById('form-add-drawing').reset();
@@ -687,9 +841,16 @@ function closeDrawingModal() {
     document.getElementById('modal-add-drawing').close();
 }
 function openTaskDrawingModal() {
+    if (!activeTaskId) { showToast('Önce bir iş seçin.', 'error'); return; }
     document.getElementById('form-task-drawing').reset();
     resetPreview('task-draw-preview-container','task-draw-preview','task-draw-upload-text','inp-task-draw-file');
-    document.getElementById('modal-add-task-drawing').showModal();
+    // İki dialog aynı anda açık olunca bazı tarayıcılarda backdrop tıklaması sorun çıkarır
+    // view-task modalını kapat, drawing modalı aç
+    const viewModal = document.getElementById('modal-view-task');
+    viewModal.close();
+    setTimeout(() => {
+        document.getElementById('modal-add-task-drawing').showModal();
+    }, 80);
 }
 function closeTaskDrawingModal() {
     document.getElementById('modal-add-task-drawing').close();
@@ -775,6 +936,8 @@ function renderDashboard() {
         });
         grid.appendChild(card);
     });
+    // Re-apply theme to newly rendered elements
+    if (document.documentElement.classList.contains('light')) applyThemeColors(true);
 }
 
 function searchProductions(val) { renderDashboard(); }
@@ -927,6 +1090,8 @@ function renderKanban() {
     document.getElementById('count-todo').textContent = counts.todo || 0;
     document.getElementById('count-doing').textContent = counts.doing || 0;
     document.getElementById('count-done').textContent = counts.done || 0;
+    // Re-apply theme to newly rendered cards
+    if (document.documentElement.classList.contains('light')) applyThemeColors(true);
 }
 
 function getDeadlineHtml(task) {
@@ -1194,12 +1359,36 @@ function addTask() {
     if (!prod) return;
     if (!prod.tasks) prod.tasks = [];
 
-    prod.tasks.push({ id: Date.now(), name, type, desc, status: 'todo', drawings: [], deadline: deadline || null });
-    saveData();
-    closeAddTaskModal();
-    renderKanban();
-    updateProdStats();
-    showToast('İş eklendi ✓', 'success');
+    const newTaskId = Date.now();
+    const newTask = { id: newTaskId, name, type, desc, status: 'todo', drawings: [], deadline: deadline || null };
+    prod.tasks.push(newTask);
+
+    // İnline görsel varsa sıkıştır ve ekle
+    const inlineFile = document.getElementById('inp-task-inline-draw').files[0];
+    const inlineName = document.getElementById('inp-task-inline-draw-name').value.trim() || 'Çizim';
+    if (inlineFile) {
+        compressImage(inlineFile, img => {
+            newTask.drawings.push({ id: Date.now().toString(36), name: inlineName, image: img });
+            saveData();
+            closeAddTaskModal();
+            renderKanban();
+            updateProdStats();
+            showToast('İş ve görsel eklendi ✓', 'success');
+        }, err => {
+            // Görsel hatalı olsa bile işi kaydet
+            saveData();
+            closeAddTaskModal();
+            renderKanban();
+            updateProdStats();
+            showToast('İş eklendi (görsel hatası: ' + err + ')', 'info');
+        });
+    } else {
+        saveData();
+        closeAddTaskModal();
+        renderKanban();
+        updateProdStats();
+        showToast('İş eklendi ✓', 'success');
+    }
 }
 
 function addDrawing() {
@@ -1234,9 +1423,10 @@ function addTaskDrawing() {
         task.drawings.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,5), name, image: img });
         saveData();
         closeTaskDrawingModal();
-        renderTaskDrawings(task);
         renderKanban();
         showToast('Çizim eklendi ✓', 'success');
+        // Çizim eklendikten sonra iş detayını tekrar aç
+        setTimeout(() => openTaskDetails(activeTaskId), 80);
     }, err => showToast(err, 'error'));
 }
 
@@ -1363,8 +1553,82 @@ document.getElementById('inp-prod-name')?.addEventListener('input', function() {
     document.getElementById('prod-name-counter').textContent = `${this.value.length} / 100`;
 });
 
+// =============================================
+//  TEMA YÖNETİMİ
+// =============================================
+function applyThemeColors(isLight) {
+    const body = document.getElementById('app-body');
+    const header = document.querySelector('header');
+    
+    if (isLight) {
+        // Light mode
+        body.style.background = '#f0f4f8';
+        body.style.color = '#374151';
+        if (header) { header.style.background = '#ffffff'; header.style.borderColor = '#dde3ec'; }
+        document.querySelectorAll('.bg-card, dialog, .kanban-col, .task-card, .prod-card').forEach(el => {
+            el.style.background = '#f8fafc';
+            el.style.borderColor = '#dde3ec';
+        });
+        document.querySelectorAll('input, select, textarea').forEach(el => {
+            el.style.background = '#ffffff';
+            el.style.color = '#111827';
+            el.style.borderColor = '#dde3ec';
+        });
+        document.querySelectorAll('.text-white').forEach(el => el.style.color = '#111827');
+        document.querySelectorAll('.text-slate-200, .text-slate-300').forEach(el => el.style.color = '#374151');
+        document.querySelectorAll('.text-slate-400').forEach(el => el.style.color = '#6b7280');
+        document.querySelectorAll('.text-slate-500, .text-slate-600').forEach(el => el.style.color = '#9ca3af');
+        document.querySelectorAll('.bg-dark').forEach(el => el.style.background = '#f0f4f8');
+        document.querySelectorAll('.bg-slate-800\/50, .bg-slate-700').forEach(el => el.style.background = '#e9eef5');
+        document.querySelectorAll('.border-border, .border-slate-700, .border-slate-600').forEach(el => el.style.borderColor = '#dde3ec');
+        document.querySelectorAll('.hover\:bg-border').forEach(el => el.style.background = '#e9eef5');
+    } else {
+        // Dark mode — reset all inline styles
+        body.style.background = '#0a0a0f';
+        body.style.color = '#cbd5e1';
+        if (header) { header.style.background = '#13131a'; header.style.borderColor = '#2a2a38'; }
+        document.querySelectorAll('.bg-card, dialog, .kanban-col, .task-card, .prod-card').forEach(el => {
+            el.style.background = '';
+            el.style.borderColor = '';
+        });
+        document.querySelectorAll('input, select, textarea').forEach(el => {
+            el.style.background = '';
+            el.style.color = '';
+            el.style.borderColor = '';
+        });
+        ['text-white','text-slate-200','text-slate-300','text-slate-400','text-slate-500','text-slate-600'].forEach(cls => {
+            document.querySelectorAll('.'+cls).forEach(el => el.style.color = '');
+        });
+        ['bg-dark','bg-slate-800\/50','bg-slate-700','border-border','border-slate-700','border-slate-600'].forEach(cls => {
+            document.querySelectorAll('.'+cls).forEach(el => { el.style.background = ''; el.style.borderColor = ''; });
+        });
+    }
+}
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const isLight = html.classList.toggle('light');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    document.getElementById('theme-icon').className = isLight ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    applyThemeColors(isLight);
+}
+
+function initTheme() {
+    const saved = localStorage.getItem('theme');
+    const preferLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    const useLight = saved ? saved === 'light' : false; // default dark
+    if (useLight) {
+        document.documentElement.classList.add('light');
+        const icon = document.getElementById('theme-icon');
+        if (icon) icon.className = 'fa-solid fa-sun';
+        // Apply after short delay to let DOM render
+        setTimeout(() => applyThemeColors(true), 10);
+    }
+}
+
 // Başlat
 window.addEventListener('load', () => {
+    initTheme();
     renderDashboard();
     // Tab stilleri başlat
     document.querySelectorAll('.tab-btn').forEach(btn => {
