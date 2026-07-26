@@ -1,5 +1,11 @@
-const CACHE = "sahne-takip-v3.0.0";
-const ASSETS = ["./", "./index.html", "./assets/styles.css", "./assets/app.js", "./manifest.webmanifest"];
+const CACHE = "sahne-takip-v3.0.1";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./assets/styles.css?v=3.0.1",
+  "./assets/app.js?v=3.0.1",
+  "./manifest.webmanifest"
+];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
