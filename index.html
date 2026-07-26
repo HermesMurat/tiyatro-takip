@@ -1,1642 +1,336 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎭 Oyun Üretim Takip</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        dark: '#0a0a0f',
-                        surface: '#13131a',
-                        card: '#1a1a24',
-                        border: '#2a2a38',
-                        primary: '#c084fc',
-                        primary_dim: '#7c3aed',
-                        gold: '#f59e0b',
-                        todo: '#ef4444',
-                        doing: '#f59e0b',
-                        done: '#22c55e'
-                    },
-                    fontFamily: {
-                        display: ['Playfair Display', 'serif'],
-                        body: ['DM Sans', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        
-
-        * { font-family: 'DM Sans', sans-serif; }
-        h1, h2, .display { font-family: 'Playfair Display', serif; }
-
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0a0f; }
-        ::-webkit-scrollbar-thumb { background: #2a2a38; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3a3a50; }
-
-        /* ===== TEMA SİSTEMİ ===== */
-        :root {
-            --bg:       #0a0a0f;
-            --surface:  #13131a;
-            --card:     #1a1a24;
-            --border:   #2a2a38;
-            --text:     #cbd5e1;
-            --text2:    #94a3b8;
-            --text3:    #64748b;
-            --white:    #f1f5f9;
-            --input-bg: #0a0a0f;
-            --shadow:   rgba(0,0,0,0.5);
-        }
-        html.light {
-            --bg:       #f0f4f8;
-            --surface:  #ffffff;
-            --card:     #f8fafc;
-            --border:   #dde3ec;
-            --text:     #374151;
-            --text2:    #6b7280;
-            --text3:    #9ca3af;
-            --white:    #111827;
-            --input-bg: #ffffff;
-            --shadow:   rgba(0,0,0,0.12);
-        }
-
-        body           { background: var(--bg) !important; color: var(--text); transition: background 0.25s, color 0.25s; }
-        header         { background: var(--surface) !important; border-color: var(--border) !important; }
-        main           { color: var(--text); }
-
-        /* Cards & surfaces */
-        .t-card        { background: var(--card); border: 1px solid var(--border); }
-        .t-surface     { background: var(--surface); }
-        .t-border      { border-color: var(--border) !important; }
-
-        /* Text helpers */
-        .t-text        { color: var(--text) !important; }
-        .t-text2       { color: var(--text2) !important; }
-        .t-text3       { color: var(--text3) !important; }
-        .t-white       { color: var(--white) !important; }
-
-        /* Inputs */
-        input, select, textarea {
-            background: var(--input-bg) !important;
-            color: var(--white) !important;
-            border-color: var(--border) !important;
-        }
-        input::placeholder, textarea::placeholder { color: var(--text3) !important; }
-
-        /* Dialog */
-        dialog {
-            background: var(--card) !important;
-            border-color: var(--border) !important;
-            color: var(--text);
-        }
-
-        /* Kanban cols */
-        .kanban-col {
-            background: var(--card) !important;
-            border-color: var(--border) !important;
-        }
-
-        /* Task cards */
-        .task-card {
-            background: var(--card) !important;
-            border-color: var(--border) !important;
-        }
-        .task-card:hover { border-color: var(--text3) !important; }
-
-        /* Prod cards */
-        .prod-card {
-            background: var(--card) !important;
-            border-color: var(--border) !important;
-        }
-
-        /* Filter buttons */
-        .filter-btn { color: var(--text2); }
-
-        /* Toast */
-        .toast-success { background: #14532d; border: 1px solid #166534; color: #86efac; }
-        .toast-error   { background: #450a0a; border: 1px solid #7f1d1d; color: #fca5a5; }
-        .toast-info    { background: #1e1b4b; border: 1px solid #3730a3; color: #c7d2fe; }
-
-        /* Theme toggle */
-        #theme-toggle {
-            width:36px; height:36px; border-radius:8px;
-            display:flex; align-items:center; justify-content:center;
-            cursor:pointer; transition:all 0.2s; font-size:15px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            color: var(--text2);
-            flex-shrink: 0;
-        }
-        #theme-toggle:hover { color: var(--white); }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-                /* Grain texture overlay */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0.4;
-        }
-
-        .fade-in { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card-hover { transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
-        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-
-        .task-card { cursor: grab; transition: all 0.15s ease; }
-        .task-card:active { cursor: grabbing; transform: scale(0.97) rotate(1deg); opacity: 0.8; }
-        .drag-over { background: rgba(192, 132, 252, 0.06) !important; border-color: #c084fc !important; }
-        .drag-ghost { opacity: 0.4 !important; }
-
-        dialog::backdrop { background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); }
-        dialog { margin: auto; animation: dialogIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes dialogIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-
-        .progress-bar { transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        /* Toast */
-        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 8px; }
-        .toast { padding: 12px 18px; border-radius: 10px; font-size: 14px; font-weight: 500; animation: toastIn 0.3s ease; display: flex; align-items: center; gap-8px; gap: 8px; min-width: 200px; max-width: 320px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-        .toast-success { background: #14532d; border: 1px solid #22c55e; color: #86efac; }
-        .toast-error { background: #450a0a; border: 1px solid #ef4444; color: #fca5a5; }
-        .toast-info { background: #1e1b4b; border: 1px solid #818cf8; color: #c7d2fe; }
-        @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes toastOut { to { opacity: 0; transform: translateX(20px); } }
-
-        /* Spotlight effect on prod cards */
-        .prod-card::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(192,132,252,0.07) 0%, transparent 60%);
-            pointer-events: none;
-            border-radius: inherit;
-            transition: opacity 0.3s;
-            opacity: 0;
-        }
-        .prod-card:hover::after { opacity: 1; }
-
-        .badge-atelier { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 4px; }
-        
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #c084fc !important;
-            box-shadow: 0 0 0 3px rgba(192,132,252,0.1);
-        }
-
-        .kanban-col-header { letter-spacing: 0.08em; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-
-        /* Deadline urgency */
-        .deadline-urgent { color: #ef4444; }
-        .deadline-soon { color: #f59e0b; }
-        .deadline-ok { color: #6b7280; }
-
-        @media (max-width: 768px) {
-            .kanban-col { min-width: 280px !important; }
-        }
-
-        /* Search highlight */
-        .search-highlight { background: rgba(192,132,252,0.25); border-radius: 2px; }
-
-        /* Edit prod button */
-        .prod-actions { opacity: 0; transition: opacity 0.2s; }
-        .prod-card:hover .prod-actions { opacity: 1; }
-    </style>
-    <script>
-        // Sayfa yüklenmeden önce temayı uygula (flash önleme)
-        (function(){
-            var t = localStorage.getItem('theme');
-            var preferLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-            if (t === 'light' || (!t && preferLight)) document.documentElement.classList.add('light');
-        })();
-    </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12110f">
+  <meta name="description" content="Devlet Tiyatroları oyun üretimi, atölye işleri ve teknik dosyalar için kişisel takip alanı.">
+  <title>Sahne Üretim Takip</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./assets/styles.css">
+  <script>
+    (() => {
+      const saved = localStorage.getItem("tiyatroTakipTheme");
+      const light = saved === "light" || (!saved && matchMedia("(prefers-color-scheme: light)").matches);
+      document.documentElement.dataset.theme = light ? "light" : "dark";
+    })();
+  </script>
 </head>
-<body class="min-h-screen flex flex-col" id="app-body">
+<body>
+  <a class="skip-link" href="#main-content">İçeriğe geç</a>
 
-<!-- Toast Container -->
-<div id="toast-container"></div>
+  <header class="app-header">
+    <button class="brand" type="button" data-action="dashboard" aria-label="Ana sayfaya dön">
+      <span class="brand-mark" aria-hidden="true">ST</span>
+      <span>
+        <strong>Sahne Takip</strong>
+        <small>Üretim merkezi</small>
+      </span>
+    </button>
 
-<!-- Header -->
-<header class="bg-surface border-b border-border sticky top-0 z-50" style="box-shadow: 0 1px 0 rgba(192,132,252,0.1)">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3 cursor-pointer select-none" onclick="showDashboard()" role="button" tabindex="0" aria-label="Ana sayfaya dön">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-primary" style="background: rgba(192,132,252,0.12); border: 1px solid rgba(192,132,252,0.2)">
-                <i class="fa-solid fa-masks-theater text-lg"></i>
-            </div>
-            <h1 class="text-lg font-bold text-white tracking-tight" style="font-family:'Playfair Display',serif">Oyun Üretim Takip</h1>
-        </div>
+    <label class="global-search">
+      <span aria-hidden="true">⌕</span>
+      <input id="global-search" type="search" autocomplete="off"
+        placeholder="Oyun, iş, sorumlu veya dosya ara…">
+      <kbd>⌘ K</kbd>
+    </label>
 
-        <!-- Search Bar (Dashboard'da görünür) -->
-        <div id="header-search" class="flex-1 max-w-xs hidden sm:block">
-            <div class="relative">
-                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                <input type="text" id="global-search" placeholder="Oyun ara..." oninput="searchProductions(this.value)"
-                    class="w-full bg-card border border-border rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:border-primary transition-all">
-            </div>
-        </div>
-
-        <div id="header-actions" class="flex items-center gap-2">
-            <button id="theme-toggle" onclick="toggleTheme()" title="Tema değiştir" aria-label="Açık/Koyu mod">
-                <i id="theme-icon" class="fa-solid fa-moon"></i>
-            </button>
-            <button onclick="openAddProdModal()"
-                class="flex items-center gap-2 text-sm font-medium text-white px-4 py-2 rounded-lg transition-all"
-                style="background: rgba(192,132,252,0.15); border: 1px solid rgba(192,132,252,0.3)">
-                <i class="fa-solid fa-plus"></i>
-                <span class="hidden sm:inline">Yeni Oyun</span>
-            </button>
-        </div>
-        <div id="header-prod-actions" class="hidden items-center gap-2">
-            <!-- Prodüksiyon içindeyken gösterilecek -->
-        </div>
+    <div class="header-actions">
+      <button class="icon-button" type="button" data-action="open-storage" title="Veri ve yedekleme"
+        aria-label="Veri ve yedekleme"><span aria-hidden="true">↥</span></button>
+      <button class="icon-button" type="button" data-action="toggle-theme" title="Temayı değiştir"
+        aria-label="Açık veya koyu temayı değiştir"><span id="theme-icon" aria-hidden="true">◐</span></button>
+      <button class="button button-primary compact" type="button" data-action="new-production">
+        <span aria-hidden="true">＋</span><span class="button-label">Yeni oyun</span>
+      </button>
     </div>
-</header>
+  </header>
 
-<!-- Ana İçerik -->
-<main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-
-    <!-- 1. Vitrin -->
-    <div id="view-dashboard" class="fade-in block">
-        <div class="flex justify-between items-end mb-8">
-            <div>
-                <h2 class="text-3xl font-bold text-white" style="font-family:'Playfair Display',serif">Aktif Oyunlar</h2>
-                <p id="prod-count-label" class="text-slate-500 text-sm mt-1">Yükleniyor...</p>
-            </div>
-        </div>
-        <div id="productions-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
-    </div>
-
-    <!-- 2. Oyun Detayı -->
-    <div id="view-production" class="fade-in hidden">
-        <!-- Banner -->
-        <div class="relative rounded-2xl overflow-hidden mb-8 border border-border" style="box-shadow: 0 4px 40px rgba(0,0,0,0.5)">
-            <div id="prod-banner" class="h-52 w-full bg-cover bg-center" style="filter:brightness(0.5)"></div>
-            <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 p-6 w-full flex justify-between items-end flex-wrap gap-4">
-                <div class="flex-1 min-w-[200px]">
-                    <button onclick="showDashboard()" class="text-slate-400 hover:text-primary mb-3 text-sm flex items-center gap-2 transition-colors">
-                        <i class="fa-solid fa-arrow-left text-xs"></i> Ana Sayfa
-                    </button>
-                    <h2 id="current-prod-title" class="text-3xl sm:text-4xl font-extrabold text-white leading-tight break-words" style="font-family:'Playfair Display',serif">—</h2>
-                    <div id="prod-stats-bar" class="flex gap-4 mt-3 text-sm text-slate-400"></div>
-                </div>
-                <div class="flex gap-2 flex-wrap">
-                    <button onclick="openAddDrawingModal()"
-                        class="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-all text-slate-300 hover:text-white"
-                        style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1)">
-                        <i class="fa-solid fa-image text-xs"></i> Dosya Ekle
-                    </button>
-                    <button onclick="openAddTaskModal()"
-                        class="flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg transition-all text-white"
-                        style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.35)">
-                        <i class="fa-solid fa-plus text-xs"></i> İş Ekle
-                    </button>
-                </div>
-            </div>
-            <!-- Progress Bar -->
-            <div class="absolute bottom-0 left-0 right-0 h-1 bg-border">
-                <div id="prod-progress-bar" class="h-full progress-bar" style="width:0%; background: linear-gradient(90deg, #7c3aed, #c084fc)"></div>
-            </div>
-        </div>
-
-        <!-- Sekmeler -->
-        <div class="flex border-b border-border mb-6 gap-1">
-            <button onclick="switchTab('tab-kanban')" id="btn-tab-kanban" role="tab"
-                class="tab-btn px-5 py-3 text-sm font-medium transition-all rounded-t-lg relative">
-                <i class="fa-solid fa-hammer mr-2"></i>Atölye İşleri
-            </button>
-            <button onclick="switchTab('tab-gallery')" id="btn-tab-gallery" role="tab"
-                class="tab-btn px-5 py-3 text-sm font-medium transition-all rounded-t-lg relative">
-                <i class="fa-solid fa-images mr-2"></i>Dosyalar
-            </button>
-        </div>
-
-        <!-- Kanban -->
-        <div id="tab-kanban" class="block fade-in">
-            <div class="flex flex-wrap gap-2 mb-5 items-center">
-                <span class="text-xs text-slate-500 mr-1">Filtrele:</span>
-                <button onclick="filterWorkshop('all')" data-filter="all" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">Tümü</button>
-                <button onclick="filterWorkshop('Demir')" data-filter="Demir" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🔩 Demir</button>
-                <button onclick="filterWorkshop('Marangoz')" data-filter="Marangoz" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🪵 Marangoz</button>
-                <button onclick="filterWorkshop('Kostum')" data-filter="Kostum" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🧵 Bezleme</button>
-                <button onclick="filterWorkshop('Butafor')" data-filter="Butafor" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🎭 Butafor</button>
-                <button onclick="filterWorkshop('Resimleme')" data-filter="Resimleme" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🖌️ Resimleme</button>
-                <button onclick="filterWorkshop('Satinalma')" data-filter="Satinalma" class="filter-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all">🛒 Satınalma</button>
-
-                <!-- Arama -->
-                <div class="ml-auto relative">
-                    <i class="fa-solid fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                    <input type="text" id="task-search" placeholder="İş ara..." oninput="renderKanban()"
-                        class="bg-card border border-border rounded-full pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-600 w-36 focus:w-48 transition-all">
-                </div>
-            </div>
-
-            <div class="flex flex-col lg:flex-row gap-5 overflow-x-auto pb-4">
-                <!-- Yapılacaklar -->
-                <div class="kanban-col flex-1 min-w-[300px] rounded-xl border border-border flex flex-col" style="background:rgba(239,68,68,0.03)">
-                    <div class="flex items-center justify-between p-4 border-b border-border">
-                        <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 rounded-full bg-todo"></div>
-                            <span class="kanban-col-header text-slate-400">Yapılacaklar</span>
-                        </div>
-                        <span id="count-todo" class="text-xs font-bold text-slate-500 bg-card px-2 py-0.5 rounded-full border border-border">0</span>
-                    </div>
-                    <div id="col-todo" class="flex-1 overflow-y-auto p-3 space-y-2 min-h-[400px]"
-                        ondrop="drop(event,'todo')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" role="region" aria-label="Yapılacaklar"></div>
-                </div>
-
-                <!-- Üretimde -->
-                <div class="kanban-col flex-1 min-w-[300px] rounded-xl border border-border flex flex-col" style="background:rgba(245,158,11,0.03)">
-                    <div class="flex items-center justify-between p-4 border-b border-border">
-                        <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 rounded-full bg-doing"></div>
-                            <span class="kanban-col-header text-slate-400">Üretimde</span>
-                        </div>
-                        <span id="count-doing" class="text-xs font-bold text-slate-500 bg-card px-2 py-0.5 rounded-full border border-border">0</span>
-                    </div>
-                    <div id="col-doing" class="flex-1 overflow-y-auto p-3 space-y-2 min-h-[400px]"
-                        ondrop="drop(event,'doing')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" role="region" aria-label="Üretimde"></div>
-                </div>
-
-                <!-- Tamamlandı -->
-                <div class="kanban-col flex-1 min-w-[300px] rounded-xl border border-border flex flex-col" style="background:rgba(34,197,94,0.03)">
-                    <div class="flex items-center justify-between p-4 border-b border-border">
-                        <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 rounded-full bg-done"></div>
-                            <span class="kanban-col-header text-slate-400">Tamamlandı</span>
-                        </div>
-                        <span id="count-done" class="text-xs font-bold text-slate-500 bg-card px-2 py-0.5 rounded-full border border-border">0</span>
-                    </div>
-                    <div id="col-done" class="flex-1 overflow-y-auto p-3 space-y-2 min-h-[400px]"
-                        ondrop="drop(event,'done')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" role="region" aria-label="Tamamlandı"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Galeri -->
-        <div id="tab-gallery" class="hidden fade-in">
-            <div id="gallery-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-        </div>
-    </div>
-</main>
-
-<!-- ======= MODALLER ======= -->
-
-<!-- MODAL 1: Yeni Oyun Ekle -->
-<dialog id="modal-add-prod" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
-    <div class="p-5 border-b border-border flex justify-between items-center">
-        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">Yeni Oyun Ekle</h3>
-        <button onclick="closeProdModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <form id="form-add-prod" class="p-5 space-y-4" novalidate>
+  <main id="main-content">
+    <section id="dashboard-view" class="view">
+      <div class="hero">
         <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Oyun Adı *</label>
-            <input type="text" id="inp-prod-name" required maxlength="100"
-                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm"
-                placeholder="Oyun adını girin...">
-            <span class="text-xs text-slate-600 mt-1 block" id="prod-name-counter">0 / 100</span>
+          <p class="eyebrow">İZMİR · SAHNE ÜRETİMİ</p>
+          <h1>Oyunların bütün üretim akışı,<br><em>tek sahnede.</em></h1>
+          <p class="hero-copy">Atölye işlerini, terminleri ve teknik dosyaları kaybolmadan izleyin.</p>
         </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Poster Görseli</label>
-            <div class="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative" onclick="document.getElementById('inp-prod-poster').click()">
-                <input type="file" id="inp-prod-poster" accept="image/*" class="hidden" onchange="handlePosterChange(this)">
-                <div id="poster-preview-container" class="hidden flex-col items-center">
-                    <img id="poster-preview" class="h-32 object-contain rounded mb-2 mx-auto" alt="Önizleme">
-                    <span class="text-xs text-primary">Değiştirmek için tıkla</span>
-                </div>
-                <div id="poster-upload-text" class="flex flex-col items-center gap-2">
-                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-600"></i>
-                    <p class="text-sm text-slate-500">Görsel seçin</p>
-                    <p class="text-xs text-slate-600">JPG, PNG, WebP · Max 2MB</p>
-                </div>
+        <div class="hero-actions">
+          <button class="button button-primary" type="button" data-action="new-production">Yeni oyun oluştur</button>
+          <button class="button button-secondary" type="button" data-action="export-data">Yedek al</button>
+        </div>
+      </div>
+
+      <div class="stat-grid" role="group" aria-label="Genel üretim özeti">
+        <article class="stat-card">
+          <span class="stat-icon plum" aria-hidden="true">◫</span>
+          <div><strong id="stat-productions">0</strong><span>Aktif oyun</span></div>
+        </article>
+        <article class="stat-card">
+          <span class="stat-icon amber" aria-hidden="true">✓</span>
+          <div><strong id="stat-tasks">0</strong><span>Toplam iş</span></div>
+        </article>
+        <article class="stat-card">
+          <span class="stat-icon red" aria-hidden="true">!</span>
+          <div><strong id="stat-overdue">0</strong><span>Geciken iş</span></div>
+        </article>
+        <article class="stat-card">
+          <span class="stat-icon green" aria-hidden="true">↗</span>
+          <div><strong id="stat-progress">%0</strong><span>Genel ilerleme</span></div>
+        </article>
+      </div>
+
+      <section class="content-section" aria-labelledby="productions-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PRODÜKSİYONLAR</p>
+            <h2 id="productions-title">Oyunlar</h2>
+            <p id="production-count" class="muted">0 oyun</p>
+          </div>
+          <div class="toolbar">
+            <div class="segmented" role="group" aria-label="Oyun durumu">
+              <button type="button" data-production-filter="active" aria-pressed="true">Aktif</button>
+              <button type="button" data-production-filter="archived" aria-pressed="false">Arşiv</button>
+              <button type="button" data-production-filter="all" aria-pressed="false">Tümü</button>
             </div>
+            <label class="select-label">
+              <span class="sr-only">Oyunları sırala</span>
+              <select id="production-sort">
+                <option value="updated">Son güncellenen</option>
+                <option value="name">Ada göre</option>
+                <option value="premiere">Prömiyere göre</option>
+                <option value="progress">İlerlemeye göre</option>
+              </select>
+            </label>
+          </div>
         </div>
-        <div class="pt-2 flex justify-end gap-2">
-            <button type="button" onclick="closeProdModal()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
-            <button type="button" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)" onclick="addProduction()">Kaydet</button>
+        <div id="search-context" class="search-context hidden" aria-live="polite"></div>
+        <div id="productions-grid" class="production-grid"></div>
+      </section>
+    </section>
+
+    <section id="production-view" class="view hidden" aria-labelledby="production-title">
+      <button class="back-link" type="button" data-action="dashboard">
+        <span aria-hidden="true">←</span> Oyunlara dön
+      </button>
+
+      <div id="production-hero" class="production-hero">
+        <div class="production-hero-shade"></div>
+        <div class="production-hero-content">
+          <div>
+            <div id="production-state-badge" class="status-pill">Aktif prodüksiyon</div>
+            <h1 id="production-title">—</h1>
+            <p id="production-meta">—</p>
+          </div>
+          <div class="production-actions">
+            <button class="button glass" type="button" data-action="print-report">Rapor</button>
+            <button class="button glass" type="button" data-action="edit-production">Düzenle</button>
+            <button class="button button-primary" type="button" data-action="new-task">＋ İş ekle</button>
+            <button class="more-button" type="button" data-action="toggle-project-menu"
+              aria-label="Diğer oyun işlemleri" aria-expanded="false">•••</button>
+            <div id="project-menu" class="menu hidden">
+              <button type="button" data-action="archive-production">Arşive taşı</button>
+              <button class="danger-text" type="button" data-action="delete-production">Oyunu sil</button>
+            </div>
+          </div>
         </div>
+        <div class="hero-progress"><span id="hero-progress-bar"></span></div>
+      </div>
+
+      <div class="project-stat-grid">
+        <article><span>İlerleme</span><strong id="project-progress">%0</strong></article>
+        <article><span>Tamamlanan</span><strong id="project-completed">0 / 0</strong></article>
+        <article><span>Geciken</span><strong id="project-overdue">0</strong></article>
+        <article><span>Yaklaşan termin</span><strong id="project-next-deadline">—</strong></article>
+      </div>
+
+      <div class="tabs-and-actions">
+        <div class="tabs" role="tablist" aria-label="Oyun bölümleri">
+          <button id="tab-board-button" type="button" role="tab" data-tab="board" aria-selected="true">Üretim panosu</button>
+          <button id="tab-list-button" type="button" role="tab" data-tab="list" aria-selected="false">İş listesi</button>
+          <button id="tab-files-button" type="button" role="tab" data-tab="files" aria-selected="false">Dosyalar <span id="file-count-badge">0</span></button>
+        </div>
+        <button class="button button-secondary compact" type="button" data-action="new-file">＋ Dosya ekle</button>
+      </div>
+
+      <div id="task-toolbar" class="task-toolbar">
+        <label class="inline-search">
+          <span aria-hidden="true">⌕</span>
+          <input id="task-search" type="search" placeholder="Bu oyunda iş ara…">
+        </label>
+        <select id="department-filter" aria-label="Atölyeye göre filtrele">
+          <option value="all">Tüm birimler</option>
+        </select>
+        <select id="priority-filter" aria-label="Önceliğe göre filtrele">
+          <option value="all">Tüm öncelikler</option>
+          <option value="urgent">Acil</option>
+          <option value="high">Yüksek</option>
+          <option value="normal">Normal</option>
+          <option value="low">Düşük</option>
+        </select>
+        <span id="filtered-task-count" class="filter-result"></span>
+      </div>
+
+      <section id="tab-board" class="tab-panel" role="tabpanel" aria-labelledby="tab-board-button">
+        <div id="kanban-board" class="kanban-board"></div>
+      </section>
+
+      <section id="tab-list" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-list-button">
+        <div class="table-shell">
+          <table>
+            <thead>
+              <tr><th>İş</th><th>Birim</th><th>Sorumlu</th><th>Termin</th><th>Durum</th><th></th></tr>
+            </thead>
+            <tbody id="task-list-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-files" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-files-button">
+        <div class="file-toolbar">
+          <div>
+            <h2>Teknik dosyalar</h2>
+            <p>Çizimler, uygulama notları, bütçe belgeleri ve fotoğraflar.</p>
+          </div>
+          <select id="file-category-filter" aria-label="Dosya türüne göre filtrele">
+            <option value="all">Tüm dosyalar</option>
+            <option value="drawing">Teknik çizim</option>
+            <option value="visual">Görsel / Fotoğraf</option>
+            <option value="budget">Bütçe / Teklif</option>
+            <option value="document">Belge</option>
+            <option value="other">Diğer</option>
+          </select>
+        </div>
+        <div id="files-grid" class="files-grid"></div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="production-dialog" class="modal">
+    <form id="production-form" method="dialog">
+      <div class="modal-header">
+        <div><p class="eyebrow">PRODÜKSİYON</p><h2 id="production-dialog-title">Yeni oyun</h2></div>
+        <button class="close-button" type="button" data-close-dialog="production-dialog" aria-label="Kapat">×</button>
+      </div>
+      <div class="form-grid">
+        <label class="field full"><span>Oyun adı *</span><input id="production-name" type="text" maxlength="120" required></label>
+        <label class="field"><span>Yönetmen</span><input id="production-director" type="text" maxlength="120"></label>
+        <label class="field"><span>Sahne</span><input id="production-venue" type="text" maxlength="120"></label>
+        <label class="field"><span>Prömiyer</span><input id="production-premiere" type="date"></label>
+        <label class="field"><span>Durum</span>
+          <select id="production-status"><option value="active">Aktif</option><option value="archived">Arşiv</option></select>
+        </label>
+        <label class="field full"><span>Üretim notu</span><textarea id="production-notes" rows="3" maxlength="1000"></textarea></label>
+        <label class="upload-field full">
+          <input id="production-poster" type="file" accept="image/png,image/jpeg,image/webp">
+          <span class="upload-icon" aria-hidden="true">▧</span>
+          <strong>Afiş veya sahne görseli</strong>
+          <small>PNG, JPG veya WEBP · otomatik küçültülür</small>
+          <span id="production-poster-name" class="selected-file"></span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="button button-secondary" type="button" data-close-dialog="production-dialog">Vazgeç</button>
+        <button class="button button-primary" type="submit">Kaydet</button>
+      </div>
     </form>
-</dialog>
+  </dialog>
 
-<!-- MODAL 2: Oyun Düzenle -->
-<dialog id="modal-edit-prod" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
-    <div class="p-5 border-b border-border flex justify-between items-center">
-        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">Oyunu Düzenle</h3>
-        <button onclick="document.getElementById('modal-edit-prod').close()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <form class="p-5 space-y-4" novalidate>
-        <input type="hidden" id="edit-prod-id">
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Oyun Adı *</label>
-            <input type="text" id="edit-prod-name" required maxlength="100"
-                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Yeni Poster (isteğe bağlı)</label>
-            <div class="border-2 border-dashed border-border rounded-lg p-3 text-center cursor-pointer hover:border-primary transition-colors relative" onclick="document.getElementById('edit-prod-poster').click()">
-                <input type="file" id="edit-prod-poster" accept="image/*" class="hidden" onchange="handleEditPosterChange(this)">
-                <div id="edit-poster-preview-wrap" class="hidden flex-col items-center">
-                    <img id="edit-poster-preview" class="h-24 object-contain rounded mb-1 mx-auto" alt="">
-                    <span class="text-xs text-primary">Değiştirmek için tıkla</span>
-                </div>
-                <div id="edit-poster-upload-text" class="flex flex-col items-center gap-1">
-                    <i class="fa-solid fa-image text-xl text-slate-600"></i>
-                    <p class="text-xs text-slate-500">Yeni görsel seç</p>
-                </div>
-            </div>
-        </div>
-        <div class="pt-2 flex justify-end gap-2">
-            <button type="button" onclick="document.getElementById('modal-edit-prod').close()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
-            <button type="button" onclick="updateProduction()" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)">Güncelle</button>
-        </div>
+  <dialog id="task-dialog" class="modal">
+    <form id="task-form" method="dialog">
+      <div class="modal-header">
+        <div><p class="eyebrow">ATÖLYE İŞİ</p><h2 id="task-dialog-title">Yeni iş</h2></div>
+        <button class="close-button" type="button" data-close-dialog="task-dialog" aria-label="Kapat">×</button>
+      </div>
+      <div class="form-grid">
+        <label class="field full"><span>İş tanımı *</span><input id="task-name" type="text" maxlength="160" required></label>
+        <label class="field"><span>Birim / Atölye *</span><select id="task-department" required></select></label>
+        <label class="field"><span>Durum</span>
+          <select id="task-status">
+            <option value="todo">Yapılacak</option><option value="doing">Üretimde</option><option value="done">Tamamlandı</option>
+          </select>
+        </label>
+        <label class="field"><span>Öncelik</span>
+          <select id="task-priority">
+            <option value="normal">Normal</option><option value="urgent">Acil</option>
+            <option value="high">Yüksek</option><option value="low">Düşük</option>
+          </select>
+        </label>
+        <label class="field"><span>Sorumlu</span><input id="task-owner" type="text" maxlength="100" placeholder="Ad veya ekip"></label>
+        <label class="field"><span>Başlangıç</span><input id="task-start" type="date"></label>
+        <label class="field"><span>Termin</span><input id="task-deadline" type="date"></label>
+        <label class="field full"><span>Açıklama / uygulama notu</span><textarea id="task-description" rows="4" maxlength="1500"></textarea></label>
+        <label class="upload-field full">
+          <input id="task-attachment" type="file">
+          <span class="upload-icon" aria-hidden="true">＋</span>
+          <strong>İşe dosya iliştir</strong>
+          <small>Görsel, PDF veya ofis belgesi · en fazla 25 MB</small>
+          <span id="task-attachment-name" class="selected-file"></span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="button button-secondary" type="button" data-close-dialog="task-dialog">Vazgeç</button>
+        <button class="button button-primary" type="submit">Kaydet</button>
+      </div>
     </form>
-</dialog>
+  </dialog>
 
-<!-- MODAL 3: İş Ekle -->
-<dialog id="modal-add-task" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
-    <div class="p-5 border-b border-border flex justify-between items-center">
-        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">İş Ekle</h3>
-        <button onclick="closeAddTaskModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <form id="form-add-task" class="p-5 space-y-4" novalidate>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">İş Başlığı *</label>
-            <input type="text" id="inp-task-name" required maxlength="150"
-                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm"
-                placeholder="Örn: Sabriye'nin Maket Arabası">
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Atölye *</label>
-            <select id="inp-task-type" required class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
-                <option value="">— Seçiniz —</option>
-                <option value="Marangoz|bg-amber-700|fa-tree">🪵 Marangoz</option>
-                <option value="Kostum|bg-pink-600|fa-scissors">🧵 Bezleme</option>
-                <option value="Demir|bg-slate-500|fa-gavel">🔩 Demir</option>
-                <option value="Butafor|bg-emerald-700|fa-theater-masks">🎭 Butafor</option>
-                <option value="Resimleme|bg-violet-700|fa-paint-brush">🖌️ Resimleme</option>
-                <option value="Satinalma|bg-blue-700|fa-cart-shopping">🛒 Satınalma</option>
-            </select>
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Açıklama</label>
-            <textarea id="inp-task-desc" rows="3" maxlength="500"
-                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm resize-none"
-                placeholder="Ölçü, renk veya özel notlar..."></textarea>
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Son Tarih (isteğe bağlı)</label>
-            <input type="date" id="inp-task-deadline"
-                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Çizim / Referans (isteğe bağlı)</label>
-            <div class="border-2 border-dashed border-border rounded-lg p-3 text-center hover:border-primary transition-colors cursor-pointer relative" onclick="document.getElementById('inp-task-inline-draw').click()">
-                <input type="file" id="inp-task-inline-draw" accept="image/*" class="hidden" onchange="handleTaskInlineDrawChange(this)">
-                <div id="task-inline-draw-preview-container" style="display:none" class="flex-col items-center">
-                    <img id="task-inline-draw-preview" class="h-28 object-contain rounded mb-1 mx-auto" alt="">
-                    <span class="text-xs text-primary">Değiştirmek için tıkla</span>
-                </div>
-                <div id="task-inline-draw-upload-text" class="flex flex-col items-center gap-1 py-2">
-                    <i class="fa-solid fa-image text-xl text-slate-600"></i>
-                    <p class="text-xs text-slate-500">Çizim veya referans görseli ekle</p>
-                </div>
-            </div>
-            <input type="text" id="inp-task-inline-draw-name" maxlength="150"
-                class="w-full bg-dark border border-border rounded-lg p-2.5 text-white text-xs mt-2"
-                placeholder="Görsel açıklaması (isteğe bağlı)">
-        </div>
-        <div class="pt-2 flex justify-end gap-2">
-            <button type="button" onclick="closeAddTaskModal()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
-            <button type="button" onclick="addTask()" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)">Kaydet</button>
-        </div>
+  <dialog id="task-detail-dialog" class="modal detail-modal">
+    <div id="task-detail-content"></div>
+  </dialog>
+
+  <dialog id="file-dialog" class="modal">
+    <form id="file-form" method="dialog">
+      <div class="modal-header">
+        <div><p class="eyebrow">TEKNİK ARŞİV</p><h2>Dosya ekle</h2></div>
+        <button class="close-button" type="button" data-close-dialog="file-dialog" aria-label="Kapat">×</button>
+      </div>
+      <div class="form-grid">
+        <label class="field full"><span>Dosya adı *</span><input id="file-name" type="text" maxlength="160" required></label>
+        <label class="field full"><span>Kategori</span>
+          <select id="file-category">
+            <option value="drawing">Teknik çizim</option><option value="visual">Görsel / Fotoğraf</option>
+            <option value="budget">Bütçe / Teklif</option><option value="document">Belge</option><option value="other">Diğer</option>
+          </select>
+        </label>
+        <label class="upload-field full">
+          <input id="file-input" type="file" required>
+          <span class="upload-icon" aria-hidden="true">↥</span>
+          <strong>Dosya seçin</strong>
+          <small>Görsel, PDF, DOCX, XLSX, DWG ve diğer belgeler · en fazla 25 MB</small>
+          <span id="file-input-name" class="selected-file"></span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="button button-secondary" type="button" data-close-dialog="file-dialog">Vazgeç</button>
+        <button class="button button-primary" type="submit">Yükle</button>
+      </div>
     </form>
-</dialog>
+  </dialog>
 
-<!-- MODAL 4: Dosya / Çizim Ekle -->
-<dialog id="modal-add-drawing" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
-    <div class="p-5 border-b border-border flex justify-between items-center">
-        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">Dosya Ekle</h3>
-        <button onclick="closeDrawingModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
+  <dialog id="storage-dialog" class="modal storage-modal">
+    <div class="modal-header">
+      <div><p class="eyebrow">VERİ GÜVENLİĞİ</p><h2>Yedekleme ve depolama</h2></div>
+      <button class="close-button" type="button" data-close-dialog="storage-dialog" aria-label="Kapat">×</button>
     </div>
-    <form id="form-add-drawing" class="p-5 space-y-4" novalidate>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Görsel *</label>
-            <div class="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative" onclick="document.getElementById('inp-draw-file').click()">
-                <input type="file" id="inp-draw-file" accept="image/*" class="hidden" onchange="handleDrawChange(this)">
-                <div id="draw-preview-container" class="hidden flex-col items-center">
-                    <img id="draw-preview" class="h-36 object-contain rounded mb-2 mx-auto" alt="">
-                    <span class="text-xs text-primary">Değiştirmek için tıkla</span>
-                </div>
-                <div id="draw-upload-text" class="flex flex-col items-center gap-2">
-                    <i class="fa-solid fa-file-image text-2xl text-slate-600"></i>
-                    <p class="text-sm text-slate-500">Fotoğraf seçin</p>
-                </div>
-            </div>
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Dosya Adı *</label>
-            <input type="text" id="inp-draw-name" required maxlength="150"
-                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm"
-                placeholder="Örn: 2. Perde Dekor Taslağı">
-        </div>
-        <div class="pt-2 flex justify-end gap-2">
-            <button type="button" onclick="closeDrawingModal()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
-            <button type="button" onclick="addDrawing()" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)">Yükle</button>
-        </div>
-    </form>
-</dialog>
-
-<!-- MODAL 5: İş Detayı -->
-<dialog id="modal-view-task" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-2xl text-slate-200">
-    <div class="p-5 border-b border-border flex justify-between items-start gap-3">
-        <h3 id="view-task-name" class="text-lg font-bold text-white leading-snug flex-1" style="font-family:'Playfair Display',serif">—</h3>
-        <div class="flex gap-1 shrink-0">
-            <button onclick="editCurrentTask()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-primary hover:bg-border transition-all" title="Düzenle"><i class="fa-solid fa-pen text-sm"></i></button>
-            <button onclick="deleteCurrentTask()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-todo hover:bg-border transition-all" title="Sil"><i class="fa-solid fa-trash-can text-sm"></i></button>
-            <button onclick="document.getElementById('modal-view-task').close()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+    <div class="storage-status-card">
+      <div>
+        <span id="storage-dot" class="online-dot"></span>
+        <div><strong id="storage-mode">Bu cihazda kayıtlı</strong><small id="storage-detail">Hazırlanıyor…</small></div>
+      </div>
+      <strong id="storage-used">—</strong>
     </div>
-    <div class="p-5 space-y-5 max-h-[72vh] overflow-y-auto">
-        <div class="flex gap-2 flex-wrap">
-            <span id="view-task-type" class="text-white text-xs px-2.5 py-1.5 rounded-md font-semibold flex items-center gap-1.5">Atölye</span>
-            <span id="view-task-status" class="text-white text-xs px-2.5 py-1.5 rounded-md font-semibold">Durum</span>
-            <span id="view-task-deadline-badge" class="text-xs px-2.5 py-1.5 rounded-md font-semibold hidden"></span>
-            <span id="view-task-date" class="text-slate-500 text-xs px-2 py-1.5 flex items-center gap-1"><i class="fa-regular fa-clock"></i> —</span>
-        </div>
-        <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Açıklama / Notlar</p>
-            <p id="view-task-desc" class="text-sm whitespace-pre-wrap bg-dark p-4 rounded-lg border border-border min-h-[70px] text-slate-300"></p>
-        </div>
-        <!-- Durum Değiştirme -->
-        <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Durumu Değiştir</p>
-            <div class="flex gap-2">
-                <button onclick="changeTaskStatus('todo')" class="status-btn flex-1 text-xs py-2 rounded-lg border transition-all font-medium" data-status="todo" style="border-color: #ef4444; color: #ef4444">Yapılacak</button>
-                <button onclick="changeTaskStatus('doing')" class="status-btn flex-1 text-xs py-2 rounded-lg border transition-all font-medium" data-status="doing" style="border-color: #f59e0b; color: #f59e0b">Üretimde</button>
-                <button onclick="changeTaskStatus('done')" class="status-btn flex-1 text-xs py-2 rounded-lg border transition-all font-medium" data-status="done" style="border-color: #22c55e; color: #22c55e">Tamamlandı</button>
-            </div>
-        </div>
-        <!-- Çizimler -->
-        <div>
-            <div class="flex items-center justify-between mb-2">
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Çizimler / Referanslar</p>
-                <button onclick="openTaskDrawingModal()"
-                    class="text-xs font-medium text-primary hover:text-white px-3 py-1 rounded-full transition-all"
-                    style="background:rgba(192,132,252,0.1); border:1px solid rgba(192,132,252,0.2)">
-                    <i class="fa-solid fa-plus mr-1"></i>Ekle
-                </button>
-            </div>
-            <div id="task-drawings-grid" class="grid grid-cols-3 gap-2"></div>
-            <p id="no-drawings-msg" class="text-xs text-slate-600 italic mt-2">Henüz çizim eklenmemiş.</p>
-        </div>
+    <div class="storage-actions">
+      <button type="button" data-action="export-data"><span aria-hidden="true">↓</span><strong>Yedek indir</strong><small>Bütün oyunları ve dosyaları JSON olarak kaydeder.</small></button>
+      <button type="button" data-action="import-data"><span aria-hidden="true">↑</span><strong>Yedeği geri yükle</strong><small>Başka cihazdan alınan yedeği açar.</small></button>
+      <button type="button" data-action="request-persistent-storage"><span aria-hidden="true">◇</span><strong>Kalıcı depolamayı etkinleştir</strong><small>Tarayıcının otomatik alan temizliğine karşı koruma ister.</small></button>
     </div>
-</dialog>
+    <p class="storage-note">Oyun verileri GitHub deposuna değil, cihazınızdaki geniş uygulama alanına kaydedilir. Düzenli yedek almak cihaz değişikliğinde veri kaybını önler.</p>
+  </dialog>
 
-<!-- MODAL 6: İş Düzenle -->
-<dialog id="modal-edit-task" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
-    <div class="p-5 border-b border-border flex justify-between items-center">
-        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">İş Düzenle</h3>
-        <button onclick="document.getElementById('modal-edit-task').close()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <form class="p-5 space-y-4" novalidate>
-        <input type="hidden" id="edit-task-id">
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">İş Başlığı *</label>
-            <input type="text" id="edit-task-name" required maxlength="150" class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Atölye *</label>
-            <select id="edit-task-type" required class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
-                <option value="Marangoz|bg-amber-700|fa-tree">🪵 Marangoz</option>
-                <option value="Kostum|bg-pink-600|fa-scissors">🧵 Bezleme</option>
-                <option value="Demir|bg-slate-500|fa-gavel">🔩 Demir</option>
-                <option value="Butafor|bg-emerald-700|fa-theater-masks">🎭 Butafor</option>
-                <option value="Resimleme|bg-violet-700|fa-paint-brush">🖌️ Resimleme</option>
-                <option value="Satinalma|bg-blue-700|fa-cart-shopping">🛒 Satınalma</option>
-            </select>
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Açıklama</label>
-            <textarea id="edit-task-desc" rows="3" maxlength="500" class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm resize-none"></textarea>
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Son Tarih</label>
-            <input type="date" id="edit-task-deadline" class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm">
-        </div>
-        <div class="pt-2 flex justify-end gap-2">
-            <button type="button" onclick="document.getElementById('modal-edit-task').close()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
-            <button type="button" onclick="updateTask()" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)">Güncelle</button>
-        </div>
-    </form>
-</dialog>
+  <input id="import-input" type="file" accept="application/json,.json" hidden>
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
 
-<!-- MODAL 7: İşe Çizim Ekle -->
-<dialog id="modal-add-task-drawing" class="bg-card border border-border rounded-2xl shadow-2xl p-0 w-full max-w-md text-slate-200">
-    <div class="p-5 border-b border-border flex justify-between items-center">
-        <h3 class="text-lg font-bold text-white" style="font-family:'Playfair Display',serif">İşe Çizim Ekle</h3>
-        <button onclick="closeTaskDrawingModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-border transition-all"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <form id="form-task-drawing" class="p-5 space-y-4" novalidate>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Görsel *</label>
-            <div class="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer relative" onclick="document.getElementById('inp-task-draw-file').click()">
-                <input type="file" id="inp-task-draw-file" accept="image/*" class="hidden" onchange="handleTaskDrawChange(this)">
-                <div id="task-draw-preview-container" class="hidden flex-col items-center">
-                    <img id="task-draw-preview" class="h-28 object-contain rounded mb-2 mx-auto" alt="">
-                    <span class="text-xs text-primary">Değiştirmek için tıkla</span>
-                </div>
-                <div id="task-draw-upload-text" class="flex flex-col items-center gap-2">
-                    <i class="fa-solid fa-file-image text-2xl text-slate-600"></i>
-                    <p class="text-sm text-slate-500">Çizim seçin</p>
-                </div>
-            </div>
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Açıklama (isteğe bağlı)</label>
-            <input type="text" id="inp-task-draw-name" maxlength="150"
-                class="w-full bg-dark border border-border rounded-lg p-3 text-white text-sm"
-                placeholder="Örn: Ölçülü çizim">
-        </div>
-        <div class="pt-2 flex justify-end gap-2">
-            <button type="button" onclick="closeTaskDrawingModal()" class="px-4 py-2 text-sm rounded-lg border border-border hover:bg-border transition-colors">İptal</button>
-            <button type="button" onclick="addTaskDrawing()" class="px-5 py-2 text-sm rounded-lg font-semibold text-white transition-all" style="background:rgba(192,132,252,0.2); border:1px solid rgba(192,132,252,0.4)">Yükle</button>
-        </div>
-    </form>
-</dialog>
-
-<script>
-// =============================================
-//  VERİ & DURUM
-// =============================================
-const STORAGE_KEY = 'sahneProV2';
-let appData = (() => {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) return JSON.parse(raw);
-    } catch(e) {}
-    // Eski anahtardan taşı
-    try {
-        const legacy = localStorage.getItem('sahneProRenkli');
-        if (legacy) return JSON.parse(legacy);
-    } catch(e) {}
-    return { productions: [] };
-})();
-
-let activeProdId = null;
-let activeTaskId = null;
-let currentWorkshopFilter = 'all';
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
-
-// =============================================
-//  KAYDETME
-// =============================================
-function saveData() {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-    } catch(e) {
-        if (e.name === 'QuotaExceededError') {
-            showToast('⚠️ Depolama doldu! Eski görselleri silin.', 'error');
-        } else {
-            showToast('Kayıt başarısız: ' + e.message, 'error');
-        }
-    }
-}
-
-// =============================================
-//  TOAST BİLDİRİMLER
-// =============================================
-function showToast(msg, type = 'info', duration = 3000) {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    const icons = { success: 'fa-check-circle', error: 'fa-circle-exclamation', info: 'fa-circle-info' };
-    toast.className = `toast toast-${type}`;
-    toast.innerHTML = `<i class="fa-solid ${icons[type]}"></i> ${msg}`;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.style.animation = 'toastOut 0.3s ease forwards';
-        setTimeout(() => toast.remove(), 300);
-    }, duration);
-}
-
-// =============================================
-//  GÖRSEL SIKIŞTIRMA
-// =============================================
-function compressImage(file, callback, errorCb) {
-    if (!file.type.startsWith('image/')) { errorCb('Geçerli bir resim dosyası seçin.'); return; }
-    if (file.size > MAX_FILE_SIZE) { errorCb(`Dosya çok büyük! Max 2MB.`); return; }
-    const reader = new FileReader();
-    reader.onerror = () => errorCb('Dosya okunamadı.');
-    reader.onload = ev => {
-        const img = new Image();
-        img.onerror = () => errorCb('Resim yüklenemedi.');
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            let [w, h] = [img.width, img.height];
-            const MAX = 900;
-            if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
-            else { if (h > MAX) { w = w * MAX / h; h = MAX; } }
-            canvas.width = w; canvas.height = h;
-            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-            callback(canvas.toDataURL('image/jpeg', 0.75));
-        };
-        img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
-}
-
-// =============================================
-//  GÖRSEL ÖNİZLEME handlers (DÜZELTİLDİ)
-// =============================================
-function handlePosterChange(input) { showPreview(input, 'poster-preview', 'poster-preview-container', 'poster-upload-text'); }
-function handleDrawChange(input) { showPreview(input, 'draw-preview', 'draw-preview-container', 'draw-upload-text'); }
-function handleTaskDrawChange(input) { showPreview(input, 'task-draw-preview', 'task-draw-preview-container', 'task-draw-upload-text'); }
-function handleTaskInlineDrawChange(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-        const img = document.getElementById('task-inline-draw-preview');
-        img.src = e.target.result;
-        document.getElementById('task-inline-draw-preview-container').style.display = 'flex';
-        document.getElementById('task-inline-draw-upload-text').style.display = 'none';
-    };
-    reader.readAsDataURL(file);
-}
-function handleEditPosterChange(input) { showPreview(input, 'edit-poster-preview', 'edit-poster-preview-wrap', 'edit-poster-upload-text'); }
-
-function showPreview(input, imgId, containerId, textId) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-        document.getElementById(imgId).src = e.target.result;
-        document.getElementById(containerId).classList.remove('hidden');
-        document.getElementById(containerId).style.display = 'flex';
-        document.getElementById(textId).classList.add('hidden');
-    };
-    reader.readAsDataURL(file);
-}
-
-function resetPreview(containerId, imgId, textId, inputId) {
-    const el = document.getElementById(containerId);
-    if (el) { el.classList.add('hidden'); el.style.display = ''; }
-    const img = document.getElementById(imgId);
-    if (img) img.src = '';
-    const txt = document.getElementById(textId);
-    if (txt) txt.classList.remove('hidden');
-    const inp = document.getElementById(inputId);
-    if (inp) inp.value = '';
-}
-
-// =============================================
-//  MODAL AÇMA / KAPAMA YARDIMCIları
-// =============================================
-function openAddProdModal() {
-    document.getElementById('form-add-prod').reset();
-    resetPreview('poster-preview-container','poster-preview','poster-upload-text','inp-prod-poster');
-    document.getElementById('modal-add-prod').showModal();
-}
-function closeProdModal() {
-    document.getElementById('modal-add-prod').close();
-}
-function openAddTaskModal() {
-    document.getElementById('form-add-task').reset();
-    document.getElementById('modal-add-task').showModal();
-}
-function closeAddTaskModal() {
-    document.getElementById('modal-add-task').close();
-    // inline görseli sıfırla
-    const inp = document.getElementById('inp-task-inline-draw');
-    if (inp) inp.value = '';
-    const prev = document.getElementById('task-inline-draw-preview-container');
-    if (prev) prev.style.display = 'none';
-    const txt = document.getElementById('task-inline-draw-upload-text');
-    if (txt) txt.style.display = '';
-    const nameInp = document.getElementById('inp-task-inline-draw-name');
-    if (nameInp) nameInp.value = '';
-}
-function openAddDrawingModal() {
-    document.getElementById('form-add-drawing').reset();
-    resetPreview('draw-preview-container','draw-preview','draw-upload-text','inp-draw-file');
-    document.getElementById('modal-add-drawing').showModal();
-}
-function closeDrawingModal() {
-    document.getElementById('modal-add-drawing').close();
-}
-function openTaskDrawingModal() {
-    if (!activeTaskId) { showToast('Önce bir iş seçin.', 'error'); return; }
-    document.getElementById('form-task-drawing').reset();
-    resetPreview('task-draw-preview-container','task-draw-preview','task-draw-upload-text','inp-task-draw-file');
-    // İki dialog aynı anda açık olunca bazı tarayıcılarda backdrop tıklaması sorun çıkarır
-    // view-task modalını kapat, drawing modalı aç
-    const viewModal = document.getElementById('modal-view-task');
-    viewModal.close();
-    setTimeout(() => {
-        document.getElementById('modal-add-task-drawing').showModal();
-    }, 80);
-}
-function closeTaskDrawingModal() {
-    document.getElementById('modal-add-task-drawing').close();
-}
-
-// =============================================
-//  VİTRİN
-// =============================================
-function renderDashboard() {
-    const grid = document.getElementById('productions-grid');
-    const searchVal = (document.getElementById('global-search')?.value || '').toLowerCase().trim();
-    let prods = appData.productions;
-    if (searchVal) prods = prods.filter(p => p.name.toLowerCase().includes(searchVal));
-
-    document.getElementById('prod-count-label').textContent = `${prods.length} prodüksiyon`;
-
-    if (prods.length === 0) {
-        grid.innerHTML = `
-            <div class="col-span-full border border-dashed border-border rounded-2xl p-14 text-center">
-                <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-600" style="background:rgba(255,255,255,0.03)">
-                    <i class="fa-solid fa-masks-theater text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2" style="font-family:'Playfair Display',serif">${searchVal ? 'Sonuç bulunamadı' : 'Henüz Oyun Yok'}</h3>
-                <p class="text-slate-500 mb-6 text-sm">${searchVal ? 'Farklı bir arama deneyin.' : 'Yeni bir oyun ekleyerek üretimi başlatın.'}</p>
-                ${!searchVal ? `<button onclick="openAddProdModal()" class="text-sm font-semibold text-white px-5 py-2 rounded-lg transition-all" style="background:rgba(192,132,252,0.15);border:1px solid rgba(192,132,252,0.3)"><i class="fa-solid fa-plus mr-2"></i>Yeni Oyun Ekle</button>` : ''}
-            </div>`;
-        return;
-    }
-
-    grid.innerHTML = '';
-    prods.forEach((prod, i) => {
-        const tasks = prod.tasks || [];
-        const done = tasks.filter(t => t.status === 'done').length;
-        const progress = tasks.length === 0 ? 0 : Math.round((done / tasks.length) * 100);
-        const posterBg = prod.poster
-            ? `url(${prod.poster}) center/cover no-repeat`
-            : `linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)`;
-        const urgentCount = tasks.filter(t => t.deadline && isUrgent(t.deadline) && t.status !== 'done').length;
-
-        const card = document.createElement('div');
-        card.className = 'prod-card card-hover bg-card border border-border rounded-2xl overflow-hidden cursor-pointer relative';
-        card.style.animationDelay = `${i * 0.05}s`;
-        card.innerHTML = `
-            <div class="h-44 relative" style="background: ${posterBg}">
-                <div class="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent"></div>
-                <div class="absolute top-3 left-3 flex gap-2">
-                    ${urgentCount > 0 ? `<span class="text-xs font-bold px-2 py-1 rounded-full bg-red-950 text-red-400 border border-red-800"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${urgentCount} acil</span>` : ''}
-                </div>
-                <div class="prod-actions absolute top-3 right-3 flex gap-1">
-                    <button onclick="event.stopPropagation(); openEditProdModal(${prod.id})"
-                        class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-white transition-all"
-                        style="background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.1)" title="Düzenle">
-                        <i class="fa-solid fa-pen text-xs"></i>
-                    </button>
-                    <button onclick="event.stopPropagation(); deleteProd(${prod.id})"
-                        class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-todo transition-all"
-                        style="background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.1)" title="Sil">
-                        <i class="fa-solid fa-trash-can text-xs"></i>
-                    </button>
-                </div>
-                <div class="absolute bottom-3 right-3 text-xs font-bold px-2 py-1 rounded-full text-white"
-                    style="background:rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.1)">
-                    %${progress}
-                </div>
-            </div>
-            <div class="p-4">
-                <h3 class="text-base font-bold text-white mb-1 truncate" style="font-family:'Playfair Display',serif">${escapeHtml(prod.name)}</h3>
-                <div class="flex items-center gap-3 text-xs text-slate-500 mb-3">
-                    <span><i class="fa-solid fa-hammer mr-1"></i>${tasks.length} iş</span>
-                    <span><i class="fa-solid fa-check mr-1 text-done"></i>${done} tamamlandı</span>
-                    <span><i class="fa-solid fa-images mr-1"></i>${(prod.drawings||[]).length}</span>
-                </div>
-                <div class="h-1 bg-border rounded-full overflow-hidden">
-                    <div class="h-full progress-bar rounded-full" style="width:${progress}%; background: linear-gradient(90deg,#7c3aed,#c084fc)"></div>
-                </div>
-            </div>`;
-        card.onclick = () => openProduction(prod.id);
-        // Spotlight mouse effect
-        card.addEventListener('mousemove', e => {
-            const r = card.getBoundingClientRect();
-            card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
-            card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
-        });
-        grid.appendChild(card);
-    });
-    // Re-apply theme to newly rendered elements
-    if (document.documentElement.classList.contains('light')) applyThemeColors(true);
-}
-
-function searchProductions(val) { renderDashboard(); }
-
-// =============================================
-//  OYUN AÇMA / KAPATMA
-// =============================================
-function openProduction(id) {
-    activeProdId = id;
-    currentWorkshopFilter = 'all';
-    const prod = appData.productions.find(p => p.id === id);
-    if (!prod) return;
-
-    document.getElementById('current-prod-title').textContent = prod.name;
-    const banner = document.getElementById('prod-banner');
-    banner.style.backgroundImage = prod.poster
-        ? `url(${prod.poster})`
-        : 'linear-gradient(135deg, #312e81 0%, #1e1b4b 50%, #0f172a 100%)';
-
-    document.getElementById('view-dashboard').classList.add('hidden');
-    document.getElementById('header-actions').classList.add('hidden');
-    document.getElementById('header-search').classList.add('hidden');
-    document.getElementById('view-production').classList.remove('hidden');
-
-    updateProdStats();
-    switchTab('tab-kanban');
-    setActiveFilter('all');
-    renderKanban();
-    renderGallery();
-}
-
-function showDashboard() {
-    activeProdId = null;
-    document.getElementById('view-production').classList.add('hidden');
-    document.getElementById('view-dashboard').classList.remove('hidden');
-    document.getElementById('header-actions').classList.remove('hidden');
-    document.getElementById('header-search').classList.remove('hidden');
-    renderDashboard();
-}
-
-function updateProdStats() {
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    if (!prod) return;
-    const tasks = prod.tasks || [];
-    const done = tasks.filter(t => t.status === 'done').length;
-    const progress = tasks.length === 0 ? 0 : Math.round((done / tasks.length) * 100);
-
-    document.getElementById('prod-stats-bar').innerHTML = `
-        <span><i class="fa-solid fa-hammer mr-1 text-primary opacity-60"></i>${tasks.length} iş</span>
-        <span><i class="fa-solid fa-check mr-1 text-done opacity-70"></i>${done} tamamlandı</span>
-        <span><i class="fa-solid fa-images mr-1 opacity-60"></i>${(prod.drawings||[]).length} dosya</span>
-    `;
-    document.getElementById('prod-progress-bar').style.width = progress + '%';
-}
-
-// =============================================
-//  SEKMELER
-// =============================================
-function switchTab(tabId) {
-    ['tab-kanban','tab-gallery'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
-    });
-    document.getElementById(tabId).classList.remove('hidden');
-
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('text-primary', 'border-b-2', 'border-primary');
-        btn.classList.add('text-slate-500', 'hover:text-slate-300');
-    });
-    const active = tabId === 'tab-kanban' ? 'btn-tab-kanban' : 'btn-tab-gallery';
-    const activeBtn = document.getElementById(active);
-    activeBtn.classList.remove('text-slate-500','hover:text-slate-300');
-    activeBtn.classList.add('text-primary','border-b-2','border-primary');
-}
-
-// =============================================
-//  FİLTRE
-// =============================================
-function setActiveFilter(workshop) {
-    currentWorkshopFilter = workshop;
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        const isActive = btn.dataset.filter === workshop;
-        btn.style.background = isActive ? 'rgba(192,132,252,0.15)' : 'rgba(255,255,255,0.04)';
-        btn.style.border = isActive ? '1px solid rgba(192,132,252,0.35)' : '1px solid rgba(255,255,255,0.07)';
-        btn.style.color = isActive ? '#c084fc' : '#94a3b8';
-    });
-}
-
-function filterWorkshop(workshop) {
-    setActiveFilter(workshop);
-    renderKanban();
-}
-
-// =============================================
-//  KANBAN RENDER
-// =============================================
-function renderKanban() {
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    if (!prod) return;
-
-    const searchTerm = (document.getElementById('task-search')?.value || '').toLowerCase();
-    const cols = { todo: document.getElementById('col-todo'), doing: document.getElementById('col-doing'), done: document.getElementById('col-done') };
-    const counts = { todo: 0, doing: 0, done: 0 };
-    Object.values(cols).forEach(c => c.innerHTML = '');
-
-    let tasks = prod.tasks || [];
-    if (currentWorkshopFilter !== 'all') {
-        tasks = tasks.filter(t => t.type.split('|')[0] === currentWorkshopFilter);
-    }
-    if (searchTerm) {
-        tasks = tasks.filter(t => t.name.toLowerCase().includes(searchTerm) || (t.desc||'').toLowerCase().includes(searchTerm));
-    }
-
-    if (tasks.length === 0 && (prod.tasks||[]).length === 0) {
-        cols.todo.innerHTML = `<div class="text-center py-8 text-slate-600 text-sm">
-            <i class="fa-solid fa-inbox text-xl mb-2 block"></i>
-            Henüz iş yok. <button onclick="openAddTaskModal()" class="text-primary hover:underline">Ekle</button>
-        </div>`;
-    }
-
-    tasks.forEach(task => {
-        counts[task.status] = (counts[task.status] || 0) + 1;
-        const [typeName, typeBg, typeIcon] = task.type.split('|');
-        const deadlineHtml = getDeadlineHtml(task);
-
-        const card = document.createElement('div');
-        card.className = 'task-card bg-card p-3.5 rounded-xl border border-border hover:border-slate-600 transition-all relative group';
-        card.draggable = true;
-        card.id = `task-${task.id}`;
-        card.ondragstart = e => dragStart(e, task.id);
-        card.ondragend = e => dragEnd(e);
-        card.onclick = () => openTaskDetails(task.id);
-
-        const drawCount = (task.drawings||[]).length;
-        card.innerHTML = `
-            <h4 class="font-medium text-white text-sm mb-2.5 pr-6 leading-snug">${escapeHtml(task.name)}</h4>
-            <div class="flex items-center justify-between flex-wrap gap-1.5">
-                <span class="${typeBg} text-white badge-atelier flex items-center gap-1"><i class="fa-solid ${typeIcon} text-xs"></i>${typeName}</span>
-                <div class="flex items-center gap-2">
-                    ${drawCount > 0 ? `<span class="text-xs text-slate-500"><i class="fa-solid fa-image text-xs"></i> ${drawCount}</span>` : ''}
-                    ${deadlineHtml}
-                </div>
-            </div>
-            <button onclick="event.stopPropagation(); deleteTask(${task.id})"
-                class="absolute top-2.5 right-2.5 w-6 h-6 rounded flex items-center justify-center text-slate-600 hover:text-todo opacity-0 group-hover:opacity-100 transition-all"
-                aria-label="Sil"><i class="fa-solid fa-trash-can text-xs"></i></button>
-        `;
-        cols[task.status].appendChild(card);
-    });
-
-    document.getElementById('count-todo').textContent = counts.todo || 0;
-    document.getElementById('count-doing').textContent = counts.doing || 0;
-    document.getElementById('count-done').textContent = counts.done || 0;
-    // Re-apply theme to newly rendered cards
-    if (document.documentElement.classList.contains('light')) applyThemeColors(true);
-}
-
-function getDeadlineHtml(task) {
-    if (!task.deadline) return `<span class="text-xs text-slate-600"><i class="fa-regular fa-clock"></i> ${formatDate(task.id)}</span>`;
-    const today = new Date(); today.setHours(0,0,0,0);
-    const dl = new Date(task.deadline);
-    const diff = Math.ceil((dl - today) / (1000*60*60*24));
-    if (diff < 0) return `<span class="text-xs text-red-500 font-semibold"><i class="fa-solid fa-triangle-exclamation"></i> ${Math.abs(diff)}g gecikti</span>`;
-    if (diff <= 3) return `<span class="text-xs text-amber-500 font-semibold"><i class="fa-solid fa-clock"></i> ${diff}g kaldı</span>`;
-    return `<span class="text-xs text-slate-500"><i class="fa-regular fa-calendar"></i> ${dl.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})}</span>`;
-}
-
-function isUrgent(deadline) {
-    const today = new Date(); today.setHours(0,0,0,0);
-    const dl = new Date(deadline);
-    return Math.ceil((dl - today) / (1000*60*60*24)) <= 3;
-}
-
-// =============================================
-//  GALERİ RENDER
-// =============================================
-function renderGallery() {
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    if (!prod) return;
-    const grid = document.getElementById('gallery-grid');
-
-    if (!(prod.drawings||[]).length) {
-        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-600">
-            <i class="fa-solid fa-images text-3xl mb-3 block"></i>
-            <p class="text-sm">Henüz dosya yüklenmemiş.</p>
-            <button onclick="openAddDrawingModal()" class="mt-3 text-sm text-primary hover:underline">Dosya ekle</button>
-        </div>`;
-        return;
-    }
-
-    grid.innerHTML = '';
-    prod.drawings.forEach(draw => {
-        grid.innerHTML += `
-            <div class="bg-card border border-border rounded-xl overflow-hidden group card-hover">
-                <div class="h-44 overflow-hidden cursor-pointer" onclick="window.open('${draw.image}','_blank')">
-                    <img src="${draw.image}" alt="${escapeHtml(draw.name)}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300">
-                </div>
-                <div class="p-3 flex items-center justify-between">
-                    <div class="min-w-0">
-                        <h4 class="font-semibold text-white text-xs truncate">${escapeHtml(draw.name)}</h4>
-                        <p class="text-xs text-slate-600 mt-0.5">${formatDate(draw.id)}</p>
-                    </div>
-                    <button onclick="deleteDrawing(${draw.id})" class="w-7 h-7 rounded flex items-center justify-center text-slate-600 hover:text-todo transition-colors shrink-0" title="Sil"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                </div>
-            </div>`;
-    });
-}
-
-// =============================================
-//  İŞ DETAYI
-// =============================================
-function openTaskDetails(taskId) {
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    if (!prod) return;
-    const task = prod.tasks.find(t => t.id === taskId);
-    if (!task) return;
-    activeTaskId = taskId;
-
-    document.getElementById('view-task-name').textContent = task.name;
-
-    const [typeName, typeBg, typeIcon] = task.type.split('|');
-    const typeSpan = document.getElementById('view-task-type');
-    typeSpan.className = `${typeBg} text-white text-xs px-2.5 py-1.5 rounded-md font-semibold flex items-center gap-1.5`;
-    typeSpan.innerHTML = `<i class="fa-solid ${typeIcon}"></i>${typeName}`;
-
-    const statusCfg = { todo:{label:'Yapılacak',cls:'bg-red-950 text-red-400 border border-red-900'}, doing:{label:'Üretimde',cls:'bg-amber-950 text-amber-400 border border-amber-900'}, done:{label:'Tamamlandı',cls:'bg-green-950 text-green-400 border border-green-900'} };
-    const sSpan = document.getElementById('view-task-status');
-    sSpan.className = `text-xs px-2.5 py-1.5 rounded-md font-semibold ${statusCfg[task.status].cls}`;
-    sSpan.textContent = statusCfg[task.status].label;
-
-    // Deadline badge
-    const dlBadge = document.getElementById('view-task-deadline-badge');
-    if (task.deadline) {
-        dlBadge.classList.remove('hidden');
-        const today = new Date(); today.setHours(0,0,0,0);
-        const dl = new Date(task.deadline);
-        const diff = Math.ceil((dl - today) / (1000*60*60*24));
-        if (diff < 0) { dlBadge.className = 'text-xs px-2.5 py-1.5 rounded-md font-semibold bg-red-950 text-red-400 border border-red-900'; dlBadge.textContent = `${Math.abs(diff)}g gecikti`; }
-        else if (diff <= 3) { dlBadge.className = 'text-xs px-2.5 py-1.5 rounded-md font-semibold bg-amber-950 text-amber-400 border border-amber-900'; dlBadge.textContent = `${diff}g kaldı`; }
-        else { dlBadge.className = 'text-xs px-2.5 py-1.5 rounded-md font-semibold bg-slate-800 text-slate-400 border border-border'; dlBadge.textContent = new Date(task.deadline).toLocaleDateString('tr-TR'); }
-    } else {
-        dlBadge.classList.add('hidden');
-    }
-
-    document.getElementById('view-task-date').innerHTML = `<i class="fa-regular fa-clock"></i> ${formatDate(task.id)}`;
-
-    const descEl = document.getElementById('view-task-desc');
-    if (task.desc && task.desc.trim()) {
-        descEl.textContent = task.desc;
-        descEl.classList.remove('italic','text-slate-500');
-        descEl.classList.add('text-slate-300');
-    } else {
-        descEl.textContent = 'Açıklama eklenmemiş.';
-        descEl.classList.add('italic','text-slate-500');
-        descEl.classList.remove('text-slate-300');
-    }
-
-    // Durum butonları aktif seç
-    document.querySelectorAll('.status-btn').forEach(btn => {
-        const isActive = btn.dataset.status === task.status;
-        btn.style.opacity = isActive ? '1' : '0.4';
-        btn.style.fontWeight = isActive ? '700' : '500';
-    });
-
-    renderTaskDrawings(task);
-    document.getElementById('modal-view-task').showModal();
-}
-
-function renderTaskDrawings(task) {
-    const grid = document.getElementById('task-drawings-grid');
-    const noMsg = document.getElementById('no-drawings-msg');
-    grid.innerHTML = '';
-    const drawings = task.drawings || [];
-    noMsg.classList.toggle('hidden', drawings.length > 0);
-
-    drawings.forEach(draw => {
-        const div = document.createElement('div');
-        div.className = 'relative group';
-        div.innerHTML = `
-            <img src="${draw.image}" alt="${escapeHtml(draw.name||'Çizim')}"
-                class="w-full h-24 object-cover rounded-lg border border-border cursor-pointer hover:opacity-90 transition"
-                onclick="window.open('${draw.image}','_blank')">
-            <p class="text-xs text-slate-500 mt-1 truncate">${escapeHtml(draw.name||'Çizim')}</p>
-            <button onclick="deleteTaskDrawing(${task.id},'${draw.id}')"
-                class="absolute top-1 right-1 w-5 h-5 rounded flex items-center justify-center bg-dark/80 text-slate-400 hover:text-todo opacity-0 group-hover:opacity-100 transition">
-                <i class="fa-solid fa-trash-can text-xs"></i></button>`;
-        grid.appendChild(div);
-    });
-}
-
-function changeTaskStatus(newStatus) {
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    if (!prod) return;
-    const task = prod.tasks.find(t => t.id === activeTaskId);
-    if (!task) return;
-    task.status = newStatus;
-    saveData();
-    renderKanban();
-    updateProdStats();
-    // Refresh view
-    openTaskDetails(activeTaskId);
-    showToast('Durum güncellendi ✓', 'success');
-}
-
-// =============================================
-//  DÜZENLEME
-// =============================================
-function editCurrentTask() {
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    if (!prod) return;
-    const task = prod.tasks.find(t => t.id === activeTaskId);
-    if (!task) return;
-
-    document.getElementById('edit-task-id').value = task.id;
-    document.getElementById('edit-task-name').value = task.name;
-    document.getElementById('edit-task-desc').value = task.desc || '';
-    document.getElementById('edit-task-deadline').value = task.deadline || '';
-    const sel = document.getElementById('edit-task-type');
-    for (let i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].value === task.type) { sel.selectedIndex = i; break; }
-    }
-    document.getElementById('modal-view-task').close();
-    document.getElementById('modal-edit-task').showModal();
-}
-
-function updateTask() {
-    const name = document.getElementById('edit-task-name').value.trim();
-    const type = document.getElementById('edit-task-type').value;
-    const desc = document.getElementById('edit-task-desc').value.trim();
-    const deadline = document.getElementById('edit-task-deadline').value;
-    const taskId = Number(document.getElementById('edit-task-id').value);
-
-    if (!name || !type) { showToast('Başlık ve atölye zorunludur.', 'error'); return; }
-
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    const task = prod?.tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    Object.assign(task, { name, type, desc, deadline: deadline || null });
-    saveData();
-    document.getElementById('modal-edit-task').close();
-    renderKanban();
-    showToast('İş güncellendi ✓', 'success');
-    openTaskDetails(taskId);
-}
-
-function openEditProdModal(prodId) {
-    const prod = appData.productions.find(p => p.id === prodId);
-    if (!prod) return;
-    document.getElementById('edit-prod-id').value = prod.id;
-    document.getElementById('edit-prod-name').value = prod.name;
-    resetPreview('edit-poster-preview-wrap','edit-poster-preview','edit-poster-upload-text','edit-prod-poster');
-    document.getElementById('modal-edit-prod').showModal();
-}
-
-function updateProduction() {
-    const name = document.getElementById('edit-prod-name').value.trim();
-    const id = Number(document.getElementById('edit-prod-id').value);
-    const fileInput = document.getElementById('edit-prod-poster');
-    if (!name) { showToast('Oyun adı zorunludur.', 'error'); return; }
-
-    const prod = appData.productions.find(p => p.id === id);
-    if (!prod) return;
-
-    if (fileInput.files.length > 0) {
-        compressImage(fileInput.files[0], img => {
-            prod.name = name; prod.poster = img;
-            saveData();
-            document.getElementById('modal-edit-prod').close();
-            renderDashboard();
-            showToast('Oyun güncellendi ✓', 'success');
-        }, err => showToast(err, 'error'));
-    } else {
-        prod.name = name;
-        saveData();
-        document.getElementById('modal-edit-prod').close();
-        renderDashboard();
-        showToast('Oyun güncellendi ✓', 'success');
-    }
-}
-
-// =============================================
-//  EKLEME
-// =============================================
-function addProduction() {
-    const name = document.getElementById('inp-prod-name').value.trim();
-    if (!name) { showToast('Oyun adı zorunludur.', 'error'); return; }
-
-    const fileInput = document.getElementById('inp-prod-poster');
-    const newProd = { id: Date.now(), name, poster: null, tasks: [], drawings: [] };
-
-    if (fileInput.files.length > 0) {
-        compressImage(fileInput.files[0], img => {
-            newProd.poster = img;
-            appData.productions.push(newProd);
-            saveData();
-            closeProdModal();
-            renderDashboard();
-            showToast(`"${name}" eklendi ✓`, 'success');
-        }, err => showToast(err, 'error'));
-    } else {
-        appData.productions.push(newProd);
-        saveData();
-        closeProdModal();
-        renderDashboard();
-        showToast(`"${name}" eklendi ✓`, 'success');
-    }
-}
-
-function addTask() {
-    const name = document.getElementById('inp-task-name').value.trim();
-    const type = document.getElementById('inp-task-type').value;
-    const desc = document.getElementById('inp-task-desc').value.trim();
-    const deadline = document.getElementById('inp-task-deadline').value;
-
-    if (!name) { showToast('İş tanımı zorunludur.', 'error'); return; }
-    if (!type) { showToast('Atölye seçimi zorunludur.', 'error'); return; }
-
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    if (!prod) return;
-    if (!prod.tasks) prod.tasks = [];
-
-    const newTaskId = Date.now();
-    const newTask = { id: newTaskId, name, type, desc, status: 'todo', drawings: [], deadline: deadline || null };
-    prod.tasks.push(newTask);
-
-    // İnline görsel varsa sıkıştır ve ekle
-    const inlineFile = document.getElementById('inp-task-inline-draw').files[0];
-    const inlineName = document.getElementById('inp-task-inline-draw-name').value.trim() || 'Çizim';
-    if (inlineFile) {
-        compressImage(inlineFile, img => {
-            newTask.drawings.push({ id: Date.now().toString(36), name: inlineName, image: img });
-            saveData();
-            closeAddTaskModal();
-            renderKanban();
-            updateProdStats();
-            showToast('İş ve görsel eklendi ✓', 'success');
-        }, err => {
-            // Görsel hatalı olsa bile işi kaydet
-            saveData();
-            closeAddTaskModal();
-            renderKanban();
-            updateProdStats();
-            showToast('İş eklendi (görsel hatası: ' + err + ')', 'info');
-        });
-    } else {
-        saveData();
-        closeAddTaskModal();
-        renderKanban();
-        updateProdStats();
-        showToast('İş eklendi ✓', 'success');
-    }
-}
-
-function addDrawing() {
-    const name = document.getElementById('inp-draw-name').value.trim();
-    const fileInput = document.getElementById('inp-draw-file');
-    if (!name) { showToast('Dosya adı zorunludur.', 'error'); return; }
-    if (!fileInput.files.length) { showToast('Görsel seçilmedi.', 'error'); return; }
-
-    compressImage(fileInput.files[0], img => {
-        const prod = appData.productions.find(p => p.id === activeProdId);
-        if (!prod) return;
-        if (!prod.drawings) prod.drawings = [];
-        prod.drawings.push({ id: Date.now(), name, image: img });
-        saveData();
-        closeDrawingModal();
-        renderGallery();
-        updateProdStats();
-        showToast('Dosya yüklendi ✓', 'success');
-    }, err => showToast(err, 'error'));
-}
-
-function addTaskDrawing() {
-    const fileInput = document.getElementById('inp-task-draw-file');
-    const name = document.getElementById('inp-task-draw-name').value.trim() || 'Çizim';
-    if (!fileInput.files.length) { showToast('Görsel seçilmedi.', 'error'); return; }
-
-    compressImage(fileInput.files[0], img => {
-        const prod = appData.productions.find(p => p.id === activeProdId);
-        const task = prod?.tasks.find(t => t.id === activeTaskId);
-        if (!task) return;
-        if (!task.drawings) task.drawings = [];
-        task.drawings.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,5), name, image: img });
-        saveData();
-        closeTaskDrawingModal();
-        renderKanban();
-        showToast('Çizim eklendi ✓', 'success');
-        // Çizim eklendikten sonra iş detayını tekrar aç
-        setTimeout(() => openTaskDetails(activeTaskId), 80);
-    }, err => showToast(err, 'error'));
-}
-
-// =============================================
-//  SİLME
-// =============================================
-function deleteCurrentTask() {
-    if (!confirm('Bu işi silmek istediğinize emin misiniz?')) return;
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    if (!prod) return;
-    prod.tasks = prod.tasks.filter(t => t.id !== activeTaskId);
-    saveData();
-    document.getElementById('modal-view-task').close();
-    renderKanban();
-    updateProdStats();
-    showToast('İş silindi', 'info');
-}
-
-function deleteTask(id) {
-    if (!confirm('Bu işi silmek istediğinize emin misiniz?')) return;
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    if (!prod) return;
-    prod.tasks = prod.tasks.filter(t => t.id !== id);
-    saveData();
-    renderKanban();
-    updateProdStats();
-    showToast('İş silindi', 'info');
-}
-
-function deleteProd(id) {
-    const prod = appData.productions.find(p => p.id === id);
-    if (!confirm(`"${prod?.name}" oyununu tüm içeriğiyle birlikte silmek istiyor musunuz?`)) return;
-    appData.productions = appData.productions.filter(p => p.id !== id);
-    saveData();
-    renderDashboard();
-    showToast('Oyun silindi', 'info');
-}
-
-function deleteDrawing(id) {
-    if (!confirm('Bu dosyayı silmek istiyor musunuz?')) return;
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    if (!prod) return;
-    prod.drawings = prod.drawings.filter(d => d.id !== id);
-    saveData();
-    renderGallery();
-    updateProdStats();
-    showToast('Dosya silindi', 'info');
-}
-
-function deleteTaskDrawing(taskId, drawId) {
-    if (!confirm('Bu çizimi silmek istiyor musunuz?')) return;
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    const task = prod?.tasks.find(t => t.id === taskId);
-    if (!task) return;
-    task.drawings = (task.drawings||[]).filter(d => String(d.id) !== String(drawId));
-    saveData();
-    renderTaskDrawings(task);
-    renderKanban();
-    showToast('Çizim silindi', 'info');
-}
-
-// =============================================
-//  SÜRÜKLE-BIRAK (DÜZELTİLDİ — dragend eklendi)
-// =============================================
-let draggedTaskId = null;
-
-function dragStart(e, taskId) {
-    draggedTaskId = taskId;
-    e.dataTransfer.effectAllowed = 'move';
-    setTimeout(() => e.target.classList.add('drag-ghost'), 0);
-}
-
-function dragEnd(e) {
-    e.target.classList.remove('drag-ghost','opacity-50');
-    document.querySelectorAll('.kanban-col > div:last-child').forEach(c => c.classList.remove('drag-over'));
-}
-
-function allowDrop(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    const col = e.currentTarget;
-    col.classList.add('drag-over');
-}
-
-function dragLeave(e) {
-    e.currentTarget.classList.remove('drag-over');
-}
-
-function drop(e, newStatus) {
-    e.preventDefault();
-    document.querySelectorAll('[ondrop]').forEach(c => c.classList.remove('drag-over'));
-    if (!draggedTaskId) return;
-
-    const prod = appData.productions.find(p => p.id === activeProdId);
-    const task = prod?.tasks.find(t => t.id === draggedTaskId);
-    if (task && task.status !== newStatus) {
-        task.status = newStatus;
-        saveData();
-        updateProdStats();
-        showToast('Durum değiştirildi ✓', 'success');
-    }
-    draggedTaskId = null;
-    renderKanban();
-}
-
-// =============================================
-//  YARDIMCILAR
-// =============================================
-function escapeHtml(text) {
-    if (!text) return '';
-    const d = document.createElement('div');
-    d.textContent = String(text);
-    return d.innerHTML;
-}
-
-function formatDate(timestamp) {
-    try {
-        return new Date(Number(timestamp)).toLocaleDateString('tr-TR', { day:'numeric', month:'short', year:'numeric' });
-    } catch { return '—'; }
-}
-
-// Karakter sayacı
-document.getElementById('inp-prod-name')?.addEventListener('input', function() {
-    document.getElementById('prod-name-counter').textContent = `${this.value.length} / 100`;
-});
-
-// =============================================
-//  TEMA YÖNETİMİ
-// =============================================
-function applyThemeColors(isLight) {
-    const body = document.getElementById('app-body');
-    const header = document.querySelector('header');
-    
-    if (isLight) {
-        // Light mode
-        body.style.background = '#f0f4f8';
-        body.style.color = '#374151';
-        if (header) { header.style.background = '#ffffff'; header.style.borderColor = '#dde3ec'; }
-        document.querySelectorAll('.bg-card, dialog, .kanban-col, .task-card, .prod-card').forEach(el => {
-            el.style.background = '#f8fafc';
-            el.style.borderColor = '#dde3ec';
-        });
-        document.querySelectorAll('input, select, textarea').forEach(el => {
-            el.style.background = '#ffffff';
-            el.style.color = '#111827';
-            el.style.borderColor = '#dde3ec';
-        });
-        document.querySelectorAll('.text-white').forEach(el => el.style.color = '#111827');
-        document.querySelectorAll('.text-slate-200, .text-slate-300').forEach(el => el.style.color = '#374151');
-        document.querySelectorAll('.text-slate-400').forEach(el => el.style.color = '#6b7280');
-        document.querySelectorAll('.text-slate-500, .text-slate-600').forEach(el => el.style.color = '#9ca3af');
-        document.querySelectorAll('.bg-dark').forEach(el => el.style.background = '#f0f4f8');
-        document.querySelectorAll('.bg-slate-800\/50, .bg-slate-700').forEach(el => el.style.background = '#e9eef5');
-        document.querySelectorAll('.border-border, .border-slate-700, .border-slate-600').forEach(el => el.style.borderColor = '#dde3ec');
-        document.querySelectorAll('.hover\:bg-border').forEach(el => el.style.background = '#e9eef5');
-    } else {
-        // Dark mode — reset all inline styles
-        body.style.background = '#0a0a0f';
-        body.style.color = '#cbd5e1';
-        if (header) { header.style.background = '#13131a'; header.style.borderColor = '#2a2a38'; }
-        document.querySelectorAll('.bg-card, dialog, .kanban-col, .task-card, .prod-card').forEach(el => {
-            el.style.background = '';
-            el.style.borderColor = '';
-        });
-        document.querySelectorAll('input, select, textarea').forEach(el => {
-            el.style.background = '';
-            el.style.color = '';
-            el.style.borderColor = '';
-        });
-        ['text-white','text-slate-200','text-slate-300','text-slate-400','text-slate-500','text-slate-600'].forEach(cls => {
-            document.querySelectorAll('.'+cls).forEach(el => el.style.color = '');
-        });
-        ['bg-dark','bg-slate-800\/50','bg-slate-700','border-border','border-slate-700','border-slate-600'].forEach(cls => {
-            document.querySelectorAll('.'+cls).forEach(el => { el.style.background = ''; el.style.borderColor = ''; });
-        });
-    }
-}
-
-function toggleTheme() {
-    const html = document.documentElement;
-    const isLight = html.classList.toggle('light');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    document.getElementById('theme-icon').className = isLight ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-    applyThemeColors(isLight);
-}
-
-function initTheme() {
-    const saved = localStorage.getItem('theme');
-    const preferLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-    const useLight = saved ? saved === 'light' : false; // default dark
-    if (useLight) {
-        document.documentElement.classList.add('light');
-        const icon = document.getElementById('theme-icon');
-        if (icon) icon.className = 'fa-solid fa-sun';
-        // Apply after short delay to let DOM render
-        setTimeout(() => applyThemeColors(true), 10);
-    }
-}
-
-// Başlat
-window.addEventListener('load', () => {
-    initTheme();
-    renderDashboard();
-    // Tab stilleri başlat
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.add('text-slate-500','hover:text-slate-300');
-    });
-    document.getElementById('btn-tab-kanban').classList.remove('text-slate-500','hover:text-slate-300');
-    document.getElementById('btn-tab-kanban').classList.add('text-primary','border-b-2','border-primary');
-});
-</script>
+  <noscript>Bu uygulamayı kullanmak için JavaScript etkin olmalıdır.</noscript>
+  <script src="./assets/app.js" defer></script>
 </body>
 </html>

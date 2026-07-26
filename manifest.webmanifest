@@ -1,0 +1,12 @@
+{
+  "name": "Sahne Üretim Takip",
+  "short_name": "Sahne Takip",
+  "description": "Oyun üretimi, atölye işleri ve teknik dosyalar için kişisel takip alanı.",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#12110f",
+  "theme_color": "#12110f",
+  "categories": ["productivity", "business"]
+}
