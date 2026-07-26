@@ -1,7 +1,7 @@
-const CACHE = "sahne-takip-v3.0.2";
+const CACHE = "sahne-takip-v3.1.0";
 const ASSETS = [
-  "./assets/styles.css?v=3.0.2",
-  "./assets/app.js?v=3.0.2",
+  "./assets/styles.css?v=3.1.0",
+  "./assets/app.js?v=3.1.0",
   "./manifest.webmanifest"
 ];
 
@@ -9,7 +9,7 @@ self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE).then(async cache => {
       await cache.addAll(ASSETS);
-      const shell = await fetch("./index.html?v=3.0.2", { cache: "reload" });
+      const shell = await fetch("./index.html?v=3.1.0", { cache: "reload" });
       if (shell.ok) await cache.put("./index.html", shell);
     })
   );

@@ -11,6 +11,7 @@ tarayıcı tabanlı kişisel takip uygulaması.
 - Görsel, PDF, ofis belgesi ve teknik çizim arşivi
 - Oyun, iş, açıklama, sorumlu ve dosyalarda genel arama
 - IndexedDB üzerinde geniş yerel depolama ve eski verileri otomatik taşıma
+- Google Drive ortak havuzu, cihazlar arası otomatik eşitleme ve çevrimdışı yerel önbellek
 - JSON yedekleme / geri yükleme, silme işlemini geri alma
 - Açık/koyu tema, mobil uyum, yazdırılabilir üretim raporu
 - PWA/çevrimdışı kullanım desteği

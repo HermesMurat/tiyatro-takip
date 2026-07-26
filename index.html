@@ -7,7 +7,7 @@
   <meta name="description" content="Devlet Tiyatroları oyun üretimi, atölye işleri ve teknik dosyalar için kişisel takip alanı.">
   <title>Sahne Üretim Takip</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./assets/styles.css?v=3.0.2">
+  <link rel="stylesheet" href="./assets/styles.css?v=3.1.0">
   <script>
     (() => {
       const saved = localStorage.getItem("tiyatroTakipTheme");
@@ -36,6 +36,11 @@
     </label>
 
     <div class="header-actions">
+      <button id="drive-status-button" class="drive-status-button" type="button" data-action="open-storage"
+        title="Google Drive senkronizasyonu" aria-label="Google Drive senkronizasyonu: bağlı değil">
+        <span id="drive-status-dot" class="drive-status-dot" aria-hidden="true"></span>
+        <span class="drive-status-label">Drive</span>
+      </button>
       <button class="icon-button" type="button" data-action="open-storage" title="Veri ve yedekleme"
         aria-label="Veri ve yedekleme"><span aria-hidden="true">↥</span></button>
       <button class="icon-button" type="button" data-action="toggle-theme" title="Temayı değiştir"
@@ -319,18 +324,34 @@
       </div>
       <strong id="storage-used">—</strong>
     </div>
+    <section class="cloud-card" aria-labelledby="cloud-card-title">
+      <div class="cloud-card-heading">
+        <span id="cloud-dot" class="cloud-dot" aria-hidden="true"></span>
+        <div>
+          <strong id="cloud-card-title">Google Drive ortak havuzu</strong>
+          <small id="cloud-detail">Bağlı değil · kayıtlar yalnızca bu cihazda</small>
+        </div>
+      </div>
+      <div class="cloud-actions">
+        <button id="drive-connect-button" class="button button-primary" type="button" data-action="connect-drive">Google Drive’a bağlan</button>
+        <button id="drive-pull-button" class="button button-secondary" type="button" data-action="pull-drive" disabled>Buluttan yenile</button>
+        <button id="drive-push-button" class="button button-secondary" type="button" data-action="push-drive" disabled>Şimdi eşitle</button>
+      </div>
+      <p id="cloud-last-sync" class="cloud-last-sync">Bağlandığınızda oyunlar ve dosyalar bu hesaba ait Drive alanında saklanır.</p>
+    </section>
     <div class="storage-actions">
       <button type="button" data-action="export-data"><span aria-hidden="true">↓</span><strong>Yedek indir</strong><small>Bütün oyunları ve dosyaları JSON olarak kaydeder.</small></button>
       <button type="button" data-action="import-data"><span aria-hidden="true">↑</span><strong>Yedeği geri yükle</strong><small>Başka cihazdan alınan yedeği açar.</small></button>
       <button type="button" data-action="request-persistent-storage"><span aria-hidden="true">◇</span><strong>Kalıcı depolamayı etkinleştir</strong><small>Tarayıcının otomatik alan temizliğine karşı koruma ister.</small></button>
     </div>
-    <p class="storage-note">Oyun verileri GitHub deposuna değil, cihazınızdaki geniş uygulama alanına kaydedilir. Düzenli yedek almak cihaz değişikliğinde veri kaybını önler.</p>
+    <p class="storage-note">Google Drive bağlandığında ortak kopya otomatik güncellenir. IndexedDB çevrimdışı çalışmak için cihazdaki güvenli önbellek olarak kalır.</p>
   </dialog>
 
   <input id="import-input" type="file" accept="application/json,.json" hidden>
   <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
 
   <noscript>Bu uygulamayı kullanmak için JavaScript etkin olmalıdır.</noscript>
-  <script src="./assets/app.js?v=3.0.2" defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="./assets/app.js?v=3.1.0" defer></script>
 </body>
 </html>
