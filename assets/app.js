@@ -555,7 +555,7 @@ function updateDriveStatus(detail = "") {
   const statusButton = byId("drive-status-button");
   const cloudDetail = byId("cloud-detail");
   const lastSync = byId("cloud-last-sync");
-  const connectedText = detail || (driveConnected ? "Bağlı · otomatik eşitleme açık" : "Bağlı değil · kayıtlar yalnızca bu cihazda");
+  const connectedText = detail || (driveConnected ? "Bağlı · otomatik eşitleme açık" : "Bağlı değil · ortak kayıt için hesabı bağlayın");
 
   headerDot?.classList.toggle("connected", driveConnected);
   cloudDot?.classList.toggle("connected", driveConnected);
@@ -567,7 +567,7 @@ function updateDriveStatus(detail = "") {
   if (lastSync) {
     lastSync.textContent = lastCloudSyncAt
       ? `Son eşitleme: ${new Intl.DateTimeFormat("tr-TR", { dateStyle: "short", timeStyle: "short" }).format(new Date(lastCloudSyncAt))}`
-      : "Bağlandığınızda oyunlar ve dosyalar bu hesaba ait Drive alanında saklanır.";
+      : "Ortak hesap: tiyatrouretimtakip@gmail.com";
   }
 }
 
