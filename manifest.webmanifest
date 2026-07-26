@@ -1,12 +1,12 @@
 {
-  "name": "Sahne Üretim Takip",
-  "short_name": "Sahne Takip",
-  "description": "Oyun üretimi, atölye işleri ve teknik dosyalar için kişisel takip alanı.",
+  "name": "İzmir DT Atölye Takip",
+  "short_name": "İzmir DT Takip",
+  "description": "İzmir Devlet Tiyatrosu oyunları, atölye işleri ve teknik dosyaları için ortak takip alanı.",
   "lang": "tr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#12110f",
-  "theme_color": "#12110f",
+  "background_color": "#f5f5f7",
+  "theme_color": "#f5f5f7",
   "categories": ["productivity", "business"]
 }

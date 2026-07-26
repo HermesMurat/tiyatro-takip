@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#12110f">
-  <meta name="description" content="Devlet Tiyatroları oyun üretimi, atölye işleri ve teknik dosyalar için kişisel takip alanı.">
-  <title>Sahne Üretim Takip</title>
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="İzmir Devlet Tiyatrosu oyunları, atölye işleri ve teknik dosyaları için ortak takip alanı.">
+  <title>İzmir DT Atölye Takip</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./assets/styles.css?v=3.1.0">
+  <link rel="stylesheet" href="./assets/styles.css?v=3.2.0">
   <script>
     (() => {
       const saved = localStorage.getItem("tiyatroTakipTheme");
@@ -23,8 +23,8 @@
     <button class="brand" type="button" data-action="dashboard" aria-label="Ana sayfaya dön">
       <span class="brand-mark" aria-hidden="true">ST</span>
       <span>
-        <strong>Sahne Takip</strong>
-        <small>Üretim merkezi</small>
+        <strong>İzmir DT</strong>
+        <small>Atölye Takip</small>
       </span>
     </button>
 
@@ -55,9 +55,9 @@
     <section id="dashboard-view" class="view">
       <div class="hero">
         <div>
-          <p class="eyebrow">İZMİR · SAHNE ÜRETİMİ</p>
-          <h1>Oyunların bütün üretim akışı,<br><em>tek sahnede.</em></h1>
-          <p class="hero-copy">Atölye işlerini, terminleri ve teknik dosyaları kaybolmadan izleyin.</p>
+          <p class="eyebrow">İZMİR DEVLET TİYATROSU</p>
+          <h1>Atölyedeki bütün işler.<br><em>Tek ve ortak alanda.</em></h1>
+          <p class="hero-copy">Oyunları, atölye işlerini, terminleri ve bitmiş iş fotoğraflarını birlikte takip edin.</p>
         </div>
         <div class="hero-actions">
           <button class="button button-primary" type="button" data-action="new-production">Yeni oyun oluştur</button>
@@ -87,7 +87,7 @@
       <section class="content-section" aria-labelledby="productions-title">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">PRODÜKSİYONLAR</p>
+            <p class="eyebrow">OYUNLAR</p>
             <h2 id="productions-title">Oyunlar</h2>
             <p id="production-count" class="muted">0 oyun</p>
           </div>
@@ -122,7 +122,7 @@
         <div class="production-hero-shade"></div>
         <div class="production-hero-content">
           <div>
-            <div id="production-state-badge" class="status-pill">Aktif prodüksiyon</div>
+            <div id="production-state-badge" class="status-pill">Aktif oyun</div>
             <h1 id="production-title">—</h1>
             <p id="production-meta">—</p>
           </div>
@@ -213,7 +213,7 @@
   <dialog id="production-dialog" class="modal">
     <form id="production-form" method="dialog">
       <div class="modal-header">
-        <div><p class="eyebrow">PRODÜKSİYON</p><h2 id="production-dialog-title">Yeni oyun</h2></div>
+        <div><p class="eyebrow">OYUN</p><h2 id="production-dialog-title">Yeni oyun</h2></div>
         <button class="close-button" type="button" data-close-dialog="production-dialog" aria-label="Kapat">×</button>
       </div>
       <div class="form-grid">
@@ -328,8 +328,8 @@
       <div class="cloud-card-heading">
         <span id="cloud-dot" class="cloud-dot" aria-hidden="true"></span>
         <div>
-          <strong id="cloud-card-title">Google Drive ortak havuzu</strong>
-          <small id="cloud-detail">Bağlı değil · kayıtlar yalnızca bu cihazda</small>
+          <strong id="cloud-card-title">Merkezi Google Drive hesabı</strong>
+          <small id="cloud-detail">Bağlı değil · ortak kayıt için hesabı bağlayın</small>
         </div>
       </div>
       <div class="cloud-actions">
@@ -337,14 +337,14 @@
         <button id="drive-pull-button" class="button button-secondary" type="button" data-action="pull-drive" disabled>Buluttan yenile</button>
         <button id="drive-push-button" class="button button-secondary" type="button" data-action="push-drive" disabled>Şimdi eşitle</button>
       </div>
-      <p id="cloud-last-sync" class="cloud-last-sync">Bağlandığınızda oyunlar ve dosyalar bu hesaba ait Drive alanında saklanır.</p>
+      <p id="cloud-last-sync" class="cloud-last-sync">Ortak hesap: tiyatrouretimtakip@gmail.com</p>
     </section>
     <div class="storage-actions">
       <button type="button" data-action="export-data"><span aria-hidden="true">↓</span><strong>Yedek indir</strong><small>Bütün oyunları ve dosyaları JSON olarak kaydeder.</small></button>
       <button type="button" data-action="import-data"><span aria-hidden="true">↑</span><strong>Yedeği geri yükle</strong><small>Başka cihazdan alınan yedeği açar.</small></button>
       <button type="button" data-action="request-persistent-storage"><span aria-hidden="true">◇</span><strong>Kalıcı depolamayı etkinleştir</strong><small>Tarayıcının otomatik alan temizliğine karşı koruma ister.</small></button>
     </div>
-    <p class="storage-note">Google Drive bağlandığında ortak kopya otomatik güncellenir. IndexedDB çevrimdışı çalışmak için cihazdaki güvenli önbellek olarak kalır.</p>
+    <p class="storage-note">Tüm kullanıcılar tiyatrouretimtakip@gmail.com hesabını seçtiğinde eklenen oyunlar, işler ve fotoğraflar aynı Drive alanına otomatik yüklenir.</p>
   </dialog>
 
   <input id="import-input" type="file" accept="application/json,.json" hidden>
@@ -352,6 +352,6 @@
 
   <noscript>Bu uygulamayı kullanmak için JavaScript etkin olmalıdır.</noscript>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="./assets/app.js?v=3.1.0" defer></script>
+  <script src="./assets/app.js?v=3.2.0" defer></script>
 </body>
 </html>

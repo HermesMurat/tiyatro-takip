@@ -1,7 +1,7 @@
-# Sahne Üretim Takip
+# İzmir DT Atölye Takip
 
-Devlet Tiyatroları oyun üretimi, atölye işleri, terminler ve teknik dosyalar için
-tarayıcı tabanlı kişisel takip uygulaması.
+İzmir Devlet Tiyatrosu oyunları, atölye işleri, terminler, bitmiş iş fotoğrafları
+ve teknik dosyalar için tarayıcı tabanlı ortak takip uygulaması.
 
 ## Özellikler
 
@@ -13,6 +13,7 @@ tarayıcı tabanlı kişisel takip uygulaması.
 - IndexedDB üzerinde geniş yerel depolama ve eski verileri otomatik taşıma
 - Google Drive ortak havuzu, cihazlar arası otomatik eşitleme ve çevrimdışı yerel önbellek
 - JSON yedekleme / geri yükleme, silme işlemini geri alma
+- Oyun, iş, teknik dosya ve işe ilişik dosyalarda görünür silme işlemleri
 - Açık/koyu tema, mobil uyum, yazdırılabilir üretim raporu
 - PWA/çevrimdışı kullanım desteği
 

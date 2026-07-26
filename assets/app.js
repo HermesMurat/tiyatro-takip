@@ -765,7 +765,8 @@ function renderDashboard() {
         <div class="production-card-cover" style='${cover}'>
           <span class="production-card-state">${prod.status === "archived" ? "ARŞİV" : overdue ? `${overdue} GECİKEN` : "AKTİF"}</span>
           <div class="production-card-menu">
-            <button type="button" data-action="quick-edit-production" data-id="${escapeHtml(prod.id)}" aria-label="${escapeHtml(prod.name)} oyununu düzenle">✎</button>
+            <button type="button" data-action="quick-edit-production" data-id="${escapeHtml(prod.id)}" aria-label="${escapeHtml(prod.name)} oyununu düzenle" title="Düzenle">✎</button>
+            <button class="quick-delete" type="button" data-action="quick-delete-production" data-id="${escapeHtml(prod.id)}" aria-label="${escapeHtml(prod.name)} oyununu sil" title="Sil">⌫</button>
           </div>
         </div>
         <div class="production-card-body">
@@ -818,7 +819,7 @@ function renderProduction() {
     ? `url("${prod.poster}")`
     : "linear-gradient(135deg,#433528 0%,#292329 48%,#1c292c 100%)";
   byId("production-title").textContent = prod.name;
-  byId("production-state-badge").textContent = prod.status === "archived" ? "Arşivde" : "Aktif prodüksiyon";
+  byId("production-state-badge").textContent = prod.status === "archived" ? "Arşivde" : "Aktif oyun";
   byId("production-meta").textContent = [
     prod.director ? `Yönetmen: ${prod.director}` : "",
     prod.venue,
@@ -906,7 +907,10 @@ function renderTasks() {
               ${Object.entries(STATUS).map(([key, value]) => `<option value="${key}" ${key === task.status ? "selected" : ""}>${value.short}</option>`).join("")}
             </select>
           </td>
-          <td><button class="table-row-button" type="button" data-action="open-task" data-id="${escapeHtml(task.id)}">Aç</button></td>
+          <td class="table-actions">
+            <button class="table-row-button" type="button" data-action="open-task" data-id="${escapeHtml(task.id)}">Aç</button>
+            <button class="table-delete-button" type="button" data-action="quick-delete-task" data-id="${escapeHtml(task.id)}" aria-label="${escapeHtml(task.name)} işini sil">Sil</button>
+          </td>
         </tr>`;
     }).join("");
   }
@@ -1167,7 +1171,10 @@ function openTaskDetail(id) {
   const attachments = task.attachments.length
     ? task.attachments.map(file => `
         <div class="attachment-row"><span>${escapeHtml(file.name)} · ${formatBytes(file.size)}</span>
-        <a href="${file.data}" download="${escapeHtml(file.originalName || file.name)}">İndir</a></div>`).join("")
+        <div class="attachment-actions">
+          <a href="${file.data}" download="${escapeHtml(file.originalName || file.name)}">İndir</a>
+          <button type="button" data-action="delete-task-attachment" data-id="${escapeHtml(file.id)}" aria-label="${escapeHtml(file.name)} dosyasını sil">Sil</button>
+        </div></div>`).join("")
     : '<p class="muted">Bu işe iliştirilmiş dosya yok.</p>';
   byId("task-detail-content").innerHTML = `
     <div class="task-detail-head">
@@ -1248,6 +1255,23 @@ async function deleteTask() {
   });
 }
 
+async function deleteTaskById(id) {
+  const prod = getActiveProduction();
+  const task = prod?.tasks.find(item => String(item.id) === String(id));
+  if (!prod || !task || !confirm(`“${task.name}” işini silmek istiyor musunuz?`)) return;
+  const snapshot = cloneData(appData);
+  prod.tasks = prod.tasks.filter(item => String(item.id) !== String(task.id));
+  prod.updatedAt = new Date().toISOString();
+  await saveData();
+  renderProduction();
+  undoSnapshot = snapshot;
+  showToast("İş silindi.", "info", 7000, {
+    label: "Geri al", callback: async () => {
+      appData = normalizeAppData(undoSnapshot); undoSnapshot = null; await saveData(); renderProduction();
+    }
+  });
+}
+
 async function deleteProduction() {
   const prod = getActiveProduction();
   if (!prod || !confirm(`“${prod.name}” oyununu bütün işleri ve dosyalarıyla silmek istiyor musunuz?`)) return;
@@ -1255,6 +1279,21 @@ async function deleteProduction() {
   appData.productions = appData.productions.filter(item => String(item.id) !== String(prod.id));
   await saveData();
   showDashboard();
+  undoSnapshot = snapshot;
+  showToast("Oyun silindi.", "info", 7000, {
+    label: "Geri al", callback: async () => {
+      appData = normalizeAppData(undoSnapshot); undoSnapshot = null; await saveData(); renderDashboard();
+    }
+  });
+}
+
+async function deleteProductionById(id) {
+  const prod = appData.productions.find(item => String(item.id) === String(id));
+  if (!prod || !confirm(`“${prod.name}” oyununu bütün işleri ve dosyalarıyla silmek istiyor musunuz?`)) return;
+  const snapshot = cloneData(appData);
+  appData.productions = appData.productions.filter(item => String(item.id) !== String(prod.id));
+  await saveData();
+  renderDashboard();
   undoSnapshot = snapshot;
   showToast("Oyun silindi.", "info", 7000, {
     label: "Geri al", callback: async () => {
@@ -1275,6 +1314,26 @@ async function deleteFile(id) {
   showToast("Dosya silindi.", "info", 7000, {
     label: "Geri al", callback: async () => {
       appData = normalizeAppData(undoSnapshot); undoSnapshot = null; await saveData(); renderProduction();
+    }
+  });
+}
+
+async function deleteTaskAttachment(id) {
+  const prod = getActiveProduction();
+  const task = getActiveTask();
+  const file = task?.attachments.find(item => String(item.id) === String(id));
+  if (!prod || !task || !file || !confirm(`“${file.name}” dosyasını bu işten silmek istiyor musunuz?`)) return;
+  const snapshot = cloneData(appData);
+  task.attachments = task.attachments.filter(item => String(item.id) !== String(file.id));
+  task.updatedAt = new Date().toISOString();
+  prod.updatedAt = task.updatedAt;
+  await saveData();
+  openTaskDetail(task.id);
+  renderProduction();
+  undoSnapshot = snapshot;
+  showToast("İlişik dosya silindi.", "info", 7000, {
+    label: "Geri al", callback: async () => {
+      appData = normalizeAppData(undoSnapshot); undoSnapshot = null; await saveData(); renderProduction(); openTaskDetail(task.id);
     }
   });
 }
@@ -1321,7 +1380,7 @@ async function importData(file) {
     const text = await file.text();
     const parsed = JSON.parse(text);
     const candidate = parsed.format === "sahne-takip-backup" ? parsed.data : parsed;
-    if (!candidate || !Array.isArray(candidate.productions)) throw new Error("Bu dosya geçerli bir Sahne Takip yedeği değil.");
+    if (!candidate || !Array.isArray(candidate.productions)) throw new Error("Bu dosya geçerli bir İzmir DT Atölye Takip yedeği değil.");
     if (!confirm(`Yedekte ${candidate.productions.length} oyun var. Mevcut verinin yerine geri yüklensin mi?`)) return;
     appData = normalizeAppData(candidate);
     await saveData();
@@ -1381,7 +1440,7 @@ function toggleTheme() {
   const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
   document.documentElement.dataset.theme = next;
   localStorage.setItem("tiyatroTakipTheme", next);
-  document.querySelector('meta[name="theme-color"]').content = next === "light" ? "#f3efe7" : "#12110f";
+  document.querySelector('meta[name="theme-color"]').content = next === "light" ? "#f5f5f7" : "#000000";
 }
 
 function bindEvents() {
@@ -1397,6 +1456,7 @@ function bindEvents() {
     if (action === "new-production") openProductionDialog();
     if (action === "open-production") openProduction(id);
     if (action === "quick-edit-production") openProductionDialog(appData.productions.find(prod => String(prod.id) === String(id)));
+    if (action === "quick-delete-production") deleteProductionById(id);
     if (action === "edit-production") openProductionDialog(getActiveProduction());
     if (action === "delete-production") deleteProduction();
     if (action === "archive-production") toggleArchive();
@@ -1404,10 +1464,12 @@ function bindEvents() {
     if (action === "open-task") openTaskDetail(id);
     if (action === "edit-task") { const task = getActiveTask(); closeDialog("task-detail-dialog"); openTaskDialog(task); }
     if (action === "delete-task") deleteTask();
+    if (action === "quick-delete-task") deleteTaskById(id);
     if (action === "detail-status") changeTaskStatus(activeTaskId, button.dataset.status);
     if (action === "new-file") openFileDialog();
     if (action === "open-file") openFile(id);
     if (action === "delete-file") deleteFile(id);
+    if (action === "delete-task-attachment") deleteTaskAttachment(id);
     if (action === "toggle-theme") toggleTheme();
     if (action === "open-storage") { updateStorageStatus(); byId("storage-dialog").showModal(); }
     if (action === "export-data") exportData();
@@ -1523,7 +1585,7 @@ async function init() {
   updateStorageStatus();
   updateDriveStatus();
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    navigator.serviceWorker.register("./sw.js?v=3.1.0", { updateViaCache: "none" })
+    navigator.serviceWorker.register("./sw.js?v=3.2.0", { updateViaCache: "none" })
       .catch(error => console.warn("Çevrimdışı destek başlatılamadı", error));
   }
 }
