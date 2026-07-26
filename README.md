@@ -11,7 +11,7 @@ ve teknik dosyalar için tarayıcı tabanlı ortak takip uygulaması.
 - Görsel, PDF, ofis belgesi ve teknik çizim arşivi
 - Oyun, iş, açıklama, sorumlu ve dosyalarda genel arama
 - IndexedDB üzerinde geniş yerel depolama ve eski verileri otomatik taşıma
-- Google Drive ortak havuzu, cihazlar arası otomatik eşitleme ve çevrimdışı yerel önbellek
+- Merkezi Google Drive ortak havuzu; çalışan hesabı istemeden otomatik cihazlar arası eşitleme
 - JSON yedekleme / geri yükleme, silme işlemini geri alma
 - Oyun, iş, teknik dosya ve işe ilişik dosyalarda görünür silme işlemleri
 - Açık/koyu tema, mobil uyum, yazdırılabilir üretim raporu

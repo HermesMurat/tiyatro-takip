@@ -8,11 +8,9 @@ const STATE_KEY = "state";
 const FALLBACK_KEY = "sahneTakipFallbackV3";
 const LEGACY_KEYS = ["sahneProV2", "sahneProRenkli"];
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
-const GOOGLE_CLIENT_ID = "952189684433-49ppv6b8hftpjcpp7ptgrsbo8tdvqn61.apps.googleusercontent.com";
-const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
-const DRIVE_FOLDER_NAME = "Sahne Üretim Takip";
-const DRIVE_STATE_NAME = "sahne-takip-veri.json";
-const DRIVE_IDS_KEY = "sahneTakipDriveIdsV1";
+const CENTRAL_ENDPOINT = "https://script.google.com/macros/s/AKfycbxKngIE3K6_jsTpJvyj0mis3sENkPtRmwRMOS4fWEX4rasOVCFNJloZCGHgtEXGfqOB/exec";
+const TEAM_KEY_STORAGE = "izmirDtAtolyeErisimV1";
+const TEAM_KEY_PATTERN = /^[0-9a-f]{32,128}$/i;
 
 const DEPARTMENTS = [
   { id: "demir", name: "Demir", color: "#b47b66", ink: "#fff5ef" },
@@ -64,10 +62,8 @@ let undoSnapshot = null;
 let saveSequence = Promise.resolve();
 let cloudSaveTimer = null;
 let cloudSaveSequence = Promise.resolve();
-let driveTokenClient = null;
-let driveAccessToken = "";
-let driveFolderId = "";
-let driveStateFileId = "";
+let teamAccessKey = "";
+let teamKeyJustAdded = false;
 let driveConnected = false;
 let driveSyncing = false;
 let lastCloudSyncAt = "";
@@ -292,7 +288,7 @@ async function loadData() {
 }
 
 function saveData(options = {}) {
-  appData.updatedAt = new Date().toISOString();
+  if (!options.preserveTimestamp) appData.updatedAt = new Date().toISOString();
   const snapshot = cloneData(appData);
   saveSequence = saveSequence.then(async () => {
     if (storageMode === "indexeddb" && database) {
@@ -312,166 +308,57 @@ function saveData(options = {}) {
   return saveSequence;
 }
 
-function loadDriveIds() {
-  try {
-    const value = JSON.parse(localStorage.getItem(DRIVE_IDS_KEY) || "{}");
-    driveFolderId = String(value.folderId || "");
-    driveStateFileId = String(value.stateFileId || "");
-  } catch {
-    driveFolderId = "";
-    driveStateFileId = "";
+function initializeTeamAccess() {
+  const params = new URLSearchParams(location.hash.replace(/^#/, ""));
+  const incomingKey = params.get("ekip") || "";
+  if (TEAM_KEY_PATTERN.test(incomingKey)) {
+    localStorage.setItem(TEAM_KEY_STORAGE, incomingKey);
+    teamKeyJustAdded = true;
+    params.delete("ekip");
+    const cleanHash = params.toString();
+    history.replaceState(null, "", `${location.pathname}${location.search}${cleanHash ? `#${cleanHash}` : ""}`);
+  }
+  teamAccessKey = localStorage.getItem(TEAM_KEY_STORAGE) || "";
+  if (!TEAM_KEY_PATTERN.test(teamAccessKey)) {
+    teamAccessKey = "";
+    localStorage.removeItem(TEAM_KEY_STORAGE);
   }
 }
 
-function saveDriveIds() {
-  localStorage.setItem(DRIVE_IDS_KEY, JSON.stringify({
-    folderId: driveFolderId,
-    stateFileId: driveStateFileId
-  }));
-}
-
-function waitForGoogleIdentity(timeout = 10000) {
-  if (window.google?.accounts?.oauth2) return Promise.resolve();
+function centralJsonp(action = "load", timeout = 20000) {
+  if (!teamAccessKey) return Promise.reject(new Error("Bu cihaz ortak alana henüz tanıtılmadı."));
   return new Promise((resolve, reject) => {
-    const started = Date.now();
-    const timer = setInterval(() => {
-      if (window.google?.accounts?.oauth2) {
-        clearInterval(timer);
-        resolve();
-      } else if (Date.now() - started > timeout) {
-        clearInterval(timer);
-        reject(new Error("Google giriş servisi yüklenemedi."));
-      }
-    }, 120);
-  });
-}
-
-async function getDriveToken(prompt = "") {
-  await waitForGoogleIdentity();
-  return new Promise((resolve, reject) => {
-    if (!driveTokenClient) {
-      driveTokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: DRIVE_SCOPE,
-        callback: () => {}
-      });
-    }
-    driveTokenClient.callback = response => {
-      if (response.error) return reject(new Error(response.error_description || response.error));
-      driveAccessToken = response.access_token;
-      resolve(response);
+    const callback = `izmirDtAtolye_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    const script = document.createElement("script");
+    let timer;
+    const cleanup = () => {
+      clearTimeout(timer);
+      script.remove();
+      try { delete window[callback]; } catch { window[callback] = undefined; }
     };
-    driveTokenClient.error_callback = error => reject(new Error(error?.message || "Google bağlantısı tamamlanamadı."));
-    driveTokenClient.requestAccessToken({ prompt });
+    window[callback] = result => {
+      cleanup();
+      if (!result?.ok) return reject(new Error(result?.error || "Ortak alan yanıt vermedi."));
+      resolve(result);
+    };
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("Ortak alana ulaşılamadı. İnternet bağlantısını kontrol edin."));
+    };
+    const params = new URLSearchParams({
+      action,
+      key: teamAccessKey,
+      callback,
+      _: String(Date.now())
+    });
+    script.src = `${CENTRAL_ENDPOINT}?${params}`;
+    script.async = true;
+    document.head.appendChild(script);
+    timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Ortak alan bağlantısı zaman aşımına uğradı."));
+    }, timeout);
   });
-}
-
-async function driveFetch(url, options = {}) {
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${driveAccessToken}`,
-      ...(options.headers || {})
-    }
-  });
-  if (response.status === 401) {
-    setDriveDisconnected("Oturum süresi doldu · yeniden bağlanın");
-    throw new Error("Google Drive oturumunun süresi doldu.");
-  }
-  if (!response.ok) {
-    let message = `Google Drive hatası (${response.status})`;
-    try {
-      const body = await response.json();
-      message = body?.error?.message || message;
-    } catch {}
-    const error = new Error(message);
-    error.status = response.status;
-    throw error;
-  }
-  return response;
-}
-
-function driveQuery(query, fields = "files(id,name,mimeType,modifiedTime,appProperties)") {
-  const params = new URLSearchParams({
-    q: query,
-    fields,
-    spaces: "drive",
-    pageSize: "100"
-  });
-  return driveFetch(`https://www.googleapis.com/drive/v3/files?${params}`);
-}
-
-async function createDriveFile(metadata, content = null, mimeType = "application/json") {
-  if (content === null) {
-    const response = await driveFetch(
-      "https://www.googleapis.com/drive/v3/files?fields=id,name,modifiedTime",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(metadata)
-      }
-    );
-    return response.json();
-  }
-  const boundary = `sahne_takip_${Date.now()}`;
-  const parts = [
-    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`
-  ];
-  parts.push(`--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n${content}\r\n`);
-  parts.push(`--${boundary}--`);
-  const response = await driveFetch(
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,modifiedTime",
-    {
-      method: "POST",
-      headers: { "Content-Type": `multipart/related; boundary=${boundary}` },
-      body: parts.join("")
-    }
-  );
-  return response.json();
-}
-
-async function ensureDriveFiles() {
-  if (driveFolderId) {
-    try {
-      await driveFetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(driveFolderId)}?fields=id`);
-    } catch (error) {
-      if (error.status !== 404) throw error;
-      driveFolderId = "";
-      driveStateFileId = "";
-    }
-  }
-
-  if (!driveFolderId) {
-    const folderResult = await driveQuery(
-      `name='${DRIVE_FOLDER_NAME.replaceAll("'", "\\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false`
-    ).then(response => response.json());
-    driveFolderId = folderResult.files?.[0]?.id || "";
-    if (!driveFolderId) {
-      const folder = await createDriveFile({
-        name: DRIVE_FOLDER_NAME,
-        mimeType: "application/vnd.google-apps.folder",
-        appProperties: { sahneTakip: "folder-v1" }
-      }, null);
-      driveFolderId = folder.id;
-    }
-  }
-
-  if (driveStateFileId) {
-    try {
-      await driveFetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(driveStateFileId)}?fields=id`);
-    } catch (error) {
-      if (error.status !== 404) throw error;
-      driveStateFileId = "";
-    }
-  }
-
-  if (!driveStateFileId) {
-    const stateResult = await driveQuery(
-      `name='${DRIVE_STATE_NAME}' and '${driveFolderId}' in parents and trashed=false`
-    ).then(response => response.json());
-    driveStateFileId = stateResult.files?.[0]?.id || "";
-  }
-  saveDriveIds();
 }
 
 function cloudPayload(data) {
@@ -484,27 +371,18 @@ function cloudPayload(data) {
 }
 
 async function uploadCloudData(data = appData) {
-  if (!driveConnected || !driveAccessToken) throw new Error("Önce Google Drive’a bağlanın.");
+  if (!teamAccessKey) throw new Error("Bu cihaz ortak alana henüz tanıtılmadı.");
   const snapshot = normalizeAppData(cloneData(data));
-  const content = JSON.stringify(cloudPayload(snapshot));
-  setDriveSyncing(true, "Drive’a kaydediliyor…");
+  setDriveSyncing(true, "Ortak alana kaydediliyor…");
   try {
-    await ensureDriveFiles();
-    if (!driveStateFileId) {
-      const created = await createDriveFile({
-        name: DRIVE_STATE_NAME,
-        mimeType: "application/json",
-        parents: [driveFolderId],
-        appProperties: { sahneTakip: "state-v1" }
-      }, content);
-      driveStateFileId = created.id;
-      saveDriveIds();
-    } else {
-      await driveFetch(
-        `https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(driveStateFileId)}?uploadType=media&fields=id,modifiedTime`,
-        { method: "PATCH", headers: { "Content-Type": "application/json" }, body: content }
-      );
-    }
+    await fetch(CENTRAL_ENDPOINT, {
+      method: "POST",
+      mode: "no-cors",
+      cache: "no-store",
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+      body: JSON.stringify({ action: "save", key: teamAccessKey, payload: cloudPayload(snapshot) })
+    });
+    driveConnected = true;
     lastCloudSyncAt = new Date().toISOString();
     updateDriveStatus("Eşitlendi");
   } finally {
@@ -513,14 +391,10 @@ async function uploadCloudData(data = appData) {
 }
 
 async function downloadCloudData() {
-  await ensureDriveFiles();
-  if (!driveStateFileId) return null;
-  const response = await driveFetch(
-    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(driveStateFileId)}?alt=media`
-  );
-  const parsed = await response.json();
+  const response = await centralJsonp("load");
+  const parsed = response.payload;
   const candidate = parsed?.format === "sahne-takip-cloud" ? parsed.data : parsed;
-  if (!candidate || !Array.isArray(candidate.productions)) throw new Error("Drive’daki veri dosyası okunamadı.");
+  if (!candidate || !Array.isArray(candidate.productions)) throw new Error("Ortak veri dosyası okunamadı.");
   return normalizeAppData(candidate);
 }
 
@@ -541,7 +415,7 @@ function setDriveSyncing(syncing, detail = "") {
   driveSyncing = syncing;
   ["drive-connect-button", "drive-pull-button", "drive-push-button"].forEach(id => {
     const element = byId(id);
-    if (element) element.disabled = syncing || (!driveConnected && id !== "drive-connect-button");
+    if (element) element.disabled = syncing || !teamAccessKey || (!driveConnected && id !== "drive-connect-button");
   });
   if (detail) updateDriveStatus(detail);
 }
@@ -555,14 +429,23 @@ function updateDriveStatus(detail = "") {
   const statusButton = byId("drive-status-button");
   const cloudDetail = byId("cloud-detail");
   const lastSync = byId("cloud-last-sync");
-  const connectedText = detail || (driveConnected ? "Bağlı · otomatik eşitleme açık" : "Bağlı değil · ortak kayıt için hesabı bağlayın");
+  const connectedText = detail || (driveConnected
+    ? "Bağlı · otomatik eşitleme açık"
+    : teamAccessKey
+      ? "Bağlantı bekliyor · yeniden deneyin"
+      : "Bu cihaz ortak alana henüz tanıtılmadı");
 
   headerDot?.classList.toggle("connected", driveConnected);
   cloudDot?.classList.toggle("connected", driveConnected);
-  if (connectButton) connectButton.textContent = driveConnected ? "Bağlantıyı kes" : "Google Drive’a bağlan";
+  if (connectButton) {
+    connectButton.textContent = teamAccessKey
+      ? (driveConnected ? "Bağlantıyı denetle" : "Yeniden dene")
+      : "Cihaz yetkisi gerekli";
+    connectButton.disabled = driveSyncing || !teamAccessKey;
+  }
   if (pullButton) pullButton.disabled = !driveConnected || driveSyncing;
   if (pushButton) pushButton.disabled = !driveConnected || driveSyncing;
-  if (statusButton) statusButton.setAttribute("aria-label", `Google Drive senkronizasyonu: ${connectedText}`);
+  if (statusButton) statusButton.setAttribute("aria-label", `Ortak alan senkronizasyonu: ${connectedText}`);
   if (cloudDetail) cloudDetail.textContent = connectedText;
   if (lastSync) {
     lastSync.textContent = lastCloudSyncAt
@@ -573,56 +456,55 @@ function updateDriveStatus(detail = "") {
 
 function setDriveDisconnected(detail = "") {
   driveConnected = false;
-  driveAccessToken = "";
   updateDriveStatus(detail);
 }
 
-async function connectDrive() {
-  if (driveConnected) {
-    const token = driveAccessToken;
-    setDriveDisconnected();
-    if (token && window.google?.accounts?.oauth2) google.accounts.oauth2.revoke(token);
-    showToast("Google Drive bağlantısı kesildi. Yerel kayıtlar korunuyor.", "info");
-    return;
+async function connectDrive(options = {}) {
+  const silent = Boolean(options.silent);
+  if (!teamAccessKey) {
+    setDriveDisconnected("Bu cihaz ortak alana henüz tanıtılmadı");
+    if (!silent) showToast("Bu cihaz için atölye erişim bağlantısını açın.", "info", 5500);
+    return false;
   }
-  setDriveSyncing(true, "Google hesabı bekleniyor…");
+  setDriveSyncing(true, "Ortak alan hazırlanıyor…");
   try {
-    await getDriveToken("select_account");
+    await centralJsonp("ping");
     driveConnected = true;
-    updateDriveStatus("Drive hazırlanıyor…");
-    await ensureDriveFiles();
     const remote = await downloadCloudData();
     const localHasData = appData.productions.length > 0;
     const remoteHasData = Boolean(remote?.productions?.length);
-    if (!remote) {
-      await uploadCloudData(appData);
-      showToast("Google Drive ortak havuzu oluşturuldu.", "success");
-    } else if (!localHasData && remoteHasData) {
+    if (!localHasData && remoteHasData) {
       appData = remote;
-      await saveData({ silent: true, skipCloud: true });
+      await saveData({ silent: true, skipCloud: true, preserveTimestamp: true });
       renderCurrentView();
       lastCloudSyncAt = new Date().toISOString();
-      showToast("Drive’daki kayıtlar bu cihaza getirildi.", "success");
+      if (!silent) showToast("Ortak kayıtlar bu cihaza getirildi.", "success");
     } else if (localHasData && !remoteHasData) {
       await uploadCloudData(appData);
-      showToast("Bu cihazdaki kayıtlar Drive’a aktarıldı.", "success");
+      if (!silent) showToast("Bu cihazdaki kayıtlar ortak alana aktarıldı.", "success");
     } else if (new Date(remote.updatedAt).getTime() > new Date(appData.updatedAt).getTime()) {
       appData = remote;
-      await saveData({ silent: true, skipCloud: true });
+      await saveData({ silent: true, skipCloud: true, preserveTimestamp: true });
       renderCurrentView();
       lastCloudSyncAt = new Date().toISOString();
-      showToast("Drive’daki daha güncel kayıtlar açıldı.", "success");
+      if (!silent) showToast("Ortak alandaki güncel kayıtlar açıldı.", "success");
     } else if (new Date(appData.updatedAt).getTime() > new Date(remote.updatedAt).getTime()) {
       await uploadCloudData(appData);
-      showToast("Bu cihazdaki daha güncel kayıtlar Drive’a aktarıldı.", "success");
+      if (!silent) showToast("Bu cihazdaki güncel kayıtlar ortak alana aktarıldı.", "success");
     } else {
       lastCloudSyncAt = new Date().toISOString();
       updateDriveStatus("Eşitlendi");
-      showToast("Google Drive bağlantısı hazır.", "success");
+      if (!silent) showToast("Ortak alan bağlantısı hazır.", "success");
     }
+    if (teamKeyJustAdded) {
+      showToast("Bu cihaz ortak atölye alanına otomatik bağlandı.", "success", 5000);
+      teamKeyJustAdded = false;
+    }
+    return true;
   } catch (error) {
     setDriveDisconnected(error.message || "Bağlantı kurulamadı");
-    showToast(error.message || "Google Drive bağlantısı kurulamadı.", "error", 7000);
+    if (!silent || teamKeyJustAdded) showToast(error.message || "Ortak alan bağlantısı kurulamadı.", "error", 7000);
+    return false;
   } finally {
     setDriveSyncing(false);
     updateDriveStatus();
@@ -636,18 +518,18 @@ function renderCurrentView() {
 
 async function pullFromDrive() {
   if (!driveConnected) return connectDrive();
-  setDriveSyncing(true, "Drive’dan alınıyor…");
+  setDriveSyncing(true, "Ortak alandan alınıyor…");
   try {
     const remote = await downloadCloudData();
-    if (!remote) return showToast("Drive’da henüz ortak kayıt bulunmuyor.", "info");
+    if (!remote) return showToast("Ortak alanda henüz kayıt bulunmuyor.", "info");
     appData = remote;
-    await saveData({ silent: true, skipCloud: true });
+    await saveData({ silent: true, skipCloud: true, preserveTimestamp: true });
     lastCloudSyncAt = new Date().toISOString();
     renderCurrentView();
     updateDriveStatus("Eşitlendi");
-    showToast("Drive’daki kayıtlar yenilendi.", "success");
+    showToast("Ortak kayıtlar yenilendi.", "success");
   } catch (error) {
-    showToast(error.message || "Drive’daki kayıtlar alınamadı.", "error", 6500);
+    showToast(error.message || "Ortak kayıtlar alınamadı.", "error", 6500);
   } finally {
     setDriveSyncing(false);
   }
@@ -657,9 +539,9 @@ async function pushToDrive() {
   if (!driveConnected) return connectDrive();
   try {
     await uploadCloudData(appData);
-    showToast("Kayıtlar Google Drive ile eşitlendi.", "success");
+    showToast("Kayıtlar merkezi Drive alanıyla eşitlendi.", "success");
   } catch (error) {
-    showToast(error.message || "Drive eşitlemesi tamamlanamadı.", "error", 6500);
+    showToast(error.message || "Ortak alan eşitlemesi tamamlanamadı.", "error", 6500);
   }
 }
 
@@ -1578,14 +1460,16 @@ function bindEvents() {
 async function init() {
   populateSelects();
   bindEvents();
-  loadDriveIds();
+  initializeTeamAccess();
   appData = await loadData();
-  await saveData({ silent: true });
+  await saveData({ silent: true, skipCloud: true, preserveTimestamp: true });
   renderDashboard();
   updateStorageStatus();
   updateDriveStatus();
+  await connectDrive({ silent: true });
+  window.addEventListener("online", () => connectDrive({ silent: true }));
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    navigator.serviceWorker.register("./sw.js?v=3.2.0", { updateViaCache: "none" })
+    navigator.serviceWorker.register("./sw.js?v=3.3.0", { updateViaCache: "none" })
       .catch(error => console.warn("Çevrimdışı destek başlatılamadı", error));
   }
 }

@@ -7,7 +7,7 @@
   <meta name="description" content="İzmir Devlet Tiyatrosu oyunları, atölye işleri ve teknik dosyaları için ortak takip alanı.">
   <title>İzmir DT Atölye Takip</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./assets/styles.css?v=3.2.0">
+  <link rel="stylesheet" href="./assets/styles.css?v=3.3.0">
   <script>
     (() => {
       const saved = localStorage.getItem("tiyatroTakipTheme");
@@ -37,7 +37,7 @@
 
     <div class="header-actions">
       <button id="drive-status-button" class="drive-status-button" type="button" data-action="open-storage"
-        title="Google Drive senkronizasyonu" aria-label="Google Drive senkronizasyonu: bağlı değil">
+        title="Ortak alan senkronizasyonu" aria-label="Ortak alan senkronizasyonu: bağlantı bekliyor">
         <span id="drive-status-dot" class="drive-status-dot" aria-hidden="true"></span>
         <span class="drive-status-label">Drive</span>
       </button>
@@ -329,11 +329,11 @@
         <span id="cloud-dot" class="cloud-dot" aria-hidden="true"></span>
         <div>
           <strong id="cloud-card-title">Merkezi Google Drive hesabı</strong>
-          <small id="cloud-detail">Bağlı değil · ortak kayıt için hesabı bağlayın</small>
+          <small id="cloud-detail">Ortak alan otomatik bağlanıyor…</small>
         </div>
       </div>
       <div class="cloud-actions">
-        <button id="drive-connect-button" class="button button-primary" type="button" data-action="connect-drive">Google Drive’a bağlan</button>
+        <button id="drive-connect-button" class="button button-primary" type="button" data-action="connect-drive">Bağlantıyı denetle</button>
         <button id="drive-pull-button" class="button button-secondary" type="button" data-action="pull-drive" disabled>Buluttan yenile</button>
         <button id="drive-push-button" class="button button-secondary" type="button" data-action="push-drive" disabled>Şimdi eşitle</button>
       </div>
@@ -344,14 +344,13 @@
       <button type="button" data-action="import-data"><span aria-hidden="true">↑</span><strong>Yedeği geri yükle</strong><small>Başka cihazdan alınan yedeği açar.</small></button>
       <button type="button" data-action="request-persistent-storage"><span aria-hidden="true">◇</span><strong>Kalıcı depolamayı etkinleştir</strong><small>Tarayıcının otomatik alan temizliğine karşı koruma ister.</small></button>
     </div>
-    <p class="storage-note">Tüm kullanıcılar tiyatrouretimtakip@gmail.com hesabını seçtiğinde eklenen oyunlar, işler ve fotoğraflar aynı Drive alanına otomatik yüklenir.</p>
+    <p class="storage-note">Bu cihaz bir kez atölye bağlantısıyla açıldığında oyunlar, işler ve fotoğraflar otomatik olarak ortak Drive alanına yüklenir. Çalışanların Google hesabı seçmesi gerekmez.</p>
   </dialog>
 
   <input id="import-input" type="file" accept="application/json,.json" hidden>
   <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
 
   <noscript>Bu uygulamayı kullanmak için JavaScript etkin olmalıdır.</noscript>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="./assets/app.js?v=3.2.0" defer></script>
+  <script src="./assets/app.js?v=3.3.0" defer></script>
 </body>
 </html>
