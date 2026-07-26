@@ -1,14 +1,18 @@
-const CACHE = "sahne-takip-v3.0.1";
+const CACHE = "sahne-takip-v3.0.2";
 const ASSETS = [
-  "./",
-  "./index.html",
-  "./assets/styles.css?v=3.0.1",
-  "./assets/app.js?v=3.0.1",
+  "./assets/styles.css?v=3.0.2",
+  "./assets/app.js?v=3.0.2",
   "./manifest.webmanifest"
 ];
 
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
+  event.waitUntil(
+    caches.open(CACHE).then(async cache => {
+      await cache.addAll(ASSETS);
+      const shell = await fetch("./index.html?v=3.0.2", { cache: "reload" });
+      if (shell.ok) await cache.put("./index.html", shell);
+    })
+  );
   self.skipWaiting();
 });
 
@@ -22,8 +26,24 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET" || new URL(event.request.url).origin !== self.location.origin) return;
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request, { cache: "reload" })
+        .then(response => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE).then(cache => cache.put("./index.html", copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match("./index.html"))
+    );
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: "no-cache" })
       .then(response => {
         const copy = response.clone();
         caches.open(CACHE).then(cache => cache.put(event.request, copy));

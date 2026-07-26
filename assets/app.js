@@ -1152,7 +1152,7 @@ async function init() {
   renderDashboard();
   updateStorageStatus();
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    navigator.serviceWorker.register("./sw.js?v=3.0.1", { updateViaCache: "none" })
+    navigator.serviceWorker.register("./sw.js?v=3.0.2", { updateViaCache: "none" })
       .catch(error => console.warn("Çevrimdışı destek başlatılamadı", error));
   }
 }
